@@ -274,6 +274,10 @@ Function Invoke-IamDeployment {
                                 }
                             }
                         }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                        }
                     }
                 }
             } else {
@@ -327,7 +331,7 @@ Function Invoke-UndoIamDeployment {
                             foreach ($viDomain in $viWorkloadDomains) {
                                 $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                if ($StatusMsg -or $WarnMsg) { Clear-Variable -Name $ErrorMsg -Force -Confirm:$false } elseif ($ErrorMsg) { $failureDetected = $true }
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             }
                         }
@@ -335,7 +339,7 @@ Function Invoke-UndoIamDeployment {
                             $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
                             $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                             $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                            if ($StatusMsg -or $WarnMsg) { Clear-Variable -Name $ErrorMsg -Force -Confirm:$false } elseif ($ErrorMsg) { $failureDetected = $true }
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
                     }
@@ -419,6 +423,10 @@ Function Invoke-UndoIamDeployment {
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -2955,6 +2963,10 @@ Function Invoke-PdrDeployment {
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                             }
                                         }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                        }
                                     }
                                 }
                             }
@@ -3212,6 +3224,10 @@ Function Invoke-UndoPdrDeployment {
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         $StatusMsg = Undo-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmFolderLifecycle -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -8928,174 +8944,174 @@ Function Invoke-DriDeployment {
         if (Test-Path -Path $kubectlPath) {
             if (Test-Path -Path $jsonFile) {
                 $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-                    if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
-                        if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                            $failureDetected = $false
-                            $certificateRequestFile     = $certificates + $jsonInput.supervisorClusterName + ".csr"
-                            $certificateFile            = $certificates + $jsonInput.supervisorClusterName + ".1.cer"
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected = $false
+                        $certificateRequestFile     = $certificates + $jsonInput.supervisorClusterName + ".csr"
+                        $certificateFile            = $certificates + $jsonInput.supervisorClusterName + ".1.cer"
 
-                            Show-PowerValidatedSolutionsOutput -message "Adding a Network Segment for $solutionName"
-                            $StatusMsg = Add-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -connectedGateway $jsonInput.tier1GatewayName -cidr $jsonInput.tanzuSegmentGatewayCIDR -transportZone $jsonInput.overlayTzName -gatewayType Tier1 -segmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        Show-PowerValidatedSolutionsOutput -message "Adding a Network Segment for $solutionName"
+                        $StatusMsg = Add-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -connectedGateway $jsonInput.tier1GatewayName -cidr $jsonInput.tanzuSegmentGatewayCIDR -transportZone $jsonInput.overlayTzName -gatewayType Tier1 -segmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Adding IP Prefix Lists to the Tier-0 Gateway for $solutionName"
+                            $StatusMsg = Add-PrefixList -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -prefixListName $jsonInput.prefixListName -subnetCIDR $jsonInput.tanzuManagementSubnetCidr -ingressSubnetCidr $jsonInput.tanzuIngressSubnetCidr -egressSubnetCidr $jsonInput.tanzuEgressSubnetCidr -GE "28" -LE "32" -Action PERMIT -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
 
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Adding IP Prefix Lists to the Tier-0 Gateway for $solutionName"
-                                $StatusMsg = Add-PrefixList -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -prefixListName $jsonInput.prefixListName -subnetCIDR $jsonInput.tanzuManagementSubnetCidr -ingressSubnetCidr $jsonInput.tanzuIngressSubnetCidr -egressSubnetCidr $jsonInput.tanzuEgressSubnetCidr -GE "28" -LE "32" -Action PERMIT -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Creating a Route Map on the Tier-0 Gateway for $solutionName"
+                            $StatusMsg = Add-RouteMap -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -Domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -routeMap $jsonInput.routeMapName -PrefixListName $jsonInput.prefixListName -action PERMIT -applyPolicy:$True -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Assigning a New Tag to the vSAN Datastore for $solutionName"
+                            $StatusMsg = Set-DatastoreTag -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tagName $jsonInput.tagName -tagCategoryName $jsonInput.tagCategoryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Creating a Storage Policy that Uses the New vSphere Tag for $solutionName"
+                            $StatusMsg = Add-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -tagName $jsonInput.tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                        }
+
+                        if (!$failureDetected) {
+                            if ((Get-VCFManager -version) -lt "5.0.0.0") {
+                                Show-PowerValidatedSolutionsOutput -message "Creating a Subscribed Content Library for $solutionName"
+                                $StatusMsg = Add-ContentLibrary -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
+                        }
 
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Creating a Route Map on the Tier-0 Gateway for $solutionName"
-                                $StatusMsg = Add-RouteMap -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -Domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -routeMap $jsonInput.routeMapName -PrefixListName $jsonInput.prefixListName -action PERMIT -applyPolicy:$True -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        if (!$failureDetected) {
+                            $dnsA = $jsonInput.dns.Split(',')[0]
+                            $dnsB = $jsonInput.dns.Split(',')[1]
+                            $ntpA = $jsonInput.ntp.Split(',')[0]
+                            $ntpB = $jsonInput.ntp.Split(',')[1]
+
+                            $wmClusterInput = @{
+                                server                              = $jsonInput.sddcManagerFqdn
+                                user                                = $jsonInput.sddcManagerUser
+                                pass                                = $jsonInput.sddcManagerPass
+                                domain                              = $jsonInput.tanzuSddcDomainName
+                                cluster                             = $jsonInput.supervisorClusterName
+                                sizeHint                            = $jsonInput.supervisorClusterSizeHint
+                                managementNetworkMode               = $jsonInput.tanzuManagementMode
+                                managementVirtualNetwork            = $jsonInput.tanzuSegmentName
+                                managementNetworkStartIpAddress     = $jsonInput.tanzuManagementStartIpAddress
+                                managementNetworkAddressRangeSize   = $jsonInput.tanzuManagementRangeSize
+                                managementNetworkGateway            = $jsonInput.tanzuManagementGateway
+                                managementNetworkSubnetMask         = $jsonInput.tanzuManagementSubnetMask
+                                masterDnsName                       = $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn
+                                masterNtpServers                    = @($ntpA, $ntpB)
+                                masterDnsServers                    = @($dnsA, $dnsB)
+                                contentLibrary                      = $jsonInput.contentLibraryName
+                                ephemeralStoragePolicy              = $jsonInput.storagePolicyName
+                                imageStoragePolicy                  = $jsonInput.storagePolicyName
+                                masterStoragePolicy                 = $jsonInput.storagePolicyName
+                                nsxEdgeCluster                      = $jsonInput.nsxEdgeCluster
+                                distributedSwitch                   = $jsonInput.distributedSwitch
+                                podCIDRs                            = $jsonInput.supervisorPodPoolCIDRs
+                                serviceCIDR                         = $jsonInput.supervisorServicePoolCIDR
+                                externalIngressCIDRs                = $jsonInput.tanzuIngressSubnetCidr
+                                externalEgressCIDRs                 = $jsonInput.tanzuEgressSubnetCidr
+                                masterDnsSearchDomain               = $jsonInput.searchPath
+                                workerDnsServers                    = @($dnsA, $dnsB)
                             }
+                            Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor for $solutionName"
+                            $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
 
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Assigning a New Tag to the vSAN Datastore for $solutionName"
-                                $StatusMsg = Set-DatastoreTag -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tagName $jsonInput.tagName -tagCategoryName $jsonInput.tagCategoryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if (!$failureDetected) {
+                            # Signed Certificate Replacement Procedures - Requires System Executing the Script to be Joined to the Certificate Authority Domain
+                            Show-PowerValidatedSolutionsOutput -message "Replacing the Supervisor Kubernetes API Endpoint Certificate for $solutionName"
+                            if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
+                                Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
+                                $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
 
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Creating a Storage Policy that Uses the New vSphere Tag for $solutionName"
-                                $StatusMsg = Add-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -tagName $jsonInput.tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
+                                $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+
+                                Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
+                                $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                            } else {
+                                Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Licensing the Supervisor for Developer Ready Infrastructure for $solutionName"
+                            $StatusMsg = Add-SupervisorClusterLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -LicenseKey $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor Namespace for $solutionName"
+                            $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.supervisorNamespaceName -StoragePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Assigning the Supervisor Namespace Roles to Active Directory Groups for $solutionName"
+                            $editRole = New-Object -TypeName psobject
+                            $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
+                            $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
+                            $viewRole = New-Object -TypeName psobject
+                            $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
+                            $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
+                            $groups = ($editRole,$viewRole)
+                            foreach ($group in $groups) {
+                                $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.supervisorNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             }
+                        }
 
-                            if (!$failureDetected) {
-                                if ((Get-VCFManager -version) -lt "5.0.0.0") {
-                                    Show-PowerValidatedSolutionsOutput -message "Creating a Subscribed Content Library for $solutionName"
-                                    $StatusMsg = Add-ContentLibrary -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                }
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Activating the Registry Service on the Supervisor for $solutionName"
+                            $StatusMsg = Enable-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Deploying a Namespace for the Tanzu Kubernetes Cluster for $solutionName"
+                            $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.tanzuNamespaceName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Assigning the New Tanzu Cluster Namespace Roles to Active Directory Groups for $solutionName"
+                            $editRole = New-Object -TypeName psobject
+                            $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
+                            $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
+                            $viewRole = New-Object -TypeName psobject
+                            $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
+                            $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
+                            $groups = ($editRole,$viewRole)
+                            foreach ($group in $groups) {
+                                $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.tanzuNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             }
+                        }
 
-                            if (!$failureDetected) {
-                                $dnsA = $jsonInput.dns.Split(',')[0]
-                                $dnsB = $jsonInput.dns.Split(',')[1]
-                                $ntpA = $jsonInput.ntp.Split(',')[0]
-                                $ntpB = $jsonInput.ntp.Split(',')[1]
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Adding a Virtual Machine Class for the Tanzu Kubernetes Cluster for $solutionName"
+                            $StatusMsg = Add-NamespaceVmClass -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.tanzuNamespaceName -vmClass $jsonInput.vmClass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
 
-                                $wmClusterInput = @{
-                                    server                              = $jsonInput.sddcManagerFqdn
-                                    user                                = $jsonInput.sddcManagerUser
-                                    pass                                = $jsonInput.sddcManagerPass
-                                    domain                              = $jsonInput.tanzuSddcDomainName
-                                    cluster                             = $jsonInput.supervisorClusterName
-                                    sizeHint                            = $jsonInput.supervisorClusterSizeHint
-                                    managementNetworkMode               = $jsonInput.tanzuManagementMode
-                                    managementVirtualNetwork            = $jsonInput.tanzuSegmentName
-                                    managementNetworkStartIpAddress     = $jsonInput.tanzuManagementStartIpAddress
-                                    managementNetworkAddressRangeSize   = $jsonInput.tanzuManagementRangeSize
-                                    managementNetworkGateway            = $jsonInput.tanzuManagementGateway
-                                    managementNetworkSubnetMask         = $jsonInput.tanzuManagementSubnetMask
-                                    masterDnsName                       = $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn
-                                    masterNtpServers                    = @($ntpA, $ntpB)
-                                    masterDnsServers                    = @($dnsA, $dnsB)
-                                    contentLibrary                      = $jsonInput.contentLibraryName
-                                    ephemeralStoragePolicy              = $jsonInput.storagePolicyName
-                                    imageStoragePolicy                  = $jsonInput.storagePolicyName
-                                    masterStoragePolicy                 = $jsonInput.storagePolicyName
-                                    nsxEdgeCluster                      = $jsonInput.nsxEdgeCluster
-                                    distributedSwitch                   = $jsonInput.distributedSwitch
-                                    podCIDRs                            = $jsonInput.supervisorPodPoolCIDRs
-                                    serviceCIDR                         = $jsonInput.supervisorServicePoolCIDR
-                                    externalIngressCIDRs                = $jsonInput.tanzuIngressSubnetCidr
-                                    externalEgressCIDRs                 = $jsonInput.tanzuEgressSubnetCidr
-                                    masterDnsSearchDomain               = $jsonInput.searchPath
-                                    workerDnsServers                    = @($dnsA, $dnsB)
-                                }
-                                Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor for $solutionName"
-                                $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                # Signed Certificate Replacement Procedures - Requires System Executing the Script to be Joined to the Certificate Authority Domain
-                                Show-PowerValidatedSolutionsOutput -message "Replacing the Supervisor Kubernetes API Endpoint Certificate for $solutionName"
-                                if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
-                                    Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
-                                    $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-
-                                    Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
-                                    $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-
-                                    Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
-                                    $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
-                                }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Licensing the Supervisor for Developer Ready Infrastructure for $solutionName"
-                                $StatusMsg = Add-SupervisorClusterLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -LicenseKey $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor Namespace for $solutionName"
-                                $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.supervisorNamespaceName -StoragePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Assigning the Supervisor Namespace Roles to Active Directory Groups for $solutionName"
-                                $editRole = New-Object -TypeName psobject
-                                $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
-                                $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
-                                $viewRole = New-Object -TypeName psobject
-                                $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
-                                $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
-                                $groups = ($editRole,$viewRole)
-                                foreach ($group in $groups) {
-                                    $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.supervisorNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
-                                }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Activating the Registry Service on the Supervisor for $solutionName"
-                                $StatusMsg = Enable-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Deploying a Namespace for the Tanzu Kubernetes Cluster for $solutionName"
-                                $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.tanzuNamespaceName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Assigning the New Tanzu Cluster Namespace Roles to Active Directory Groups for $solutionName"
-                                $editRole = New-Object -TypeName psobject
-                                $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
-                                $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
-                                $viewRole = New-Object -TypeName psobject
-                                $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
-                                $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
-                                $groups = ($editRole,$viewRole)
-                                foreach ($group in $groups) {
-                                    $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.tanzuNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
-                                }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Adding a Virtual Machine Class for the Tanzu Kubernetes Cluster for $solutionName"
-                                $StatusMsg = Add-NamespaceVmClass -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.tanzuNamespaceName -vmClass $jsonInput.vmClass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
-
-                            if (!$failureDetected) {
-                                $yamlFile = ($yamlFile = Split-Path $jsonFile -Parent) + "\" + $($jsonInput.tanzuNamespaceName) + ".yaml"
-                                $content = @"
+                        if (!$failureDetected) {
+                            $yamlFile = ($yamlFile = Split-Path $jsonFile -Parent) + "\" + $($jsonInput.tanzuNamespaceName) + ".yaml"
+                            $content = @"
 apiVersion: run.tanzu.vmware.com/v1alpha1
 kind: TanzuKubernetesCluster
 metadata:
@@ -9122,11 +9138,15 @@ services:
 pods:
     cidrBlocks: ["192.0.2.0/16"]
 "@
-                                $content | Out-File $yamlFile
-                                Show-PowerValidatedSolutionsOutput -message "Provisioning a Tanzu Kubernetes Cluster for $solutionName"
-                                $StatusMsg = Add-TanzuKubernetesCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -yaml $yamlFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                            }
+                            $content | Out-File $yamlFile
+                            Show-PowerValidatedSolutionsOutput -message "Provisioning a Tanzu Kubernetes Cluster for $solutionName"
+                            $StatusMsg = Add-TanzuKubernetesCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -yaml $yamlFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                        }
                     }
                 }
             } else {
@@ -9246,13 +9266,17 @@ Function Invoke-UndoDriDeployment {
                             $StatusMsg = Undo-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
+                        }
                     }
                 }
             } else {
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
         } else {
-            Write-Error "Unable to find path to kubectl on the local machine: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to find path to kubectl ($kubectlPath) on the local machine: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -12326,7 +12350,7 @@ Function Invoke-IlaDeployment {
                                     } else {
                                         $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     }
-                                    if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { $failureDetected = $true }
+                                    if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
 
@@ -12437,6 +12461,10 @@ Function Invoke-IlaDeployment {
                                             }
                                         }
                                     }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                    }
                                 } else {
                                     Show-PowerValidatedSolutionsOutput -type ERROR -message "Implementation of Workspace ONE Access in $lcmProductName Not Found: PRE_VALIDATION_FAILED"
                                 }
@@ -12533,7 +12561,7 @@ Function Invoke-UndoIlaDeployment {
                                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                             foreach ($vm in ($jsonInput.vmList -Split ',')) {
-                                                if (Get-VM -name $vm -ErrorAction SilentlyContinue ) {
+                                                if (Get-VM -name $vm -ErrorAction Ignore ) {
                                                     Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
                                                     Do {$powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
                                                     Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -12569,6 +12597,10 @@ Function Invoke-UndoIlaDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Deleting $logsProductName License from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                                 }
                             }
                         }
@@ -15930,7 +15962,7 @@ Function Invoke-IomDeployment {
                                         } else {
                                             $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         }
-                                        if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { $failureDetected = $true }
+                                        if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                     }
 
@@ -16076,6 +16108,10 @@ Function Invoke-IomDeployment {
                                         $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -csvPath $operationsNotifications -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                     }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                    }
                                 }
                             }
                         } else {
@@ -16161,7 +16197,7 @@ Function Invoke-UndoIomDeployment {
                                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                             foreach ($vm in ($jsonInput.vmListAll -Split ',')) {
-                                                if (Get-VM -name $vm -ErrorAction SilentlyContinue ) {
+                                                if (Get-VM -name $vm -ErrorAction Ignore ) {
                                                     Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
                                                     Do {$powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
                                                     Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -16236,6 +16272,10 @@ Function Invoke-UndoIomDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Removing SDDC Manager Role to a Service Account"
                                     $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.serviceAccountOperationsVcf -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                                 }
                             }
                         }
@@ -19922,7 +19962,7 @@ Function Invoke-PcaDeployment {
                                             } else {
                                                 $StatusMsg = New-vRADeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             }
-                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { $failureDetected = $true }
+                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                         }
 
@@ -20112,6 +20152,10 @@ Function Invoke-PcaDeployment {
                                                 }
                                             }
                                         }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                        }
                                     }
                                 }
                             } else {
@@ -20225,7 +20269,7 @@ Function Invoke-UndoPcaDeployment {
                                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                             foreach ($vm in ($jsonInput.vmList -Split ',')) {
-                                                if (Get-VM -name $vm -ErrorAction SilentlyContinue ) {
+                                                if (Get-VM -name $vm -ErrorAction Ignore ) {
                                                     Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
                                                     Do { $powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
                                                     Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -20279,6 +20323,10 @@ Function Invoke-UndoPcaDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for $automationProductName"
                                     $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                                 }
                             }
                         }
@@ -20738,12 +20786,12 @@ Function Undo-vRADeployment {
                                         $status = Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $environmentName -and $_.products.id -eq 'vra' })) {
                                             if ($status -match "COMPLETED") {
-                                                Write-Output "Removal of VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                                Write-Output "Removing VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Removal of VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                                Write-Error "Removing VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Removal of VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Removing VMware Aria Automation from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Output "Removal request of VMware Aria Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
@@ -22425,6 +22473,10 @@ Function Invoke-HrmDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Assigning VMware Aria Operations Custom Role to a Service Account for the Python Module for $solutionName"
                         Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Follow Manual Steps."
                     }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                    }
                 }
             }
         } else {
@@ -22497,6 +22549,10 @@ Function Invoke-UndoHrmDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Deleting the Virtual Machine and Template Folder for $solutionName"
                                     $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                                 }
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -22699,11 +22755,11 @@ Function Remove-PhotonAppliance {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if (Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue ) {
+                            if (Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore ) {
                                 Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
                                 Do { $powerState = (Get-VM -name $vmName | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
                                 Get-VM -name $vmName | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                if (!(Get-VM -name $vmName -ErrorAction SilentlyContinue)) {
+                                if (!(Get-VM -name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                     Write-Output "Deleting the Host Virtual Machine ($vmName) from vCenter Server ($server): SUCCESSFUL"
                                 } else {
                                     Write-Error "Deleting the Host Virtual Machine ($vmName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATIO_FAILED"
@@ -22839,13 +22895,6 @@ Function Invoke-CbwDeployment {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                     $failureDetected = $false
                     $allWorkloadDomains = Get-VCFWorkloadDomain
-                    $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
-
-                    if ((Get-VCFManager -version) -ge 5.0.0.0) {
-                        $hcxVsphereTemplate = ($pvsModulePath + "\vSphereRoles\" + "hcx-vsphere-integration-8x.role")
-                    } else {
-                        $hcxVsphereTemplate = ($pvsModulePath + "\vSphereRoles\" + "hcx-vsphere-integration-7x.role")
-                    }
 
                     Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for $solutionName"
                     $StatusMsg = Copy-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -sourceRoleName Admin -targetRoleName $jsonInput.vsphereRoleNameHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22879,6 +22928,10 @@ Function Invoke-CbwDeployment {
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
                     }
                 }
             }
@@ -22957,6 +23010,10 @@ Function Invoke-UndoCbwDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing Custom Role from vSphere for $solutionName"
                         $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -roleName $jsonInput.vsphereRoleNameHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -23077,6 +23134,10 @@ Function Invoke-CbrDeployment {
                         $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                    }
                 }
             }
         } else {
@@ -23123,6 +23184,10 @@ Function Invoke-UndoCbrDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the DRaaS Connector Appliances for $solutionName"
                         $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -23254,7 +23319,7 @@ Function Invoke-CcmDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for $solutionName"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameHcx -template $hcxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Copy-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -sourceRoleName Admin -targetRoleName $jsonInput.vsphereRoleNameHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
@@ -23298,6 +23363,10 @@ Function Invoke-CcmDeployment {
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
                     }
                 }
             }
@@ -23390,6 +23459,10 @@ Function Invoke-UndoCcmDeployment {
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -24662,58 +24735,71 @@ Function Export-GlobalWsaJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'             = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'             = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'             = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'          = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'environmentName'             = "globalenvironment"
-                'contentLibraryName'          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
-                'xintDatacenter'              = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
-                'xintLocation'                = $pnpWorkbook.Workbook.Names["vrslcm_xreg_location"].Value
-                'certificateAlias'            = $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value
-                'globalPasswordAlias'         = $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value
-                'globalPassword'              = $pnpWorkbook.Workbook.Names["global_env_admin_username"].Value
-                'globalUserName'              = $pnpWorkbook.Workbook.Names["xreg_vra_root_username"].Value
-                'rootPasswordAlias'           = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_alias"].Value
-                'rootPassword'                = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password"].Value
-                'rootUserName'                = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_username"].Value
-                'adminPasswordAlias'          = $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value
-                'adminPassword'               = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
-                'adminUserName'               = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
-                'configAdminPasswordAlias'    = $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value
-                'configAdminPassword'         = $pnpWorkbook.Workbook.Names["local_configadmin_password"].Value
-                'configAdminUserName'         = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
-                'vcFqdn'                      = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                'vcHostname'                  = $pnpWorkbook.Workbook.Names["mgmt_vc_hostname"].Value
-                'vmList'                      = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                'antiAffinityRuleName'        = "anti-affinity-rule-wsa" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
-                'drsGroupNameWsa'             = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
-                'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'drsVmGroupNameAz'            = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
-                'ntpServer'                   = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                'domainFqdn'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindDn'                = $pnpWorkbook.Workbook.Names["child_ad_bind_dn"].Value
-                'domainBindUser'              = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
-                'domainBindPass'              = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-                'baseGroupDn'                 = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
-                'baseUserDn'                  = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
-                'adGroups'                    = "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
-                'wsaAdminGroup'               = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
-                'wsaDirectoryAdminGroup'      = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
-                'wsaReadOnlyGroup'            = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
-                'aslcmAdminGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value
-                'aslcmReleaseManagersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value
-                'aslcmContentDevelopersGroup' = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value
-                'clusterFqdn'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                'vmNameNodeA'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                'hostNameNodeA'               = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
-                'ipNodeA'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
-                'vmNameNodeB'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                'hostNameNodeB'               = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
-                'ipNodeB'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
-                'vmNameNodeC'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                'hostNameNodeC'               = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
-                'ipNodeC'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vcFqdn'                        = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                'vcHostname'                    = $pnpWorkbook.Workbook.Names["mgmt_vc_hostname"].Value
+                'vcDatacenter'                  = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
+                'vcCluster'                     = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
+                'vcDatastore'                   = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'environmentName'               = "globalenvironment"
+                'contentLibraryName'            = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+                'xintDatacenter'                = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+                'xintLocation'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_location"].Value
+                'xintNetwork'                   = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                'xintNetworkMask'               = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                'xintNetworkGateway'            = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                'xintNetworkDomain'             = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                'xintNetworkDns'                = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'xintNetworkSearch'             = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                'xintNetworkNtp'                = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                'certificateAlias'              = $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value
+                'globalPasswordAlias'           = $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value
+                'globalPassword'                = $pnpWorkbook.Workbook.Names["global_env_admin_username"].Value
+                'globalUserName'                = $pnpWorkbook.Workbook.Names["xreg_vra_root_username"].Value
+                'rootPasswordAlias'             = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_alias"].Value
+                'rootPassword'                  = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password"].Value
+                'rootUserName'                  = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_username"].Value
+                'adminPasswordAlias'            = $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value
+                'adminPassword'                 = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
+                'adminUserName'                 = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
+                'configAdminPasswordAlias'      = $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value
+                'configAdminPassword'           = $pnpWorkbook.Workbook.Names["local_configadmin_password"].Value
+                'configAdminUserName'           = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
+                'configAdminUserEmail'          = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
+                'vmList'                        = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                'antiAffinityRuleName'          = "anti-affinity-rule-wsa" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
+                'drsGroupNameWsa'               = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'drsVmGroupNameAz'              = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'ntpServer'                     = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindDn'                  = $pnpWorkbook.Workbook.Names["child_ad_bind_dn"].Value
+                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
+                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+                'baseGroupDn'                   = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
+                'baseUserDn'                    = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
+                'adGroups'                      = "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
+                'wsaAdminGroup'                 = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
+                'wsaDirectoryAdminGroup'        = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
+                'wsaReadOnlyGroup'              = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
+                'aslcmAdminGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value
+                'aslcmReleaseManagersGroup'     = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value
+                'aslcmContentDevelopersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value
+                'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+                'clusterIp'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                'vmNameNodeA'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                'hostNameNodeA'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
+                'ipNodeA'                       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
+                'vmNameNodeB'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                'hostNameNodeB'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
+                'ipNodeB'                       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
+                'vmNameNodeC'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                'hostNameNodeC'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
+                'ipNodeC'                       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
+                'wsaNodeSize'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -24756,9 +24842,6 @@ Function Invoke-GlobalWsaDeployment {
         .PARAMETER jsonFile
         The fully qualified path to the JSON specification file.
 
-        .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx) file.
-
         .PARAMETER certificates
         The fully qualified path to the certificates folder.
 
@@ -24774,7 +24857,6 @@ Function Invoke-GlobalWsaDeployment {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
@@ -24788,164 +24870,161 @@ Function Invoke-GlobalWsaDeployment {
     Try {
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of Cross-Instance $wsaProductName"
         if (Test-Path -Path $jsonFile) {
-            if (Test-Path -Path $workbook) {
-                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-                $wsaPem = $certificates + $jsonInput.certificateAlias + ".2.chain.pem"
-                if (Test-Path -Path $wsaPem) {
-                    $rootPem = $certificates + "Root64.pem"
-                    if (Test-Path -Path $rootPem) {
-                        if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
-                            if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
-                                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                        $failureDetected = $false
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            $wsaPem = $certificates + $jsonInput.certificateAlias + ".2.chain.pem"
+            if (Test-Path -Path $wsaPem) {
+                $rootPem = $certificates + "Root64.pem"
+                if (Test-Path -Path $rootPem) {
+                    if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                        if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                            if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                                if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                    $failureDetected = $false
 
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
-                                            $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                                        $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
 
-                                        if (!$failureDetected) {
-                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                $wsaOvaPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match "identity-manager" }).name
-                                                if ((([regex]::Match(((Split-Path $wsaOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vidm))) {
-                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
-                                                } elseif (($wsaOvaPath -match "identity-manager")) {
-                                                    Show-PowerValidatedSolutionsOutput -message "Importing $wsaProductName OVA into vSphere Content Library"
-                                                    $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $wsaOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                                } else {
-                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)). File Not Found: PRE_VALIDATION_FAILED"
-                                                }
-                                            }
-                                            $allDatacenters = Get-vRSLCMDatacenter
-                                            foreach ($datacenter in $allDatacenters) {
-                                                if ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName) {
-                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
-                                                }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Data Center and vCenter Server in $lcmProductName"
-                                            $StatusMsg = New-vRSLCMDatacenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -location $jsonInput.xintLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            Start-Sleep 3
-                                            $userNameAlias = (Get-vRSLCMLockerPassword | Where-Object { $_.userName -match $jsonInput.vcHostname }).alias
-                                            $StatusMsg = New-vRSLCMDatacenterVcenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -vcenterFqdn $jsonInput.vcfqdn -userLockerAlias $userNameAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Importing the $wsaProductName Certificate to $lcmProductName"
-                                            $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $wsaPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding $wsaProductName Passwords to $lcmProductName"
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.globalPasswordAlias -password $jsonInput.globalPassword -userName $jsonInput.globalUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -password $jsonInput.rootPassword -userName $jsonInput.rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -password $jsonInput.adminPassword -userName $jsonInput.adminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.configAdminPasswordAlias -password $jsonInput.configAdminPassword -userName $jsonInput.configAdminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Deploying $wsaProductName Instance Using $lcmProductName"
-                                            $commandSwitch = ""
-                                            if ($PsBoundParameters.ContainsKey("standard")) {
-                                                $commandSwitch = $commandSwitch + " -standard"
-                                            }
-                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $($jsonInput.contentLibraryName)"
-                                            }
-                                            $StatusMsg = Invoke-Expression "New-WsaDeployment -server $($jsonInput.sddcManagerFqdn) -user $($jsonInput.sddcManagerUser) -pass $($jsonInput.sddcManagerPass) -workbook $($workbook) -monitor $($commandSwitch) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg"
-                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { $failureDetected = $true }
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
-                                        }
-
-                                        if (!$failureDetected) {
-                                            if ((Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).Count -gt 1) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configure an Anti-Affinity Rule and a Virtual Machine Group for a $wsaProductName Instance"
-                                                $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if (!$failureDetected) {
+                                        if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                            $wsaOvaPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match "identity-manager" }).name
+                                            if ((([regex]::Match(((Split-Path $wsaOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vidm))) {
+                                                Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
+                                            } elseif (($wsaOvaPath -match "identity-manager")) {
+                                                Show-PowerValidatedSolutionsOutput -message "Importing $wsaProductName OVA into vSphere Content Library"
+                                                $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $wsaOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                                $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            } else {
+                                                Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)). File Not Found: PRE_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        $allDatacenters = Get-vRSLCMDatacenter
+                                        foreach ($datacenter in $allDatacenters) {
+                                            if ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName) {
+                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                            }
+                                        }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Configuring Data Center and vCenter Server in $lcmProductName"
+                                        $StatusMsg = New-vRSLCMDatacenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -location $jsonInput.xintLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        Start-Sleep 3
+                                        $userNameAlias = (Get-vRSLCMLockerPassword | Where-Object { $_.userName -match $jsonInput.vcHostname }).alias
+                                        $StatusMsg = New-vRSLCMDatacenterVcenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -vcenterFqdn $jsonInput.vcfqdn -userLockerAlias $userNameAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Importing the $wsaProductName Certificate to $lcmProductName"
+                                        $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $wsaPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Adding $wsaProductName Passwords to $lcmProductName"
+                                        $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.globalPasswordAlias -password $jsonInput.globalPassword -userName $jsonInput.globalUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -password $jsonInput.rootPassword -userName $jsonInput.rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -password $jsonInput.adminPassword -userName $jsonInput.adminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.configAdminPasswordAlias -password $jsonInput.configAdminPassword -userName $jsonInput.configAdminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Deploying $wsaProductName Instance Using $lcmProductName"
+                                        if ($PsBoundParameters.ContainsKey("standard")) {
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -standard -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        } elseif ($PsBoundParameters.ContainsKey("standard") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -standard -monitor -useContentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        } elseif ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -monitor -useContentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        } else {
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        }
+                                        if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message "$StatusMsg"; $failureDetected = $true }
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                    }
+
+                                    if (!$failureDetected) {
+                                        if ((Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).Count -gt 1) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configure an Anti-Affinity Rule and a Virtual Machine Group for a $wsaProductName Instance"
+                                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                            $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        if ($stretchedCluster -eq "Include") {
+                                            Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Appliances to the First Availability Zone VM Group"
+                                            $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Configure NTP on $wsaProductName Virtual Appliances"
+                                        $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
+                                        $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        $clusterNodes = (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).hostname
+                                        if ($clusterNodes.Count -gt 1) {
+                                            Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Nodes as Identity Provider Connectors"
+                                            $allNodes = @()
+                                            $allNodes += ($clusterNodes -Split ",")[1]
+                                            $allNodes += ($clusterNodes -Split ",")[2]
+                                            Foreach ($node in $allNodes) {
+                                                Show-PowerValidatedSolutionsOutput -message "Adding Node ($node) as Identity Provider Connector to Workspace Access ONE Instance ($($jsonInput.clusterFqdn))"
+                                                $StatusMsg = Add-WorkspaceOneDirectoryConnector -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -wsaNode $node -wsaUser $jsonInput.adminUserName -wsaPass $jsonInput.adminPassword -bindUserPass $jsonInput.domainBindPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                             }
                                         }
+                                    }
 
-                                        if (!$failureDetected) {
-                                            if ($stretchedCluster -eq "Include") {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            }
-                                        }
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Assiging Roles to Active Directory Groups for $wsaProductName"
+                                        $wsaSuperAdminRole = "Super Admin"
+                                        $wsaDirAdminRole = "Directory Admin"
+                                        $wsaReadOnlyRole = "ReadOnly Admin"
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaSuperAdminRole) Role to ($($jsonInput.wsaAdminGroup))"
+                                        $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaAdminGroup -role $wsaSuperAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaDirAdminRole) Role to ($($jsonInput.wsaDirectoryAdminGroup))"
+                                        $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaDirectoryAdminGroup -role $wsaDirAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaReadOnlyRole) Role to ($($jsonInput.wsaReadOnlyGroup))"
+                                        $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaReadOnlyGroup -role $wsaReadOnlyRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
 
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configure NTP on $wsaProductName Virtual Appliances"
-                                            $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
-                                            $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            $clusterNodes = (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).hostname
-                                            if ($clusterNodes.Count -gt 1) {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Nodes as Identity Provider Connectors"
-                                                $allNodes = @()
-                                                $allNodes += ($clusterNodes -Split ",")[1]
-                                                $allNodes += ($clusterNodes -Split ",")[2]
-                                                Foreach ($node in $allNodes) {
-                                                    Show-PowerValidatedSolutionsOutput -message "Adding Node ($node) as Identity Provider Connector to Workspace Access ONE Instance ($($jsonInput.clusterFqdn))"
-                                                    $StatusMsg = Add-WorkspaceOneDirectoryConnector -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -wsaNode $node -wsaUser $jsonInput.adminUserName -wsaPass $jsonInput.adminPassword -bindUserPass $jsonInput.domainBindPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                                }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Assiging Roles to Active Directory Groups for $wsaProductName"
-                                            $wsaSuperAdminRole = "Super Admin"
-                                            $wsaDirAdminRole = "Directory Admin"
-                                            $wsaReadOnlyRole = "ReadOnly Admin"
-                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaSuperAdminRole) Role to ($($jsonInput.wsaAdminGroup))"
-                                            $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaAdminGroup -role $wsaSuperAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaDirAdminRole) Role to ($($jsonInput.wsaDirectoryAdminGroup))"
-                                            $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaDirectoryAdminGroup -role $wsaDirAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaReadOnlyRole) Role to ($($jsonInput.wsaReadOnlyGroup))"
-                                            $StatusMsg = Add-WorkspaceOneRole -server $((Get-VCFWSA).loadBalancerFqdn) -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaReadOnlyGroup -role $wsaReadOnlyRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Assign Roles to Active Directory Groups for $lcmProductName"
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
-                                        }
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Assign Roles to Active Directory Groups for $lcmProductName"
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
                                     }
                                 }
                             }
                         }
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for Root Certificate Authority ($rootPem): File Not Found"
                     }
                 } else {
-                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $wsaProductName ($wsaPem): File Not Found"
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for Root Certificate Authority ($rootPem): File Not Found"
                 }
             } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $wsaProductName ($wsaPem): File Not Found"
             }
         } else {
             Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $wsaProductName ($jsonFile): File Not Found"
@@ -25008,7 +25087,7 @@ Function Invoke-UndoGlobalWsaDeployment {
                                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                             foreach ($vm in ($jsonInput.vmList -Split ',')) {
-                                                if (Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue ) {
+                                                if (Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore ) {
                                                     Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
                                                     Do { $powerState = (Get-VM -Name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
                                                     Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
@@ -25062,282 +25141,260 @@ Export-ModuleMember -Function Invoke-UndoGlobalWsaDeployment
 Function Export-WsaJsonSpec {
     <#
         .SYNOPSIS
-        Create Workspace ONE Access JSON specification.
+        Create Workspace ONE Access deployment JSON specification.
 
         .DESCRIPTION
-        The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
-        - Validates that the Planning and Preparation is available
+        The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Global Workspace ONE Access JSON
+        specification file to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
+        - Validates that the Global Workspace ONE Access JSON specification file is available
         - Validates that network connectivity is available to VMware Aria Suite Lifecycle
         - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
-        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
+        - Generates the JSON specification file using the Global Workspace ONE Access JSON specification file and details from VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook
+        Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\
+        This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file.
 
         .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
-        This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
+        Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -standard
+        This example creates a JSON deployment specification for a Standard Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file.
 
         .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+        Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -customVersion 3.3.7
+        This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file and a custom version.
 
         .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+        Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -useContentLibrary
+        This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file and deploying the OVA from a vSphere Content Library.
 
-        .PARAMETER server
-        The fully qualified domain name of the VMware Aria Suite Lifecycle instance.
+        .PARAMETER jsonFile
+        The JSON file for Cross-Instance Workspace ONE Access.
 
-        .PARAMETER user
-        The username of the VMware Aria Suite Lifecycle instance.
-
-        .PARAMETER pass
-        The password of the VMware Aria Suite Lifecycle instance.
-
-        .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx) file.
-
-        .PARAMETER standard
-        Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
+        .PARAMETER outputPath
+        The folder location where the Workspace ONE Access JSON file is created.
 
         .PARAMETER customVersion
-        The version of Workspace ONE Access to deploy.
+        The custom version of Workspace ONE Access to deploy.
 
         .PARAMETER useContentLibrary
-        Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
+        Use a vSphere Content Library to deploy the Workspace ONE Access OVA.
 
         .PARAMETER contentLibrary
-        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
+        The vSphere Content Library name to use to deploy the Workspace ONE Access OVA.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outputPath,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary
     )
 
     Try {
-        if (!$PsBoundParameters.ContainsKey("workbook")) {
-            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        } else {
-            if (!(Test-Path -Path $workbook)) {
-                Write-Error "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
-                Break
-            }
-        }
-
-        if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
-        $pnpWorkbook = Open-ExcelPackage -Path $workbook
-
-        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value }) {
-                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) {
-                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) {
-                                        if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
-                                            if ($vcfVersion -ge "4.5.0") {
-                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local") }
-                                            } else {
-                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
-                                            }
-                                            if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value }) {
-                                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value }
-
-                                                #### Generate the Workspace ONE Properties Section
-                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "5.1.1") { $wsaVersion = "3.3.7" }
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
+                        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $jsonInput.certificateAlias }) {
+                                    if ($defaultPassword = Get-vRSLCMLockerPassword -alias $jsonInput.globalPasswordAlias) {
+                                        if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $jsonInput.configAdminPasswordAlias) {
+                                            if ($wsaPassword = Get-vRSLCMLockerPassword -alias $jsonInput.adminPasswordAlias) {
+                                                if ($vcfVersion -ge "4.5.0") {
+                                                    $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($jsonInput.vcFqdn).Split(".")[0] + "@vsphere.local") }
                                                 } else {
-                                                    $wsaVersion = $customVersion
+                                                    $vcCredentials = Get-vRSLCMLockerPassword -alias (($jsonInput.vcFqdn).Split(".")[0] + "-" + $jsonInput.vcDatacenter)
                                                 }
+                                                if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.xintDatacenter }) {
+                                                    $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
 
-                                                $infrastructurePropertiesObject = @()
-                                                $infrastructurePropertiesObject += [pscustomobject]@{
-                                                    'acceptEULA'        = "true"
-                                                    'enableTelemetry'   = "true"
-                                                    'regionName'        = "default"
-                                                    'zoneName'          = "default"
-                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
-                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'vcUsername'        = $vcCredentials.userName
-                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                    'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'          = "thin"
-                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'masterVidmEnabled' = "false"
-                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'timeSyncMode'      = "ntp"
-                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
-                                                }
-
-                                                $infrastructureObject = @()
-                                                $infrastructureObject += [pscustomobject]@{
-                                                    'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
-                                                }
-
-                                                ### Generate the Properties Details
-                                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
-                                                    if ($contentLibraryItems) {
-                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
+                                                    #### Generate the Workspace ONE Properties Section
+                                                    if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                        if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
+                                                        if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
+                                                        if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
+                                                        if ($vcfVersion -eq "5.1.1") { $wsaVersion = "3.3.7" }
                                                     } else {
-                                                        Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
-                                                        Break
-                                                    }
-                                                }
-                                                $productPropertiesObject = @()
-                                                $productPropertiesObject += [pscustomobject]@{
-                                                    'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
-                                                    'syncGroupMembers'             = $true
-                                                    'nodeSize'                     = ($pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value).ToLower()
-                                                    'defaultConfigurationEmail'    = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
-                                                    'defaultConfigurationUsername' = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
-                                                    'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
-                                                    'defaultTenantAlias'           = ""
-                                                    'vidmDomainName'               = ""
-                                                    'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'contentLibraryItemId'         = $contentLibraryItemId
-                                                    'fipsMode'                     = "false"
-                                                }
-
-                                                #### Generate Workspace ONE Access Details
-                                                if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                    $clusterLbProperties = @()
-                                                    $clusterLbProperties += [pscustomobject]@{
-                                                        'controllerType'    = "NSX_T"
-                                                        'hostName'          = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                                                        'lockerCertificate' = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                        $wsaVersion = $customVersion
                                                     }
 
-                                                    $clusterDelegateObject = @()
-                                                    $clusterDelegateObject += [pscustomobject]@{
-                                                        'ip' = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                                                    $infrastructurePropertiesObject = @()
+                                                    $infrastructurePropertiesObject += [pscustomobject]@{
+                                                        'acceptEULA'        = "true"
+                                                        'enableTelemetry'   = "true"
+                                                        'regionName'        = "default"
+                                                        'zoneName'          = "default"
+                                                        'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                        'vCenterName'       = ($jsonInput.vcFqdn).Split(".")[0]
+                                                        'vCenterHost'       = $jsonInput.vcFqdn
+                                                        'vcUsername'        = $vcCredentials.userName
+                                                        'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                        'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                        'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                        'cluster'           = ($jsonInput.vcDatacenter + "#" + $jsonInput.vcCluster)
+                                                        'storage'           = $jsonInput.vcDatastore
+                                                        'diskMode'          = "thin"
+                                                        'network'           = $jsonInput.xintNetwork
+                                                        'masterVidmEnabled' = "false"
+                                                        'dns'               = $jsonInput.xintNetworkDns
+                                                        'domain'            = $jsonInput.xintNetworkDomain
+                                                        'gateway'           = $jsonInput.xintNetworkGateway
+                                                        'netmask'           = $jsonInput.xintNetworkMask
+                                                        'searchpath'        = $jsonInput.xintNetworkSearch
+                                                        'timeSyncMode'      = "ntp"
+                                                        'ntp'               = $jsonInput.xintNetworkNtp
+                                                        'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $jsonInput.sddcManagerFqdn + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                     }
 
-                                                    $clusterVipsObject = @()
-                                                    $clusterVipsObject += [pscustomobject]@{
-                                                        'type'       = "vidm-lb"
-                                                        'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
-                                                    }
-                                                    $clusterVipsObject += [pscustomobject]@{
-                                                        'type'       = "vidm-delegate"
-                                                        'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
+                                                    $infrastructureObject = @()
+                                                    $infrastructureObject += [pscustomobject]@{
+                                                        'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
                                                     }
 
-                                                    $clusterObject = @()
-                                                    $clusterObject += [pscustomobject]@{
-                                                        'clusterVips'	= $clusterVipsObject
+                                                    ### Generate the Properties Details
+                                                    if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                        $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($jsonInput.vcFqdn).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $jsonInput.contentLibraryName }).contentLibraryItems
+                                                        if ($contentLibraryItems) {
+                                                            $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
+                                                        } else {
+                                                            Write-Error "Unable to find vSphere Content Library ($($jsonInput.contentLibraryName)) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                            Break
+                                                        }
                                                     }
+                                                    $productPropertiesObject = @()
+                                                    $productPropertiesObject += [pscustomobject]@{
+                                                        'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
+                                                        'syncGroupMembers'             = $true
+                                                        'nodeSize'                     = ($jsonInput.wsaNodeSize).ToLower()
+                                                        'defaultConfigurationEmail'    = $jsonInput.configAdminUserEmail
+                                                        'defaultConfigurationUsername' = $jsonInput.configAdminUserName
+                                                        'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
+                                                        'defaultTenantAlias'           = ""
+                                                        'vidmDomainName'               = ""
+                                                        'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                        'contentLibraryItemId'         = $contentLibraryItemId
+                                                        'fipsMode'                     = "false"
+                                                    }
+
+                                                    #### Generate Workspace ONE Access Details
+                                                    if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                        $clusterLbProperties = @()
+                                                        $clusterLbProperties += [pscustomobject]@{
+                                                            'controllerType'    = "NSX_T"
+                                                            'hostName'          = $jsonInput.clusterFqdn
+                                                            'lockerCertificate' = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                        }
+
+                                                        $clusterDelegateObject = @()
+                                                        $clusterDelegateObject += [pscustomobject]@{
+                                                            'ip' = $jsonInput.clusterIp
+                                                        }
+
+                                                        $clusterVipsObject = @()
+                                                        $clusterVipsObject += [pscustomobject]@{
+                                                            'type'       = "vidm-lb"
+                                                            'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
+                                                        }
+                                                        $clusterVipsObject += [pscustomobject]@{
+                                                            'type'       = "vidm-delegate"
+                                                            'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
+                                                        }
+
+                                                        $clusterObject = @()
+                                                        $clusterObject += [pscustomobject]@{
+                                                            'clusterVips'	= $clusterVipsObject
+                                                        }
+                                                    } else {
+                                                        $clusterObject = @()
+                                                        $clusterObject += [pscustomobject]@{
+                                                            'clusterVips'	= @()
+                                                        }
+                                                    }
+
+                                                    #### Generate Worspace ONE Access Node Details
+                                                    $wsaPrimaryProperties = @()
+                                                    $wsaPrimaryProperties += [pscustomobject]@{
+                                                        'hostName' = $jsonInput.hostNameNodeA
+                                                        'vmName'   = $jsonInput.vmNameNodeA
+                                                        'ip'       = $jsonInput.ipNodeA
+                                                    }
+
+                                                    $wsaSecondary1Properties = @()
+                                                    $wsaSecondary1Properties += [pscustomobject]@{
+                                                        'hostName' = $jsonInput.hostNameNodeB
+                                                        'vmName'   = $jsonInput.vmNameNodeB
+                                                        'ip'       = $jsonInput.ipNodeB
+                                                    }
+
+                                                    $wsaSecondary2Properties = @()
+                                                    $wsaSecondary2Properties += [pscustomobject]@{
+                                                        'hostName' = $jsonInput.hostNameNodeC
+                                                        'vmName'   = $jsonInput.vmNameNodeC
+                                                        'ip'       = $jsonInput.ipNodeC
+                                                    }
+
+                                                    $nodesObject = @()
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'       = "vidm-primary"
+                                                        'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
+                                                    }
+                                                    if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                        $nodesobject += [pscustomobject]@{
+                                                            'type'       = "vidm-secondary"
+                                                            'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
+                                                        }
+                                                        $nodesobject += [pscustomobject]@{
+                                                            'type'       = "vidm-secondary"
+                                                            'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
+                                                        }
+                                                    }
+
+                                                    $productsObject = @()
+                                                    $productsObject += [pscustomobject]@{
+                                                        'id'         = "vidm"
+                                                        'version'    = $wsaVersion
+                                                        'properties'	= ($productPropertiesObject | Select-Object -Skip 0)
+                                                        'clusterVIP'	= ($clusterObject | Select-Object -Skip 0)
+                                                        'nodes'      = $nodesObject
+                                                    }
+
+                                                    $wsaDeploymentObject = @()
+                                                    $wsaDeploymentObject += [pscustomobject]@{
+                                                        'environmentId'   = $jsonInput.environmentName
+                                                        'environmentName' = $jsonInput.environmentName
+                                                        'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
+                                                        'products'        = $productsObject
+                                                    }
+
+                                                    $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
+                                                    Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
                                                 } else {
-                                                    $clusterObject = @()
-                                                    $clusterObject += [pscustomobject]@{
-                                                        'clusterVips'	= @()
-                                                    }
+                                                    Write-Error "Datacenter Provided in the JSON Specification File ($($jsonInput.xintDatacenter)) does not exist, create and retry"
                                                 }
-
-                                                #### Generate Worspace ONE Access Node Details
-                                                $wsaPrimaryProperties = @()
-                                                $wsaPrimaryProperties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
-                                                }
-
-                                                $wsaSecondary1Properties = @()
-                                                $wsaSecondary1Properties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
-                                                }
-
-                                                $wsaSecondary2Properties = @()
-                                                $wsaSecondary2Properties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
-                                                }
-
-                                                $nodesObject = @()
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'       = "vidm-primary"
-                                                    'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
-                                                }
-                                                if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'       = "vidm-secondary"
-                                                        'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
-                                                    }
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'       = "vidm-secondary"
-                                                        'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
-                                                    }
-                                                }
-
-                                                $productsObject = @()
-                                                $productsObject += [pscustomobject]@{
-                                                    'id'         = "vidm"
-                                                    'version'    = $wsaVersion
-                                                    'properties'	= ($productPropertiesObject | Select-Object -Skip 0)
-                                                    'clusterVIP'	= ($clusterObject | Select-Object -Skip 0)
-                                                    'nodes'      = $nodesObject
-                                                }
-
-                                                $wsaDeploymentObject = @()
-                                                $wsaDeploymentObject += [pscustomobject]@{
-                                                    'environmentId'   = "globalenvironment"
-                                                    'environmentName' = "globalenvironment"
-                                                    'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
-                                                    'products'        = $productsObject
-                                                }
-
-                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
-                                                Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
                                             } else {
-                                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
+                                                Write-Error "Root Password with alias ($($jsonInput.adminPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                             }
                                         } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                            Write-Error "Admin Password with alias ($($jsonInput.globalPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                         }
                                     } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                        Write-Error "Certificate with alias ($($jsonInput.configAdminPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                     }
                                 } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                    Write-Error "Certificate with alias ($($jsonInput.certificateAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                 }
-                            } else {
-                                Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                             }
                         }
                     }
                 }
             }
         }
-        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -25358,32 +25415,23 @@ Function New-WSADeployment {
         - Requests a new deployment of a Workspace ONE Access
 
         .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of a clustered Workspace ONE Access using the Planning and Preparation Workbook
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\wsaDeploySpec.json
+        This example starts a deployment of a clustered Cross-Instance Workspace ONE Access using data from the JSON Specification file
 
         .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
-        This example starts a deployment of a standard Workspace ONE Access using the Planning and Preparation Workbook
+        New-WSADeployment -jsonFile .\wsaDeploySpec.json -standard
+        This example starts a deployment of a standard Cross-Instance Workspace ONE Access using data from the JSON Specification file
 
         .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
-        This example starts a deployment of Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+        New-WSADeployment -jsonFile .\wsaDeploySpec.json -customVersion 3.3.7
+        This example starts a deployment of Workspace ONE Access using a custom version using data from the JSON Specification file
 
         .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+        New-WSADeployment -jsonFile .\wsaDeploySpec.json -useContentLibrary
+        This example starts a deployment of a Clustered Workspace ONE Access using data from the JSON Specification file and deploying the OVA from a vSphere Content Library.
 
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The username to authenticate to the SDDC Manager.
-
-        .PARAMETER pass
-        The password to authenticate to the SDDC Manager.
-
-        .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx) file.
+        .PARAMETER jsonFile
+        The JSON (.json) file for Workspace One Access.
 
         .PARAMETER monitor
         Switch to monitor the deployment of Workspace ONE Access.
@@ -25396,61 +25444,43 @@ Function New-WSADeployment {
 
         .PARAMETER useContentLibrary
         Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
-
-        .PARAMETER contentLibrary
-        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary
     )
-
-    if (!$PsBoundParameters.ContainsKey("workbook")) {
-        $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    } else {
-        if (!(Test-Path -Path $workbook)) {
-            Write-Error "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
-            Break
-        }
-    }
 
     if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
 
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            $commandSwitch = ""
-                            if ($PsBoundParameters.ContainsKey("customVersion")) {
-                                $commandSwitch = $commandSwitch + " -customVersion $customVersion"
-                            }
-                            if ($PsBoundParameters.ContainsKey("standard")) {
-                                $commandSwitch = $commandSwitch + " -standard"
-                            }
-                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
-                            }
-                            Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) -ErrorAction SilentlyContinue -ErrorVariable ErrorMsg | Out-Null"
-                            if (!$ErrorMsg) {
-                                $pnpWorkbook = Open-ExcelPackage -Path $workbook
-                                $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                                $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value
-                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object { $_.loadBalancerDetails -match $loadBalancerFqdn }))) {
-                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $commandSwitch = ""
+                                if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                    $commandSwitch = $commandSwitch + " -customVersion $customVersion"
                                 }
-                                $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
-                                $json = (Get-Content -Raw $jsonSpecFileName)
+                                if ($PsBoundParameters.ContainsKey("standard")) {
+                                    $commandSwitch = $commandSwitch + " -standard"
+                                }
+                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                    $commandSwitch = $commandSwitch + " -useContentLibrary"
+                                }
+                                $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                                Invoke-Expression "Export-WSAJsonSpec -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
+                                $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")))
                                 $jsonSpec = $json | ConvertFrom-Json
+                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object { $_.loadBalancerDetails -match $jsonInput.clusterFqdn }))) {
+                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $jsonInput.clusterIp -loadBalancerFqdn $jsonInput.clusterFqdn | Out-Null
+                                }
                                 if (!(Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName })) {
                                     if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
                                         if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
@@ -25466,7 +25496,6 @@ Function New-WSADeployment {
                                                 } else {
                                                     Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI"
                                                 }
-
                                             } else {
                                                 Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
                                             }
@@ -25479,8 +25508,6 @@ Function New-WSADeployment {
                                 } else {
                                     Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                                 }
-                            } else {
-                                Write-Error "JSON specification validation: PRE_VALIDATED_FAILED"
                             }
                         }
                     }
@@ -52705,9 +52732,9 @@ Function Start-WorkspaceOneAccessMenu {
                     $singleWSA = Read-Host
                     $singleWSA = $singleWSA -replace "`t|`n|`r", ""
                     If ($singleWSA -eq "Y") {
-                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary -Standard -workbook $protectedWorkbook
+                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary -Standard
                     } else {
-                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary -workbook $protectedWorkbook
+                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     }
                     anyKey
                 }

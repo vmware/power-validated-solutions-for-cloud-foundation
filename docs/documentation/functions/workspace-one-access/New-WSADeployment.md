@@ -6,14 +6,13 @@ Deploy Workspace ONE Access to VMware Aria Suite Lifecycle.
 
 ## Syntax
 
-```powershell
-New-WSADeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor] [-standard] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+``` PowerShell
+New-WSADeployment -jsonFile <String> [-monitor] [-standard] [-customVersion <String>] [-useContentLibrary] [<CommonParameters>]
 ```
 
 ## Description
 
 The `New-WSADeployment` cmdlet deploys Workspace ONE Access via VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity is available to the SDDC Manager instance
@@ -25,57 +24,41 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 
 ### Example 1
 
-```powershell
-New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+``` PowerShell
+New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\wsaDeploySpec.json
 ```
 
-This example starts a deployment of a clustered Workspace ONE Access using the Planning and Preparation Workbook.
+This example starts a deployment of a clustered Cross-Instance Workspace ONE Access using data from the JSON Specification file
 
 ### Example 2
 
-```powershell
-New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+``` PowerShell
+New-WSADeployment -jsonFile .\wsaDeploySpec.json -standard
 ```
 
-This example starts a deployment of a standard Workspace ONE Access using the Planning and Preparation Workbook.
+This example starts a deployment of a standard Cross-Instance Workspace ONE Access using data from the JSON Specification file
 
 ### Example 3
 
-```powershell
-New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+``` PowerShell
+New-WSADeployment -jsonFile .\wsaDeploySpec.json -customVersion 3.3.7
 ```
 
-This example starts a deployment of Workspace ONE Access using a custom version and the Planning and Preparation Workbook.
+This example starts a deployment of Workspace ONE Access using a custom version using data from the JSON Specification file
 
 ### Example 4
 
-```powershell
-New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+``` PowerShell
+New-WSADeployment -jsonFile .\wsaDeploySpec.json -useContentLibrary
 ```
 
-This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+This example starts a deployment of a Clustered Workspace ONE Access using data from the JSON Specification file and deploying the OVA from a vSphere Content Library.
 
 ## Parameters
 
-### -server
+### -jsonFile
 
-The fully qualified domain name of the SDDC Manager.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -user
-
-The username to authenticate to the SDDC Manager.
+The JSON (.json) file for Workspace One Access.
 
 ```yaml
 Type: String
@@ -83,38 +66,6 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -pass
-
-The password to authenticate to the SDDC Manager.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -workbook
-
-The path to the Planning and Preparation Workbook (.xlsx) file.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
 Position: Named
 Default value: None
 Accept pipeline input: False
@@ -185,38 +136,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -contentLibrary
-
-The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### Common Parameters
+### CommonParameters
 
 This cmdlet supports the common parameters: `-Debug`, `-ErrorAction`, `-ErrorVariable`, `-InformationAction`, `-InformationVariable`, `-OutVariable`, `-OutBuffer`, `-PipelineVariable`, `-Verbose`, `-WarningAction`, and `-WarningVariable`. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
