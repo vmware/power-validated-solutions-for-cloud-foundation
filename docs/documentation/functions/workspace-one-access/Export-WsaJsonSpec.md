@@ -2,80 +2,62 @@
 
 ## Synopsis
 
-Create Workspace ONE Access JSON specification
+Create Workspace ONE Access deployment JSON specification.
 
 ## Syntax
 
-```powershell
-Export-WsaJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>] [-standard]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+``` PowerShell
+Export-WsaJsonSpec -jsonFile <String> -outputPath <String> [-standard] [-customVersion <String>] [-useContentLibrary] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Export-WsaJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
+The `Export-WsaJsonSpec` cmdlet creates the JSON specification file using the Global Workspace ONE Access JSON specification file to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
 
-- Validates that the Planning and Preparation is available
+- Validates that the Global Workspace ONE Access JSON specification file is available
 - Validates that network connectivity is available to VMware Aria Suite Lifecycle
 - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
-- Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle.
+- Generates the JSON specification file using the Global Workspace ONE Access JSON specification file and details from VMware Aria Suite Lifecycle
 
 ## Examples
 
 ### Example 1
 
-```powershell
-Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+``` PowerShell
+Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\
 ```
 
-This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook
+This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file.
 
 ### Example 2
 
-```powershell
-Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+``` PowerShell
+Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -standard
 ```
 
-This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
+This example creates a JSON deployment specification for a Standard Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file.
 
 ### Example 3
 
-```powershell
-Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+``` PowerShell
+Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -customVersion 3.3.7
 ```
 
-This example creates a JSON deployment specification of Clustered Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file and a custom version.
 
 ### Example 4
 
-```powershell
-Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+``` PowerShell
+Export-WsaJsonSpec -jsonFile .\wsaDeploySpec.json -outputPath .\myJsons\ -useContentLibrary
 ```
 
-This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+This example creates a JSON deployment specification for a Clustered Cross-Instance Workspace ONE Access instance using the Global Workspace ONE Access JSON specification file and deploying the OVA from a vSphere Content Library.
 
 ## Parameters
 
-### -server
+### -jsonFile
 
-The fully qualified domain name of the VMware Aria Suite Lifecycle instance.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -user
-
-The username of the VMware Aria Suite Lifecycle instance.
+The JSON file for Cross-Instance Workspace ONE Access.
 
 ```yaml
 Type: String
@@ -89,9 +71,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -pass
+### -outputPath
 
-The password of the VMware Aria Suite Lifecycle instance.
+The folder location where the Workspace ONE Access JSON file is created.
 
 ```yaml
 Type: String
@@ -99,22 +81,6 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -workbook
-
-The path to the Planning and Preparation Workbook (.xlsx) file.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
 Position: Named
 Default value: None
 Accept pipeline input: False
@@ -123,7 +89,7 @@ Accept wildcard characters: False
 
 ### -standard
 
-Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
+{{ Fill standard Description }}
 
 ```yaml
 Type: SwitchParameter
@@ -139,7 +105,7 @@ Accept wildcard characters: False
 
 ### -customVersion
 
-The version of Workspace ONE Access to deploy.
+The custom version of Workspace ONE Access to deploy.
 
 ```yaml
 Type: String
@@ -155,7 +121,7 @@ Accept wildcard characters: False
 
 ### -useContentLibrary
 
-Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
+Use a vSphere Content Library to deploy the Workspace ONE Access OVA.
 
 ```yaml
 Type: SwitchParameter
@@ -165,38 +131,6 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -contentLibrary
-
-The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
-Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

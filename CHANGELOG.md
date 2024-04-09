@@ -23,6 +23,8 @@
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
+- Enhanced `Export-GlobalWsaJsonSpec` cmdlet to add missing items pulled from the PLanning and Preparation Workbook to support `Export-WsaJsonSpec`.
+- Enhanced `Export-WsaJsonSpec` cmdlet to generate the API based deployment JSON spec for Workspace ONE Access using VMware Aria Suite Lifecycle using the global JSON.
 
 ## v2.9.0
 
