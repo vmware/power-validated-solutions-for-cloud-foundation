@@ -18,6 +18,12 @@
 - Added `Start-CbwMenu` cmdlet to load the Cloud-Based Workload Protection sub-menu.
 - Added `Start-CbrMenu` cmdlet to load the Cloud-Based Ransomware Recovery sub-menu.
 - Added `Start-CcmMenu` cmdlet to load the Cross Cloud Mobility sub-menu.
+- Added `Get-vRSLCMRole` cmdlet to retrieve a list of VMware Aria Suite Lifecycle roles.
+- Added `Get-vRSLCMGroup` cmdlet to retrieve a list of VMware Aria Suite Lifecycle group assignments.
+- Added `Add-vRSLCMGroup` cmdlet to add a group to a roles in VMware Aria Suite Lifecycle.
+- Added `Remove-vRSLCMGroup` cmdlet to remove the role assignments for a group in VMware Aria Suite Lifecycle.
+- Added `Add-vRLCMSGroupRole` cmdlet to add roles to groups in VMware Aria Suite Lifecycle.
+- Added `Undo-vRLCMSGroupRole` cmdlet to remove group roles in VMWare Aria Suite Lifecycle.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
@@ -25,6 +31,7 @@
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
 - Enhanced `Export-GlobalWsaJsonSpec` cmdlet to add missing items pulled from the PLanning and Preparation Workbook to support `Export-WsaJsonSpec`.
 - Enhanced `Export-WsaJsonSpec` cmdlet to generate the API based deployment JSON spec for Workspace ONE Access using VMware Aria Suite Lifecycle using the global JSON.
+- Enhanced `Invoke-GlobalWsaDeployment` cmdlet to use `Add-vRLCMSGroupRole` to configure VMware Aria Suite Lifecycle roles.
 
 ## v2.9.0
 
