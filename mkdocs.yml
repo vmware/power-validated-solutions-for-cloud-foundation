@@ -410,6 +410,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenterVcenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMEnvironment.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMGroup.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerPassword.md
@@ -424,6 +425,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenterVcenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMEnvironment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMEnvironmentVMs.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMGroup.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMHealth.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLockerCertificate.md
@@ -439,6 +441,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductVersion.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMRequest.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMRole.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMServerDetail.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMSshStatus.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMLockerCertificate.md
@@ -456,6 +459,8 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Register-vRSLCMProductBinary.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMEnvironment.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMGroup.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMGroupRole.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerLicense.md
@@ -477,6 +482,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDnsConfig.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMGroupRole.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerPassword.md

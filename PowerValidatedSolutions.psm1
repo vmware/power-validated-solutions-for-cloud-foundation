@@ -23651,7 +23651,6 @@ Function Invoke-vRSLCMDeployment {
                                 } else {
                                     Show-PowerValidatedSolutionsOutput -type ERROR -message "$lcmProductName Upgrade ISO ($upgradeIsoPath) File Not Found: PRE_VALIDATION_FAILED"
                                 }
-
                             }
 
                             if (!$failureDetected) {
@@ -24693,6 +24692,135 @@ Function Start-vRSLCMUpgrade {
 }
 Export-ModuleMember -Function Start-vRSLCMUpgrade
 
+Function Add-vRSLCMGroupRole {
+    <#
+		.SYNOPSIS
+        Assigns a group from the authentication provider with a role in VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Add-vRSLCMGroupRole cmdlet assigns access to a group from the authentication provider.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that the group has not already been assigned access to VMware Aria Suite Lifecycle
+        - Adds the group to the access control assigning the role provided in VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Add-vRSLCMGroupRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -group gg-vrslcm-admins@sfo.rainpole.io -role 'LCM Admin'
+        This example adds the group gg-vrslcms-admins with the LCM Admin role in VMware Aria Suite Lifecycle
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER group
+        The group name.
+
+        .PARAMETER role
+        The role to assign to the group 'LCM Admin', 'Content Developer', 'Content Release Manager', 'Certificate Administrator', 'VCF Role'.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
+        [Parameter (Mandatory = $true)] [ValidateSet('LCM Admin','Content Developer','Content Release Manager','Certificate Administrator','VCF Role')] [String]$role
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {    
+                        if (!(Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group})) {
+                            $groupName = $group.Split('@')[-0]
+                            Add-vRSLCMGroup -group $groupName -role $role | Out-Null
+                            if (Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group}) {
+                                Write-Output "Adding Group to VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group): SUCCESSFUL"
+                            } else {
+                                Write-Error "Adding Group to VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                            }
+                        } else {
+                            Write-Warning "Adding Group to VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group), already exists: SKIPPED"
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMGroupRole
+
+Function Undo-vRSLCMGroupRole {
+    <#
+		.SYNOPSIS
+        Removes the assignment for a group from the authentication provider with a role in VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-vRSLCMGroupRole cmdlet removes the assignment for a group from the authentication provider.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that the group has been assigned access to VMware Aria Suite Lifecycle
+        - Removes the group assignment from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-vRSLCMGroupRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -group gg-vrslcm-admins@sfo.rainpole.io
+        This example removes access for the group gg-vrslcms-admins from VMware Aria Suite Lifecycle
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER group
+        The group name.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {    
+                        if (Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group}) {
+                            Remove-vRSLCMGroup -vmid (Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group}).vmid | Out-Null
+                            if (!(Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group})) {
+                                Write-Output "Removing Group from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group): SUCCESSFUL"
+                            } else {
+                                Write-Error "Removing Group from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                            }
+                        } else {
+                            Write-Warning "Removing Group from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), named ($group), already exists: SKIPPED"
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMGroupRole
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -24785,9 +24913,9 @@ Function Export-GlobalWsaJsonSpec {
                 'wsaAdminGroup'                 = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
                 'wsaDirectoryAdminGroup'        = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
                 'wsaReadOnlyGroup'              = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
-                'aslcmAdminGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value
-                'aslcmReleaseManagersGroup'     = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value
-                'aslcmContentDevelopersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value
+                'aslcmAdminGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'aslcmReleaseManagersGroup'     = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'aslcmContentDevelopersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
                 'clusterIp'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
                 'vmNameNodeA'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
@@ -24938,12 +25066,12 @@ Function Invoke-GlobalWsaDeployment {
 
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Deploying $wsaProductName Instance Using $lcmProductName"
-                                        if ($PsBoundParameters.ContainsKey("standard")) {
+                                        if ($PsBoundParameters.ContainsKey("standard") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -useContentLibrary -standard -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        } elseif ($PsBoundParameters.ContainsKey("standard")) {
                                             $StatusMsg = New-WSADeployment -json $jsonFile -standard -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        } elseif ($PsBoundParameters.ContainsKey("standard") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                            $StatusMsg = New-WSADeployment -json $jsonFile -standard -monitor -useContentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         } elseif ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                            $StatusMsg = New-WSADeployment -json $jsonFile -monitor -useContentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = New-WSADeployment -json $jsonFile -useContentLibrary -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         } else {
                                             $StatusMsg = New-WSADeployment -json $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         }
@@ -25014,7 +25142,22 @@ Function Invoke-GlobalWsaDeployment {
 
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Assign Roles to Active Directory Groups for $lcmProductName"
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                        $vrslcmAdminRole            = "LCM Admin"
+                                        $vrslcmReleaseManagerRole   = "Content Release Manager"
+                                        $vrslcmContentDeveloperRole  = "Content Developer"
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($vrslcmAdminRole) Role to ($($jsonInput.aslcmAdminGroup))"
+                                        $StatusMsg = Add-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmAdminGroup -role $vrslcmAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($vrslcmReleaseManagerRole) Role to ($($jsonInput.aslcmReleaseManagersGroup))"
+                                        $StatusMsg = Add-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmReleaseManagersGroup -role $vrslcmReleaseManagerRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                        Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($vrslcmContentDeveloperRole) Role to ($($jsonInput.aslcmContentDevelopersGroup))"
+                                        $StatusMsg = Add-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmContentDevelopersGroup -role $vrslcmContentDeveloperRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of Cross-Instance $wsaProductName"
                                     }
                                 }
                             }
@@ -25310,11 +25453,6 @@ Function Export-WsaJsonSpec {
                                                         $clusterObject += [pscustomobject]@{
                                                             'clusterVips'	= $clusterVipsObject
                                                         }
-                                                    } else {
-                                                        $clusterObject = @()
-                                                        $clusterObject += [pscustomobject]@{
-                                                            'clusterVips'	= @()
-                                                        }
                                                     }
 
                                                     #### Generate Worspace ONE Access Node Details
@@ -25481,7 +25619,7 @@ Function New-WSADeployment {
                                 if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object { $_.loadBalancerDetails -match $jsonInput.clusterFqdn }))) {
                                     New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $jsonInput.clusterIp -loadBalancerFqdn $jsonInput.clusterFqdn | Out-Null
                                 }
-                                if (!(Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName })) {
+                                if (!(Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq "globalenvironment" })) {
                                     if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
                                         if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
                                             if (Get-vRSLCMLockerCertificate | Where-Object { $_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3]) }) {
@@ -40541,6 +40679,181 @@ Function Get-vRSLCMProductPassword {
     }
 }
 Export-ModuleMember -Function Get-vRSLCMProductPassword
+
+Function Get-vRSLCMRole {
+    <#
+        .SYNOPSIS
+        Retrieve VMware Aria Suite Lifecycle roles.
+
+        .DESCRIPTION
+        The Get-vRSLCMRole cmdlet retrieves a list of VMware Aria Suite Lifecycle roles.
+
+        .EXAMPLE
+        Get-vRSLCMRole
+        This example retrieves a list of VMware Aria Suite Lifecycle roles.
+    #>
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/authzn/api/v2/roles/external"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMRole
+
+Function Get-vRSLCMGroup {
+    <#
+        .SYNOPSIS
+        Retrieve group assignments in VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Get-vRSLCMGroup cmdlet retrieves a list of group assignments in VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Get-vRSLCMGroup
+        This example retrieves a list of VMware Aria Suite Lifecycle group assignments.
+
+        .EXAMPLE
+        Get-vRSLCMGroup -providerVmid 2d90903c-b753-4f52-905e-5421d11f6572
+        This example retrieves a list of VMware Aria Suite Lifecycle group assignments for the given identity provider.
+
+        .PARAMETER providerVmid
+        The vmid for the provider.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$providerVmid
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            if ($PsBoundParameters.ContainsKey("providerVmid")) {
+                $uri = "https://$vrslcmAppliance/lcm/authzn/api/v2/groups/providers/$providerVmid"
+            } else {
+                $uri = "https://$vrslcmAppliance/lcm/authzn/api/groups"
+            }
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMGroup
+
+Function Add-vRSLCMGroup {
+    <#
+        .SYNOPSIS
+        Assign a group to a VMware Aria Suite Lifecycle role.
+
+        .DESCRIPTION
+        The Add-vRSLCMGroup cmdlet assigns a group to a VMware Aria Suite Lifecycle roles.
+
+        .EXAMPLE
+        Add-vRSLCMGroup -group gg-vrslcm-admins -role "LCM Admin"
+        This example assigns a group to a the LCM Admin in VMware Aria Suite Lifecycle.
+
+        .PARAMETER group
+        The group to assign the VMware Aria Suite Lifecycle role to.
+
+        .PARAMETER role
+        The VMware Aria Suite Lifecycle role to assign (consists of LCM Admin, Content Developer, Content Release Manager, Certificate Administrator, VCF Role).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
+        [Parameter (Mandatory = $true)] [ValidateSet('LCM Admin','Content Developer','Content Release Manager','Certificate Administrator','VCF Role')] [String]$role
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            $allRoles = Get-vRSLCMRole
+            $globalEnvironment = (Get-vRSLCMEnvironment -vmid globalenvironment).environmentData | ConvertFrom-Json -Depth 100
+            $uri = "https://$vrslcmAppliance/lcm/authzn/api/v2/search/vidm-user-group"
+            $body ='{
+                "baseTenantHostname": "' + $globalEnvironment.products.properties.vidmDomainName +'",
+                "isTenantConfiguredByPath": false,
+                "searchString": "'+ $group +'",
+                "useServiceClient": true,
+                "vidmAdminPassword": "' + $globalEnvironment.products.properties.vidmAdminPassword +'",
+                "vidmAdminUser": "admin",
+                "vidmDomainName": "' + $globalEnvironment.products.properties.vidmDomainName +'",
+                "vidmHost": "' + $globalEnvironment.products.properties.__vidmHost +'",
+                "vidmOAuthServiceClientId": "' + $globalEnvironment.products.properties.vidmOAuthServiceClientId +'",
+                "vidmOAuthServiceClientSecret": "' + $globalEnvironment.products.properties.vidmOAuthServiceClientSecret +'"
+            }'
+            $requestId = (Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body).vmid
+            Start-Sleep 5
+            $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId"
+            $searchResult = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $resultText = ($searchResult.resultSet | ConvertFrom-Json -Depth 100).resultText | ConvertFrom-Json -Depth 100
+            $resultText = $resultText | ConvertFrom-Json -Depth 100
+            $uri = "https://$vrslcmAppliance/lcm/authzn/api/v2/groups"
+            if ($resultText.response.vidmGroups.displayName) {
+                $body = '{
+                    "displayName": "'+ $resultText.response.vidmGroups.displayName +'",
+                    "groupType": "'+ $resultText.response.vidmGroups.groupType +'",
+                    "providerIdentifier": "'+ $resultText.response.vidmGroups.providerIdentifier +'",
+                    "domain": "'+ $resultText.response.vidmGroups.domain +'",
+                    "isDisabled": "'+ $resultText.response.vidmGroups.isDisabled +'",
+                    "groupMetadata": {
+                        "distinguishedName": "'+ $resultText.response.vidmGroups.groupMetadata.distinguishedName +'",
+                        "externalId": "'+ $resultText.response.vidmGroups.groupMetadata.externalId +'",
+                        "additionalMeta": [ ]
+                    },
+                    "mappedRoles": ["'+ ($allRoles | Where-Object { $_.roleName -eq $role}).vmid +'"]
+                }'
+                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+            } else {
+                Write-Error "Unable to find $group in Workspace ONE Access"
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMGroup
+
+Function Remove-vRSLCMGroup {
+    <#
+        .SYNOPSIS
+        Remove a group and its role assignments from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Remove-vRSLCMGroup cmdlet removes a group and its role assignments from VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Remove-vRSLCMGroup -vmid a3f18959-00b1-4703-a9ab-fad5de8efa84
+        This example removes a group and its role assignments from VMware Aria Suite Lifecycle.
+
+        .PARAMETER vmid 
+        The unique identifier of the group in VMware Aria Sute Lifecycle.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/authzn/api/v2/groups/$vmid"
+            Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRSLCMGroup
 
 #EndRegion  End VMware Aria Suite Lifecycle Functions                        ######
 ###################################################################################
