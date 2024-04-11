@@ -24,6 +24,7 @@
 - Added `Remove-vRSLCMGroup` cmdlet to remove the role assignments for a group in VMware Aria Suite Lifecycle.
 - Added `Add-vRLCMSGroupRole` cmdlet to add roles to groups in VMware Aria Suite Lifecycle.
 - Added `Undo-vRLCMSGroupRole` cmdlet to remove group roles in VMWare Aria Suite Lifecycle.
+- Added `Request-AriaNetworksToken` cmdlet to obtain an authorization token from VMware Aria Operations for Networks.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
