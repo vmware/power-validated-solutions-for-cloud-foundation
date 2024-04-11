@@ -405,6 +405,8 @@ nav:
       - documentation/functions/aria-suite/aria-operations-logs/Update-vRLIAlert.md
       - documentation/functions/aria-suite/aria-operations-logs/Update-vRLIContentPack.md
       - documentation/functions/aria-suite/aria-operations-logs/Update-vRLILogForwarder.md
+    - Aria Operations for Networks:
+      - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
     - Aria Suite Lifecycle:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenter.md

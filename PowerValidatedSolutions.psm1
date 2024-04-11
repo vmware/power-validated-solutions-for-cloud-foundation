@@ -19667,6 +19667,13 @@ Export-ModuleMember -Function Add-vROPSNsxCredential
 #######################################################################################################################
 
 #######################################################################################################################
+#Region             I N T E L L I G E N T  N E T W O R K  V I S I B I L I Y  F U N C T I O N S              ###########
+
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
 #Region                  P R I V A T E  C L O U D  A U T O M A T I O N  F U N C T I O N S                   ###########
 
 Function Export-PcaJsonSpec {
@@ -46806,6 +46813,76 @@ Function Remove-vRLIContentPack {
 Export-ModuleMember -Function Remove-vRLIContentPack
 
 #EndRegion  End VMware Aria Operations for Logs Functions                    ######
+###################################################################################
+
+###################################################################################
+#Region     Start VMware Aria Operations for Networks Functions              ######
+
+Function Request-AriaNetworksToken {
+    <#
+        .SYNOPSIS
+        Connects to VMware Aria Operations for Networks and obtains an authorization token.
+
+        .DESCRIPTION
+        The Request-AriaNetworksToken cmdlet connects to the specified VMware Aria Operations for Networks instance
+        and obtains an authorization token. It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-AriaNetworksToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
+        This example shows how to connect to the VMware Aria Operations for Networks appliance.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Operations for Networks appliance.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $Global:ariaNetworksAppliance = $fqdn
+        $Global:ariaNetworksHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $ariaNetworksHeader.Add("Accept", "application/json")
+        $ariaNetworksHeader.Add("Content-Type", "application/json")
+        $uri = "https://$ariaNetworksAppliance/api/ni/auth/token"
+        $body = '{
+            "username": "'+ $username +'",
+            "password": "'+ $password +'",
+            "domain": {
+                "domain_type": "LOCAL",
+                "value": "local"
+            }
+        }'
+        if ($PSEdition -eq 'Core') {
+            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body
+        }
+        if ($ariaNetworksResponse.token) {
+            $ariaNetworksHeader.Add("Authorization", "NetworkInsight " + $ariaNetworksResponse.token)
+            Write-Output "Successfully connected to VMware Aria Operations for Networks: $ariaNetworksAppliance"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-AriaNetworksToken
+
+#EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
 
 ###################################################################################
