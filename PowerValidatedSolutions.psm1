@@ -99,6 +99,8 @@ Function Export-IamJsonSpec {
                 'nsxAuditorGroup'               = $pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxAdGroups'                   = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)"
                 'vsphereRoleName'               = $pnpWorkbook.Workbook.Names["nsxt_vsphere_role_name"].Value
+                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -122,6 +124,89 @@ Function Export-IamJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-IamJsonSpec
+
+Function Test-IamPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Identity and Access Management
+
+        .DESCRIPTION
+        The Test-IamPrerequisite cmdlet verifies the prerequisites for Identity and Access Management for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-IamPrerequisite -jsonFile .\iamDeploySpec.json
+        This example verifies the prerequisites for Identity and Access Management.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindPassVsphere)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindPassVsphere)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.domainBindUserNsx -pass $jsonInput.domainBindPassNsx -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): PRE_VALIDATION_FAILED"
+                    }
+                    Foreach ($securityGroup in $jsonInput.nsxAdGroups) {
+                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPassVsphere -AsPlainText -Force
+                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUserVsphere, $securePassword)
+                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup})) {
+                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+                        }
+                    }
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-IamPrerequisite
 
 Function Invoke-IamDeployment {
     <#
@@ -331,7 +416,7 @@ Function Invoke-UndoIamDeployment {
                             foreach ($viDomain in $viWorkloadDomains) {
                                 $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg -or $WarnMsg) { Clear-Variable -Name $ErrorMsg -Force -Confirm:$false } elseif ($ErrorMsg) { $failureDetected = $true }
+                                if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             }
                         }
@@ -339,7 +424,7 @@ Function Invoke-UndoIamDeployment {
                             $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
                             $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                             $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg -or $WarnMsg) { Clear-Variable -Name $ErrorMsg -Force -Confirm:$false } elseif ($ErrorMsg) { $failureDetected = $true }
+                            if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
                     }
@@ -8856,6 +8941,7 @@ Function Export-DriJsonSpec {
             'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
             'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
             'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            'domainControllerMachineName'       = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
             'ntp'                               = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
             'dns'                               = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
             'searchPath'                        = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
@@ -8905,6 +8991,104 @@ Function Export-DriJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-DriJsonSpec
+
+Function Test-DriPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Developer Ready Infrastructure
+
+        .DESCRIPTION
+        The Test-DriPrerequisite cmdlet verifies the prerequisites for Developer Ready Infrastructure for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-DriPrerequisite -jsonFile .\dri DeploySpec.json
+        This example verifies the prerequisites for Developer Ready Infrastructure.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+
+                    if (Get-VCFEdgeCluster | Where-Object {$_.nsxtCluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $jsonInput.tanzuSddcDomainName}).nsxtCluster.id)}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
+                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+                        }
+                    }
+
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+
+                    $adGroups = @($jsonInput.namespaceEditUserGroup, $jsonInput.namespaceViewUserGroup)
+                    Foreach ($securityGroup in $adGroups) {
+                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
+                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUser, $securePassword)
+                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup})) {
+                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+                        }
+                    }
+
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-DriPrerequisite
 
 Function Invoke-DriDeployment {
     <#
@@ -19778,6 +19962,7 @@ Function Export-PcaJsonSpec {
             'domainBindPassWsa'                 = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
             'domainBindUserVsphere'             = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
             'domainBindPassVsphere'             = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            'domainControllerMachineName'       = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
             'baseDnGroup'                       = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
             'orgOwner'                          = $pnpWorkbook.Workbook.Names["group_gg_vra_org_owners"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
             'cloudAssemblyAdmins'               = $pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
@@ -19796,6 +19981,7 @@ Function Export-PcaJsonSpec {
             'vsphereRoleNameAutomation'         = $pnpWorkbook.Workbook.Names["xreg_vra_vsphere_role_name"].Value
             'vsphereRoleNameOrchestrator'       = $pnpWorkbook.Workbook.Names["xreg_vro_vsphere_role_name"].Value
             'serviceAccountAutomation'          = $pnpWorkbook.Workbook.Names["user_svc_vra_vsphere"].Value
+            'serviceAccountAutomationPass'      = $pnpWorkbook.Workbook.Names["svc_vra_vsphere_password"].Value
             'serviceAccountOrchestrator'        = $pnpWorkbook.Workbook.Names["user_svc_vro_vsphere"].Value
             'serviceAccountOrchestratorPass'    = $pnpWorkbook.Workbook.Names["svc_vro_vsphere_password"].Value
             'serviceAccountNsx'                 = $pnpWorkbook.Workbook.Names["user_svc_vra_nsx"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
@@ -19808,6 +19994,18 @@ Function Export-PcaJsonSpec {
             'smtpServer'                        = $pnpWorkbook.Workbook.Names["smtp_server"].Value
             'emailAddress'                      = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
             'senderName'                        = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_name"].Value
+            'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+            'organizationalUnit'                = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+            'country'                           = $pnpWorkbook.Workbook.Names["ca_country"].Value
+            'stateOrProvince'                   = $pnpWorkbook.Workbook.Names["ca_state"].Value
+            'locality'                          = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+            'adminEmailAddress'                 = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+            'KeySize'                           = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+            'mscaComputerName'                  = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+            'mscaName'                          = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+            'certificateTemplate'               = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+            'caUsername'                        = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+            'caUserPassword'                    = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -19831,6 +20029,129 @@ Function Export-PcaJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-PcaJsonSpec
+
+Function Test-PcaPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Private Cloud Automation
+
+        .DESCRIPTION
+        The Test-PcaPrerequisite cmdlet verifies the prerequisites for Private Cloud Automation for VMware Cloud
+        Foundation validated solution.
+
+        .EXAMPLE
+        Test-PcaPrerequisite -jsonFile .\pcaDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Private Cloud Automation.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFApplicationVirtualNetwork) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFvRSLCM) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWsa) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Workspace ONE Access has been deployed ($((Get-VCFWsa).loadBalancerFqdn)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
+                    }
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
+                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+                        }
+                    }
+                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Automation are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Automation are available: PRE_VALIDATION_FAILED"
+                    }
+                    if ($jsonInput.licenseKey) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON: PRE_VALIDATION_FAILED"
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountAutomation -pass $jsonInput.serviceAccountAutomationPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOrchestrator -pass $jsonInput.serviceAccountOrchestratorPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): PRE_VALIDATION_FAILED"
+                    }
+                    Foreach ($securityGroup in $jsonInput.adGroups) {
+                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPassVsphere -AsPlainText -Force
+                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUserVsphere, $securePassword)
+                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup})) {
+                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+                        }
+                    }
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-PcaPrerequisite
 
 Function Invoke-PcaDeployment {
     <#
@@ -25091,9 +25412,9 @@ Function Invoke-GlobalWsaDeployment {
                                             Show-PowerValidatedSolutionsOutput -message "Configure an Anti-Affinity Rule and a Virtual Machine Group for a $wsaProductName Instance"
                                             $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                            $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         }
+                                        $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                     }
 
                                     if (!$failureDetected) {
@@ -29226,7 +29547,7 @@ Function Get-ADPrincipalGuid {
 
     Try {
         $checkAdAuthentication = Test-ADAuthentication -user $user -pass $pass -server $domain -domain $domain
-        if ($checkAdAuthentication -contains "2") {
+        if ($checkAdAuthentication[1] -match "AD Authentication Successful") {
             $securePassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
             $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
             $nsxAdminGroupObject = (Get-ADGroup -Server $domain -Credential $creds -Filter { SamAccountName -eq $principal })
@@ -52888,11 +53209,13 @@ Function Start-ValidatedSolutionMenu {
         $Script:protectedWorkbook = $protectedWorkbook
         $Script:recoveryWorkbook = $recoveryWorkbook
         
-        $submenuTitle = ("VMware Validated Solutions - End-to-End Automation")
+        $submenuTitle = ("VMware Validated Solutions")
 
-        $headingItem01 = "On-Premises Validated Solutions"
+        $headingItem01 = "Platform Prerequsites"
         $menuitem01 = "(LCM) VMware Aria Suite Lifecycle"
         $menuitem02 = "(WSA) Cross-Instance Workspace ONE Access"
+
+        $headingItem02 = "On-Premises Validated Solutions"
         $menuitem03 = "(IAM) Identity and Access Management"
         $menuitem04 = "(DRI) Developer Ready Infrastructure"
         $menuitem05 = "(ILA) Intelligent Logging and Analytics"
@@ -52902,7 +53225,7 @@ Function Start-ValidatedSolutionMenu {
         $menuitem09 = "(PDR) Site Protection and Disaster Recovery"
         $menuitem10 = "(HRM) Health Reporting and Monitoring"
 
-        $headingItem02 = "Hybrid Cloud Validated Solutions"
+        $headingItem03 = "Hybrid Cloud Validated Solutions"
         $menuitem11 = "(CBW) Cloud-Based Workload Protection"
         $menuitem12 = "(CBR) Cloud-Based Ransomware Recovery"
         $menuitem13 = "(CCM) Cross Cloud Mobility"
@@ -52929,6 +53252,8 @@ Function Start-ValidatedSolutionMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
             Write-Host -Object " 04. $menuItem04" -ForegroundColor White
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
@@ -52938,7 +53263,7 @@ Function Start-ValidatedSolutionMenu {
             Write-Host -Object " 09. $menuItem09" -ForegroundColor White
             Write-Host -Object " 10. $menuItem10" -ForegroundColor White
 
-            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 11. $menuItem11" -ForegroundColor White
             Write-Host -Object " 12. $menuItem12" -ForegroundColor White
             Write-Host -Object " 13. $menuItem13" -ForegroundColor White
@@ -53016,7 +53341,7 @@ Export-ModuleMember -Function Start-ValidatedSolutionMenu
 Function Start-AriaSuiteLifecycleMenu {
     Try {
         $jsonSpecFile = "vrslcmDeploySpec.json"
-        $submenuTitle = ("VMware Aria Suite Lifecycle - End-to-End Automation")
+        $submenuTitle = ("VMware Aria Suite Lifecycle for VMware Cloud Foundation")
 
         $headingItem01 = "VMware Aria Suite Lifecycle"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53051,14 +53376,14 @@ Function Start-AriaSuiteLifecycleMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-VrslcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-VrslcmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53075,7 +53400,7 @@ Function Start-AriaSuiteLifecycleMenu {
 Function Start-WorkspaceOneAccessMenu {
     Try {
         $jsonSpecFile = "wsaDeploySpec.json"
-        $submenuTitle = ("Cross-Instance Workspace ONE Access - End-to-End Automation")
+        $submenuTitle = ("Cross-Instance Workspace ONE Access for VMware Cloud Foundation")
 
         $headingItem01 = "Cross-Instance Workspace ONE Access"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53112,12 +53437,12 @@ Function Start-WorkspaceOneAccessMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-GlobalWsaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Show-PowerValidatedSolutionsOutput -Type QUESTION -Message "Do you wish to deploy a Single Node Workspace ONE Access to conserve resources? (Y/N): " -skipnewline
                     $singleWSA = Read-Host
                     $singleWSA = $singleWSA -replace "`t|`n|`r", ""
@@ -53126,12 +53451,12 @@ Function Start-WorkspaceOneAccessMenu {
                     } else {
                         Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     }
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoGlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53149,18 +53474,26 @@ Function Start-IamMenu {
     Try {
         $protectedJsonSpecFile = "protected-iamDeploySpec.json"
         $recoveryJsonSpecFile = "recovery-iamDeploySpec.json"
-        $submenuTitle = ("Identity and Access Management - End-to-End Automation")
+        $submenuTitle = ("Identity and Access Management for VMware Cloud Foundation")
 
-        $headingItem01 = "Identity and Access Management - Protected Site"
+        $headingItem01 = "Protection Instance"
+        $headingItem02 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($protectedJsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem03 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         if ($recoveryWorkbook) {
-            $headingItem02 = "Identity and Access Management - Recovery Site"
+            $headingItem06 = "Recovery Instance"
+            $headingItem07 = "Planning and Preperation"
             $menuitem10 = "Generate JSON Specification File ($recoveryJsonSpecFile)"
-            $menuitem11 = "End-to-End Deployment"
-            $menuitem12 = "Remove from Environment"
+            $menuitem11 = "Verify Prerequisites"
+
+            $headingItem08 = "Implementation"
+            $menuitem12 = "End-to-End Deployment"
+            $menuitem13 = "Remove from Environment"
         }
 
         Do {
@@ -53182,16 +53515,24 @@ Function Start-IamMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Cyan
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             if ($recoveryWorkbook) {
-                Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
+                Write-Host ""; Write-Host -Object " $headingItem06" -ForegroundColor Cyan
+                Write-Host ""; Write-Host -Object " $headingItem07" -ForegroundColor Yellow
                 Write-Host -Object " 10. $menuItem10" -ForegroundColor White
                 Write-Host -Object " 11. $menuItem11" -ForegroundColor White
-                Write-Host -Object " 12. $menuItem12" -ForegroundColor White
+
+                Write-Host ""; Write-Host -Object " $headingItem08" -ForegroundColor Yellow
+                Write-Host -Object " 12. $menuItem11" -ForegroundColor White
+                Write-Host -Object " 13. $menuItem12" -ForegroundColor White
             }
 
             Write-Host -Object ''
@@ -53200,34 +53541,44 @@ Function Start-IamMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IamJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $protectedJsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-IamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
-                    anyKey
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-IamPrerequisite -jsonFile ($jsonPath + $protectedJsonSpecFile)
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 10 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem010" -Foregroundcolor Cyan; Write-Host ''
                     Export-IamJsonSpec -workbook $recoveryWorkbook -jsonFile ($jsonPath + $recoveryJsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 11 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-IamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -certificates $certificatePath
-                    anyKey
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem11" -Foregroundcolor Cyan; Write-Host ''
+                    Test-IamPrerequisite -jsonFile ($jsonPath + $recoveryJsonSpecFile)
+                    waitKey
                 }
                 12 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem12" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -certificates $certificatePath
+                    waitKey
+                }
+                13 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem13" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53244,12 +53595,15 @@ Function Start-IamMenu {
 Function Start-DriMenu {
     Try {
         $jsonSpecFile = "driDeploySpec.json"
-        $submenuTitle = ("Developer Ready Infrastructure - End-to-End Automation")
+        $submenuTitle = ("Developer Ready Infrastructure for VMware Cloud Foundation")
 
-        $headingItem01 = "Developer Ready Infrastructure"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+        
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -53270,10 +53624,13 @@ Function Start-DriMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -53281,19 +53638,24 @@ Function Start-DriMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-DriJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -kubectlPath "C:\Kubectl\bin\"
-                    anyKey
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-DriPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -kubectlPath "C:\Kubectl\bin\"
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -kubectlPath "C:\Kubectl\bin\"
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53310,7 +53672,7 @@ Function Start-DriMenu {
 Function Start-IlaMenu {
     Try {
         $jsonSpecFile = "ilaDeploySpec.json"
-        $submenuTitle = ("Intelligent Logging and Analytics - End-to-End Automation")
+        $submenuTitle = ("Intelligent Logging and Analytics for VMware Cloud Foundation")
 
         $headingItem01 = "Intelligent Logging and Analytics"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53336,7 +53698,7 @@ Function Start-IlaMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53347,19 +53709,19 @@ Function Start-IlaMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IlaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IlaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIlaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53376,7 +53738,7 @@ Function Start-IlaMenu {
 Function Start-IomMenu {
     Try {
         $jsonSpecFile = "iomDeploySpec.json"
-        $submenuTitle = ("Intelligent Operations Management - End-to-End Automation")
+        $submenuTitle = ("Intelligent Operations Management for VMware Cloud Foundation")
 
         $headingItem01 = "Intelligent Operations Management"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53402,7 +53764,7 @@ Function Start-IomMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53413,19 +53775,19 @@ Function Start-IomMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IomJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IomDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIomDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53442,7 +53804,7 @@ Function Start-IomMenu {
 Function Start-InvMenu {
     Try {
         $jsonSpecFile = "invDeploySpec.json"
-        $submenuTitle = ("Intelligent Network Visibility - End-to-End Automation")
+        $submenuTitle = ("Intelligent Network Visibility for VMware Cloud Foundation")
 
         $headingItem01 = "Intelligent Network Visibility"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53468,7 +53830,7 @@ Function Start-InvMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53479,19 +53841,19 @@ Function Start-InvMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-InvJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-InvDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoInvDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53508,12 +53870,15 @@ Function Start-InvMenu {
 Function Start-PcaMenu {
     Try {
         $jsonSpecFile = "pcaDeploySpec.json"
-        $submenuTitle = ("Private Cloud Automation - End-to-End Automation")
+        $submenuTitle = ("Private Cloud Automation for VMware Cloud Foundation")
 
-        $headingItem01 = "Private Cloud Automation"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -53534,10 +53899,13 @@ Function Start-PcaMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -53545,19 +53913,24 @@ Function Start-PcaMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-PcaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-PcaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
-                    anyKey
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-PcaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PcaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPcaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53574,7 +53947,7 @@ Function Start-PcaMenu {
 Function Start-PdrMenu {
     Try {
         $jsonSpecFile = "pdrDeploySpec.json"
-        $submenuTitle = ("Site Protection and Disaster Recovery - End-to-End Automation")
+        $submenuTitle = ("Site Protection and Disaster Recovery for VMware Cloud Foundation")
 
         $headingItem01 = "Site Protection and Disaster Recovery"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53600,7 +53973,7 @@ Function Start-PdrMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53611,19 +53984,23 @@ Function Start-PdrMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Export-PdrJsonSpec -protectedWorkbook $protectedWorkbook -recoveryWorkbook $recoveryWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if ($recoveryWorkbook) {
+                        Export-PdrJsonSpec -protectedWorkbook $protectedWorkbook -recoveryWorkbook $recoveryWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Recovery Workbook Paramter Not Provided When Executing Start-ValidatedSolutionsMenu"
+                    }
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53640,7 +54017,7 @@ Function Start-PdrMenu {
 Function Start-HrmMenu {
     Try {
         $jsonSpecFile = "hrmDeploySpec.json"
-        $submenuTitle = ("Health Reporting and Monitoring - End-to-End Automation")
+        $submenuTitle = ("Health Reporting and Monitoring for VMware Cloud Foundation")
 
         $headingItem01 = "Health Reporting and Monitoring"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53666,7 +54043,7 @@ Function Start-HrmMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53677,19 +54054,19 @@ Function Start-HrmMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-HrmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-HrmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoHrmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53706,7 +54083,7 @@ Function Start-HrmMenu {
 Function Start-CbwMenu {
     Try {
         $jsonSpecFile = "cbwDeploySpec.json"
-        $submenuTitle = ("Cloud-Based Workload Protection - End-to-End Automation")
+        $submenuTitle = ("Cloud-Based Workload Protection for VMware Cloud Foundation")
 
         $headingItem01 = "Cloud-Based Workload Protection"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53732,7 +54109,7 @@ Function Start-CbwMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53743,19 +54120,19 @@ Function Start-CbwMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CbwJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53772,7 +54149,7 @@ Function Start-CbwMenu {
 Function Start-CbrMenu {
     Try {
         $jsonSpecFile = "cbrDeploySpec.json"
-        $submenuTitle = ("Cloud-Based Ransomware Recovery - End-to-End Automation")
+        $submenuTitle = ("Cloud-Based Ransomware Recovery for VMware Cloud Foundation")
 
         $headingItem01 = "Cloud-Based Ransomware Recovery"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53798,7 +54175,7 @@ Function Start-CbrMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53809,19 +54186,19 @@ Function Start-CbrMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CbrJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53838,7 +54215,7 @@ Function Start-CbrMenu {
 Function Start-CcmMenu {
     Try {
         $jsonSpecFile = "ccmDeploySpec.json"
-        $submenuTitle = ("Cross Cloud Mobility - End-to-End Automation")
+        $submenuTitle = ("Cross Cloud Mobility for VMware Cloud Foundation")
 
         $headingItem01 = "Cross Cloud Mobility"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
@@ -53864,7 +54241,7 @@ Function Start-CcmMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
@@ -53875,19 +54252,19 @@ Function Start-CcmMenu {
             if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
-                    anykey
+                    waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
-                    anyKey
+                    waitKey
                 }
                 B {
                     Clear-Host
@@ -53901,7 +54278,7 @@ Function Start-CcmMenu {
     }
 }
 
-Function anyKey {
+Function waitKey {
     Write-Host ''; Write-Host -Object ' Press any key to continue/return to menu...' -ForegroundColor Yellow; Write-Host '';
 	if ($headlessPassed) {
 		$response = if (!$clioptions) { Read-Host } else { "" }
@@ -53917,31 +54294,22 @@ Function Get-NextSolutionOption {
     #>
 
 	$Script:indexMax = $clioptions.Length - 1
-	# $status = Search-PTLogForFailure
-	# if ($status) {
-        if ($Script:currentIndex -le $indexMax) {
-            $Script:nextValue = $clioptions[$currentIndex]
-            $Script:currentIndex = $currentIndex + 1
-            if ($nextValue -like 'wait*'){
-                $time = [int]$nextValue.split('wait')[1]
-                Start-Sleep $time
-                Get-NextSolutionOption
-            } else {
-                return $nextValue
-                Break
-            }
-        }  else {
-            $Script:end_time = Get-Date
-            $Script:time_diff = $end_time - $start_time
-            Exit
+    if ($Script:currentIndex -le $indexMax) {
+        $Script:nextValue = $clioptions[$currentIndex]
+        $Script:currentIndex = $currentIndex + 1
+        if ($nextValue -like 'wait*'){
+            $time = [int]$nextValue.split('wait')[1]
+            Start-Sleep $time
+            Get-NextSolutionOption
+        } else {
+            return $nextValue
+            Break
         }
-    # } else {
-    #     $Global:end_time = Get-Date
-    #     $time_diff = $Global:end_time - $Global:start_time
-    #     LogMessage -type INFO -message "Time to Run all options = $($time_diff.Hours) Hours : $($time_diff.Minutes) Minutes : $($time_diff.Seconds) Seconds"
-    #     LogMessage -type INFO -message "Error encountered when running option $($clioptions[$currentIndex - 1]). Quitting..."
-	# 	Exit
-    # }
+    }  else {
+        $Script:end_time = Get-Date
+        $Script:time_diff = $end_time - $start_time
+        Exit
+    }
 }
 
 #EndRegion                                     E N D  O F  M E N U S                                        ###########

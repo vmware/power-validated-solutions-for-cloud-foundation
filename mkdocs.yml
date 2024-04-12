@@ -885,10 +885,12 @@ nav:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md
         - documentation/functions/solutions/iam/Invoke-UndoIamDeployment.md
+        - documentation/functions/solutions/iam/Test-IamPrerequisite.md
       - Developer Ready Infrastructure:
         - documentation/functions/solutions/dri/Export-DriJsonSpec.md
         - documentation/functions/solutions/dri/Invoke-DriDeployment.md
         - documentation/functions/solutions/dri/Invoke-UndoDriDeployment.md
+        - documentation/functions/solutions/dri/Test-DriPrerequisite.md
       - Intelligent Logging and Analytics:
         - documentation/functions/solutions/ila/Export-IlaJsonSpec.md
         - documentation/functions/solutions/ila/Invoke-IlaDeployment.md
@@ -901,6 +903,7 @@ nav:
         - documentation/functions/solutions/pca/Export-PcaJsonSpec.md
         - documentation/functions/solutions/pca/Invoke-PcaDeployment.md
         - documentation/functions/solutions/pca/Invoke-UndoPcaDeployment.md
+        - documentation/functions/solutions/pca/Test-PcaPrerequisite.md
       - Site Protection and Disaster Recovery:
         - documentation/functions/solutions/pdr/Export-PdrJsonSpec.md
         - documentation/functions/solutions/pdr/Invoke-PdrDeployment.md

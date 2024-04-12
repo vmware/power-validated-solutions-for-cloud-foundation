@@ -25,8 +25,13 @@
 - Added `Add-vRLCMSGroupRole` cmdlet to add roles to groups in VMware Aria Suite Lifecycle.
 - Added `Undo-vRLCMSGroupRole` cmdlet to remove group roles in VMWare Aria Suite Lifecycle.
 - Added `Request-AriaNetworksToken` cmdlet to obtain an authorization token from VMware Aria Operations for Networks.
+- Added cmdlets to verify prerequisites before attempting to deploy a Validated Solutions:
+  - Added `Test-IamPrerequisite` cmdlet to verify prerequisites for Identity and Access Management.
+  - Added `Test-DriPrerequisite` cmdlet to verify prerequisites for Developer Ready Infrastructure.
+  - Added `Test-PcaPrerequisite` cmdlet to verify prerequisites for Private Cloud Automation.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
+- Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.

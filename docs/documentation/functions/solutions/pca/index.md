@@ -18,6 +18,7 @@ Select an option for the solution.
 
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-PcaPrerequisite`](Test-PcaPrerequisite.md)                                                              | Prerequisites         |
     | [`Export-PcaJsonSpec`](Export-PcaJsonSpec.md)                                                                  | End-to-End Deployment |
     | [`Invoke-PcaDeployment`](Invoke-PcaDeployment.md)                                                              | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                        | Procedure             |
@@ -52,6 +53,7 @@ Select an option for the solution.
 
     | Function                                                                                                  | Type                  |
     | --------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-PcaPrerequisite`](Test-PcaPrerequisite.md)                                                         | Prerequisites         |
     | [`Export-PcaJsonSpec`](Export-PcaJsonSpec.md)                                                             | End-to-End Removal    |
     | [`Invoke-UndoPcaDeployment`](Invoke-UndoPcaDeployment.md)                                                 | End-to-End Removal    |
     | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                                           | Procedure             |

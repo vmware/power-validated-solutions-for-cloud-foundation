@@ -10,6 +10,7 @@ Select an option for the solution.
 
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IamPrerequisite`](Test-IamPrerequisite.md)                                 | Prerequisites         |
     | [`Export-IamJsonSpec`](Export-IamJsonSpec.md)                                     | End-to-End Deployment |
     | [`Invoke-IamDeployment`](Invoke-IamDeployment.md)                                 | End-to-End Deployment |
     | [`Add-IdentitySource`](./../../vsphere/Add-IdentitySource.md)                     | Procedure             |
@@ -27,6 +28,7 @@ Select an option for the solution.
 
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IamPrerequisite`](Test-IamPrerequisite.md)                                 | Prerequisites         |
     | [`Export-IamJsonSpec`](Export-IamJsonSpec.md)                                     | End-to-End Removal    |
     | [`Invoke-UndoIamDeployment`](Invoke-UndoIamDeployment.md)                         | End-to-End Removal    |
     | [`Undo-IdentitySource`](./../../vsphere/Undo-IdentitySource.md)                   | Procedure             |
