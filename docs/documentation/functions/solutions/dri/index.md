@@ -10,6 +10,7 @@ Select an option for the solution.
 
     | Function                                                                                                | Type                  |
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-DriPrerequisite`](Test-DriPrerequisite.md)                                                       | Prerequisites         |
     | [`Export-DriJsonSpec`](Export-DriJsonSpec.md)                                                           | End-to-End Deployment |
     | [`Invoke-DriDeployment`](Invoke-DriDeployment.md)                                                       | End-to-End Deployment |
     | [`Add-NetworkSegment`](./../../nsx/Add-NetworkSegment.md)                                               | Procedure             |
@@ -35,6 +36,7 @@ Select an option for the solution.
 
     | Function                                                                              | Type               |
     | ------------------------------------------------------------------------------------- | -------------------|
+    | [`Test-DriPrerequisite`](Test-DriPrerequisite.md)                                     | Prerequisites      |
     | [`Export-DriJsonSpec`](Export-DriJsonSpec.md)                                         | End-to-End Removal |
     | [`Invoke-UndoDriDeployment`](Invoke-UndoDriDeployment.md)                             | End-to-End Removal |
     | [`Undo-NetworkSegment`](./../../nsx/Undo-NetworkSegment.md)                           | Procedure          |
