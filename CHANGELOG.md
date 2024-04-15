@@ -31,6 +31,10 @@
   - Added `Test-IlaPrerequisite` cmdlet to verify prerequisites for Intelligent Logging and Analytics.
   - Added `Test-IomPrerequisite` cmdlet to verify prerequisites for Intelligent Operations Management.
   - Added `Test-PcaPrerequisite` cmdlet to verify prerequisites for Private Cloud Automation.
+  - Added `Test-HrmPrerequisite` cmdlet to verify prerequisites for Health Reporting anf Monitoring.
+  - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
+  - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
+  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.

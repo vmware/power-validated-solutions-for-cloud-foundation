@@ -10,6 +10,7 @@ Select an option for the solution.
 
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CcmPrerequisite`](Test-CcmPrerequisite.md)                                 | Prerequisites         |
     | [`Export-CcmJsonSpec`](Export-CcmJsonSpec.md)                                     | End-to-End Deployment |
     | [`Invoke-CcmDeployment`](Invoke-CcmDeployment.md)                                 | End-to-End Deployment |
     | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                           | Procedure             |
@@ -21,13 +22,14 @@ Select an option for the solution.
 
     The following functions can be use to remove the solution deployment.
 
-    | Function                                                                          | Type                 |
-    | --------------------------------------------------------------------------------- | -------------------- |
-    | [`Export-CcmJsonSpec`](Export-CcmJsonSpec.md)                                     | End-to-End Removal   |
-    | [`Invoke-UndoCcmDeployment`](Invoke-UndoCcmDeployment.md)                         | End-to-End Removal   |
-    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md) | Procedure            |
-    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                               | Procedure            |
-    | [`Undo-ResourcePool`](./../../vsphere/Undo-ResourcePool.md)                       | Procedure            |
-    | [`Undo-NsxtLdapRole`](./../../nsx/Undo-NsxtLdapRole.md)                           | Procedure            |
+    | Function                                                                          | Type                  |
+    | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CcmPrerequisite`](Test-CcmPrerequisite.md)                                 | Prerequisites         |
+    | [`Export-CcmJsonSpec`](Export-CcmJsonSpec.md)                                     | End-to-End Removal    |
+    | [`Invoke-UndoCcmDeployment`](Invoke-UndoCcmDeployment.md)                         | End-to-End Removal    |
+    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md) | Procedure             |
+    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                               | Procedure             |
+    | [`Undo-ResourcePool`](./../../vsphere/Undo-ResourcePool.md)                       | Procedure             |
+    | [`Undo-NsxtLdapRole`](./../../nsx/Undo-NsxtLdapRole.md)                           | Procedure             |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-cross-cloud-mobility-v1/GUID-20440B6A-0805-4A73-88A9-DD431088791C.html

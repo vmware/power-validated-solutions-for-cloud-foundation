@@ -6,8 +6,6 @@
 
     The following are prerequisites for this solution:
 
-    - [VMware Aria Suite Lifecycle](./../lcm.md)
-    - [Workspace ONE Access (Global)](./../wsa.md)
     - [Intelligent Operations Management](./../iom/index.md)
 
 Select an option for the solution.
@@ -18,6 +16,7 @@ Select an option for the solution.
 
     | Function                                                                  | Type                  |
     | ------------------------------------------------------------------------- | --------------------- |
+    | [`Test-HrmPrerequisite`](Test-HrmPrerequisite.md)                         | Prerequisites         |
     | [`Export-HrmJsonSpec`](Export-HrmJsonSpec.md)                             | End-to-End Deployment |
     | [`Invoke-HrmDeployment`](Invoke-HrmDeployment.md)                         | End-to-End Deployment |
     | [`Deploy-PhotonAppliance`](Deploy-PhotonAppliance.md)                     | Procedure             |
@@ -33,6 +32,7 @@ Select an option for the solution.
 
     | Function                                                                  | Type               |
     | ------------------------------------------------------------------------- | ------------------ |
+    | [`Test-HrmPrerequisite`](Test-HrmPrerequisite.md)                         | Prerequisites      |
     | [`Export-HrmJsonSpec`](Export-HrmJsonSpec.md)                             | End-to-End Removal |
     | [`Invoke-UndoHrmDeployment`](Invoke-UndoHrmDeployment.md)                 | End-to-End Removal |
     | [`Remove-PhotonAppliance`](Remove-PhotonAppliance.md)                     | Procedure          |

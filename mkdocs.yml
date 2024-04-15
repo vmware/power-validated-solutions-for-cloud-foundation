@@ -916,18 +916,22 @@ nav:
         - documentation/functions/solutions/hrm/Invoke-UndoHrmDeployment.md
         - documentation/functions/solutions/hrm/Deploy-PhotonAppliance.md
         - documentation/functions/solutions/hrm/Remove-PhotonAppliance.md
+        - documentation/functions/solutions/hrm/Test-HrmPrerequisite.md
       - Cloud-Based Workload Protection:
         - documentation/functions/solutions/cbw/Export-CbwJsonSpec.md
         - documentation/functions/solutions/cbw/Invoke-CbwDeployment.md
         - documentation/functions/solutions/cbw/Invoke-UndoCbwDeployment.md
+        - documentation/functions/solutions/cbw/Test-CbwPrerequisite.md
       - Cloud-Based Ransomware Recovery:
         - documentation/functions/solutions/cbr/Export-CbrJsonSpec.md
         - documentation/functions/solutions/cbr/Invoke-CbrDeployment.md
         - documentation/functions/solutions/cbr/Invoke-UndoCbrDeployment.md
+        - documentation/functions/solutions/cbr/Test-CbrPrerequisite.md
       - Cross Cloud Mobility:
         - documentation/functions/solutions/ccm/Export-CcmJsonSpec.md
         - documentation/functions/solutions/ccm/Invoke-CcmDeployment.md
         - documentation/functions/solutions/ccm/Invoke-UndoCcmDeployment.md
+        - documentation/functions/solutions/ccm/Test-CcmPrerequisite.md
     - Tests:
       - documentation/functions/supporting/Test-DnsServers.md
       - documentation/functions/supporting/Test-EndpointConnection.md

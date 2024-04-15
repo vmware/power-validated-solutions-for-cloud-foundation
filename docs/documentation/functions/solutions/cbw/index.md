@@ -10,6 +10,7 @@ Select an option for the solution.
 
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                 | Prerequisites         |
     | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                     | End-to-End Deployment |
     | [`Invoke-CbwDeployment`](Invoke-CbwDeployment.md)                                 | End-to-End Deployment |
     | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                           | Procedure             |
@@ -27,6 +28,7 @@ Select an option for the solution.
 
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                 | Prerequisites         |
     | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                     | End-to-End Removal    |
     | [`Invoke-UndoCbwDeployment`](Invoke-UndoCbwDeployment.md)                         | End-to-End Removal    |
     | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                         | Procedure             |
