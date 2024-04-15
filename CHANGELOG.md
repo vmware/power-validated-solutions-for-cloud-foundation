@@ -35,6 +35,7 @@
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
   - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
+- Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
@@ -85,7 +86,7 @@
 - Added `Invoke-PdrDeployment` cmdlet to perform an end-to-end deployment of Site Protection and Disaster Recovery.
 - Added `Invoke-UndoPdrDeployment` cmdlet to perform removal of Site Protection and Disaster Recovery.
 - Added `Test-SrmSdkConnection` cmdlet to test the connection to a Site Recovery Manager instance for PowerCLI connectivity.
-- Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary..
+- Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary.
 - Added `Invoke-RequestSignedCertificate` cmdlet to sign off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
 - Added `Invoke-GenerateChainPem` cmdlet to combine the private key, signed certificate and/or root certificate files into a single PEM file.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
@@ -601,7 +602,7 @@ Deprecation
 - Added `Get-LocalAccountLockout` cmdlet to retrieve the local user account lockout policy from a virtual machine.
 - Added `Set-LocalAccountLockout` cmdlet to update the local user account lockout policy from a virtual machine.
 - Added `Request-VcenterAccountLockout` cmdlet to retrieve the local user account lockout policy for vCenter Server.
-- Added `Update-VcenterAccountLockout` cmdlet to update  the local user account lockout policy for vCenter Server.
+- Added `Update-VcenterAccountLockout` cmdlet to update the local user account lockout policy for vCenter Server.
 - Added `Request-SddcManagerAccountLockout` cmdlet to retrieve the local user account lockout policy for SDDC Manager.
 - Added `Update-SddcManagerAccountLockout` cmdlet to update the local user account lockout policy for SDDC Manager.
 - Added `Request-WsaLocalUserAccountLockout` cmdlet to retrieve the local user account lockout policy for Workspace ONE Access.
@@ -850,11 +851,9 @@ Deprecation
 - Added `Undo-vRADnsConfig` cmdlet to revert the DNS configuration of vRealize Automation to match SDDC Manager.
 - Added `Set-vRANtpConfig` cmdlet to configure the NTP server(s) on vRealize Automation to use custom settings.
 - Added `Undo-vRANtpConfig` cmdlet to revert the NTP configuration of vRealize Automation to match SDDC Manager.
-- Added `Add-SrmMapping` cmdlet to create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-instances in Site Recovery Manager
-- Added `Undo-SrmMapping` cmdlet to remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-instances in Site Recovery Manager
-- Added `New-SRMSitePair` cmdlet to create a site pair between Site Recovery Manager instances
+- Added `Add-SrmMapping` cmdlet to create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF instances in Site Recovery Manager
+- Added `Undo-SrmMapping` cmdlet to remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF instances in Site Recovery Manager
+- Added `New-SRMSitePair` cmdlet to create a site pair between Site Recovery Manager instances.
 - Added `Undo-SrmSitePair` cmdlet to remove an existing site pair between Site Recovery Manager instances.
 - Added `New-vSRPortGroup` cmdlet to create port groups for vSphere Replication appliances in the protected and recovery sites.
 - Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
@@ -894,12 +893,12 @@ instances in Site Recovery Manager
   - `iamUndoDeployment.ps1` automates the removal of the Identity and Access Management for VMware Cloud Foundation validated solution.
 - Updated Sample Scripts in the SampleScripts\iam folder, each script uses the Planning and Preparation Workbook as the input source:
   - `iamConfigureWorkspaceOne.ps1` updated input values to use latest VCF 4.4.x Planning and Prep Workbook.
- Added Sample Scripts in the SampleScripts\dri folder, each script uses the Planning and Preparation Workbook as the input source:
+- Added Sample Scripts in the SampleScripts\dri folder, each script uses the Planning and Preparation Workbook as the input source:
   - `driConfigureSupervisorCluster.ps1` automates the configuration of vSphere, NSX and enables the Supervisor Cluster.
   - `driDeployTanzuCluster.ps1` automates the the deployment of a Tanzu Kubernetes Cluster.
   - `driUndoDeployment.ps1` automates the removal of the Developer Ready Infrastructure for VMware Cloud Foundation validated solution.
-Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
+- Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
+  - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
 ## v1.4.0
 
