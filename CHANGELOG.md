@@ -29,6 +29,7 @@
   - Added `Test-IamPrerequisite` cmdlet to verify prerequisites for Identity and Access Management.
   - Added `Test-DriPrerequisite` cmdlet to verify prerequisites for Developer Ready Infrastructure.
   - Added `Test-IlaPrerequisite` cmdlet to verify prerequisites for Intelligent Logging and Analytics.
+  - Added `Test-IomPrerequisite` cmdlet to verify prerequisites for Intelligent Operations Management.
   - Added `Test-PcaPrerequisite` cmdlet to verify prerequisites for Private Cloud Automation.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.

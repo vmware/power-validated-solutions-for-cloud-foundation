@@ -17,6 +17,7 @@ Select an option for the solution.
 
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IomPrerequisite`](Test-IomPrerequisite.md)                                                              | Prerequisites         |
     | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                  | End-to-End Deployment |
     | [`Invoke-IomDeployment`](Invoke-IomDeployment.md)                                                              | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                        | Procedure             |
@@ -58,6 +59,7 @@ Select an option for the solution.
 
     | Function                                                                                                  | Type                  |
     | --------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IomPrerequisite`](Test-IomPrerequisite.md)                                                         | Prerequisites         |
     | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                             | End-to-End Removal    |
     | [`Invoke-UndoIomDeployment`](Invoke-UndoIomDeployment.md)                                                 | End-to-End Removal    |
     | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                                           | Procedure             |

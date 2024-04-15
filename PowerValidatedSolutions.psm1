@@ -16080,7 +16080,9 @@ Function Export-IomJsonSpec {
                 'domainFqdn'                       = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindUser'                   = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
                 'domainBindPass'                   = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'      = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'serviceAccountOperationsVcf'      = $pnpWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
+                'serviceAccountOperationsVcfPass'  = $pnpWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
                 'vsphereRoleNameOperations'        = $pnpWorkbook.Workbook.Names["iom_vsphere_role"].Value
                 'wsaBindUser'                      = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
                 'wsaBindPass'                      = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
@@ -16106,6 +16108,18 @@ Function Export-IomJsonSpec {
                 'pingAdapterNameProxies'           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-operations-proxies"
                 'pingAdapterNameOperations'        = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value + "-cluster"
                 'pingAdapterNameIdentity'          = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value + "-cluster"
+                'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'                = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                           = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'                   = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                          = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'                 = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                           = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'                  = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                          = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'               = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                        = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                    = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -16130,6 +16144,122 @@ Function Export-IomJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-IomJsonSpec
+
+Function Test-IomPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Intelligent Operations Management
+
+        .DESCRIPTION
+        The Test-IomPrerequisite cmdlet verifies the prerequisites for Intelligent Operations Management for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-IomPrerequisite -jsonFile .\iomDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Intelligent Operations Management.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Intelligent Operations Management for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFApplicationVirtualNetwork) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFvRSLCM) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWsa) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Workspace ONE Access has been deployed ($((Get-VCFWsa).loadBalancerFqdn)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
+                    }
+                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Cloud-Proxy" }).name) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available: PRE_VALIDATION_FAILED"
+                    }
+                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance" }).name) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available: PRE_VALIDATION_FAILED"
+                    }
+                    if ($jsonInput.licenseKey) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON: PRE_VALIDATION_FAILED"
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVcf -pass $jsonInput.serviceAccountOperationsVcfPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): PRE_VALIDATION_FAILED"
+                    }
+                    Foreach ($securityGroup in $jsonInput.adGroups) {
+                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
+                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUser, $securePassword)
+                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
+                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+                        }
+                    }
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-IomPrerequisite
+
 
 Function Invoke-IomDeployment {
     <#
@@ -53922,10 +54052,13 @@ Function Start-IomMenu {
         $jsonSpecFile = "validatedSolution-iomDeploySpec.json"
         $submenuTitle = ("Intelligent Operations Management for VMware Cloud Foundation")
 
-        $headingItem01 = "Intelligent Operations Management"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -53949,7 +54082,10 @@ Function Start-IomMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -53963,11 +54099,16 @@ Function Start-IomMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-IomDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    Test-IomPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IomDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIomDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }

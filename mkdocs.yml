@@ -900,6 +900,7 @@ nav:
         - documentation/functions/solutions/iom/Export-IomJsonSpec.md
         - documentation/functions/solutions/iom/Invoke-IomDeployment.md
         - documentation/functions/solutions/iom/Invoke-UndoIomDeployment.md
+        - documentation/functions/solutions/iom/Test-IomPrerequisite.md
       - Private Cloud Automation:
         - documentation/functions/solutions/pca/Export-PcaJsonSpec.md
         - documentation/functions/solutions/pca/Invoke-PcaDeployment.md
