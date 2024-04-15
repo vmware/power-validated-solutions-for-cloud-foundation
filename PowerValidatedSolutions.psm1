@@ -12528,7 +12528,7 @@ Function Test-IlaPrerequisite {
                         }
                     }
                     if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Log-Insight" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Log-Insight" }).name))): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available: PRE_VALIDATION_FAILED"
                     }
@@ -16204,12 +16204,12 @@ Function Test-IomPrerequisite {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
                     }
                     if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Cloud-Proxy" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Cloud-Proxy" }).name))): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available: PRE_VALIDATION_FAILED"
                     }
                     if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance" }).name))): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available: PRE_VALIDATION_FAILED"
                     }
@@ -16259,7 +16259,6 @@ Function Test-IomPrerequisite {
     }
 }
 Export-ModuleMember -Function Test-IomPrerequisite
-
 
 Function Invoke-IomDeployment {
     <#
@@ -20395,7 +20394,7 @@ Function Test-PcaPrerequisite {
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON: PRE_VALIDATION_FAILED"
                     }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
                         Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
@@ -22967,29 +22966,30 @@ Function Export-HrmJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'              = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'              = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'              = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vmFolder'                     = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
-                'vmName'                       = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
-                'fqdn'                         = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
-                'ipAddress'                    = $pnpWorkbook.Workbook.Names["hrm_vm_ip"].Value
-                'netmask'                      = ((($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value -Split ('/'))[-1]) + " (" + ($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_mask"].Value) + ")")
-                'gateway'                      = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
-                'dns'                          = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                'searchDomain'                 = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                'rootPassword'                 = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
-                'ova'                          = "vvs_appliance_v0.0.1.ova"
-                'portgroup'                    = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
-                'stretchedCluster'             = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'drsVmGroupNameAz'             = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
-                'domainFqdn'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'hrmVcfServiceAccount'         = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
-                'hrmVcfServiceAccountPassword' = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vmFolder'                      = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
+                'vmName'                        = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
+                'fqdn'                          = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
+                'ipAddress'                     = $pnpWorkbook.Workbook.Names["hrm_vm_ip"].Value
+                'netmask'                       = ((($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value -Split ('/'))[-1]) + " (" + ($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_mask"].Value) + ")")
+                'gateway'                       = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                'dns'                           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'searchDomain'                  = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                'ntp'                           = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                'rootPassword'                  = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
+                'ova'                           = "vvs_appliance_v0.0.1.ova"
+                'portgroup'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'drsVmGroupNameAz'              = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'hrmVcfServiceAccount'          = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
+                'hrmVcfServiceAccountPassword'  = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23014,6 +23014,93 @@ Function Export-HrmJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-HrmJsonSpec
+
+Function Test-HrmPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Health Reporting and Monitoring
+
+        .DESCRIPTION
+        The Test-HrmPrerequisite cmdlet verifies the prerequisites for Health Reporting and Monitoring for VMware Cloud
+        Foundation validated solution.
+
+        .EXAMPLE
+        Test-HrmPrerequisite -jsonFile .\hrmDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Health Reporting and Monitoring.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Health Reporting and Monitoring for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFvRops) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Operatios has been deployed ($((Get-VCFvRops).loadBalancerFqdn)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Operatios has been deployed: PRE_VALIDATION_FAILED"
+                    }
+                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match $jsonInput.ova }).name) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match $jsonInput.ova }).name))): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available: PRE_VALIDATION_FAILED"
+                    }
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
+                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+                        }
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.hrmVcfServiceAccount -pass $jsonInput.hrmVcfServiceAccountPassword -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-HrmPrerequisite
 
 Function Invoke-HrmDeployment {
     <#
@@ -23443,25 +23530,38 @@ Function Export-CbwJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'        = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'        = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'        = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'     = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vsphereRoleNameVcdr'    = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_role"].Value
-                'vsphereRoleNameHcx'     = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_role"].Value
-                'serviceAccountVcdr'     = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_user"].Value
-                'serviceAccountVcdrPass' = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_password"].Value
-                'serviceAccountHcx'      = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_user"].Value
-                'serviceAccountHcxPass'  = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'      = ($pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
-                'serviceAccountNsxPass'  = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_password"].Value
-                'vmFolderVcdr'           = $pnpWorkbook.Workbook.Names["cbw_vm_folder"].Value
-                'vmFolderHcx'            = $pnpWorkbook.Workbook.Names["cbw_hcx_vm_folder"].Value
-                'resourcePoolHcx'        = $pnpWorkbook.Workbook.Names["cbw_hcx_resource_pool"].Value
-                'domainFqdn'             = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'         = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'         = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'stretchedCluster'       = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vsphereRoleNameVcdr'           = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_role"].Value
+                'vsphereRoleNameHcx'            = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_role"].Value
+                'serviceAccountVcdr'            = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_user"].Value
+                'serviceAccountVcdrPass'        = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_password"].Value
+                'serviceAccountHcx'             = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_user"].Value
+                'serviceAccountHcxPass'         = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_password"].Value
+                'serviceAccountNsx'             = ($pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsxPass'         = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_password"].Value
+                'vmFolderVcdr'                  = $pnpWorkbook.Workbook.Names["cbw_vm_folder"].Value
+                'vmFolderHcx'                   = $pnpWorkbook.Workbook.Names["cbw_hcx_vm_folder"].Value
+                'resourcePoolHcx'               = $pnpWorkbook.Workbook.Names["cbw_hcx_resource_pool"].Value
+                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23486,6 +23586,100 @@ Function Export-CbwJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-CbwJsonSpec
+
+Function Test-CbwPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Cloud-Based Workload Protection
+
+        .DESCRIPTION
+        The Test-CbwPrerequisite cmdlet verifies the prerequisites for Cloud-Based Workload Protection for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-CbwPrerequisite -jsonFile .\cbwDeploySpec.json
+        This example verifies the prerequisites for Cloud-Based Workload Protection.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Workload Protection for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
+                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+                        }
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountVcdr -pass $jsonInput.serviceAccountVcdrPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
+                    }
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-CbwPrerequisite
 
 Function Invoke-CbwDeployment {
     <#
@@ -23693,12 +23887,24 @@ Function Export-CbrJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'    = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'    = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'    = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName' = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vmFolderVcdr'       = $pnpWorkbook.Workbook.Names["cbr_vm_folder"].Value
-                'stretchedCluster'   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vmFolderVcdr'                  = $pnpWorkbook.Workbook.Names["cbr_vm_folder"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23723,6 +23929,57 @@ Function Export-CbrJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-CbrJsonSpec
+
+Function Test-CbrPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Cloud-Based Ransomware Recovery
+
+        .DESCRIPTION
+        The Test-CbrPrerequisite cmdlet verifies the prerequisites for Cloud-Based Ransomware Recovery for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-CbrPrerequisite -jsonFile .\cbrDeploySpec.json
+        This example verifies the prerequisites for Cloud-Based Ransomware Recovery.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Ransomware Recovery for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-CbrPrerequisite
 
 Function Invoke-CbrDeployment {
     <#
@@ -23870,22 +24127,35 @@ Function Export-CcmJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'       = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'       = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'       = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'    = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vsphereRoleNameHcx'    = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
-                'serviceAccountHcx'     = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
-                'serviceAccountHcxPass' = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'     = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
-                'serviceAccountNsxPass' = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
-                'vmFolder'              = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
-                'folderSuffix'          = "-fd-hcx"
-                'resourcePoolSuffix'    = "-rp-hcx"
-                'domainFqdn'            = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'        = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'        = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'stretchedCluster'      = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vsphereRoleNameHcx'            = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
+                'serviceAccountHcx'             = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
+                'serviceAccountHcxPass'         = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
+                'serviceAccountNsx'             = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsxPass'         = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
+                'vmFolder'                      = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
+                'folderSuffix'                  = "-fd-hcx"
+                'resourcePoolSuffix'            = "-rp-hcx"
+                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23910,6 +24180,95 @@ Function Export-CcmJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-CcmJsonSpec
+
+Function Test-CcmPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Cross Cloud Mobility
+
+        .DESCRIPTION
+        The Test-CcmPrerequisite cmdlet verifies the prerequisites for Cross Cloud Mobility for VMware Cloud Foundation
+        validated solution.
+
+        .EXAMPLE
+        Test-CcmPrerequisite -jsonFile .\cbwDeploySpec.json
+        This example verifies the prerequisites for Cross Cloud Mobility.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cross Cloud Mobility for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+                    }
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
+                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+                        }
+                    }
+                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
+                    }
+                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+                    }
+                    $openSslVersion = openssl version 2>&1
+                    if ($openSslVersion -match "^Openssl 3*") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-CcmPrerequisite
 
 Function Invoke-CcmDeployment {
     <#
@@ -54342,10 +54701,13 @@ Function Start-HrmMenu {
         $jsonSpecFile = "validatedSolution-hrmDeploySpec.json"
         $submenuTitle = ("Health Reporting and Monitoring for VMware Cloud Foundation")
 
-        $headingItem01 = "Health Reporting and Monitoring"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -54369,7 +54731,10 @@ Function Start-HrmMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54383,11 +54748,16 @@ Function Start-HrmMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-HrmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    Test-HrmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-HrmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoHrmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
@@ -54408,10 +54778,13 @@ Function Start-CbwMenu {
         $jsonSpecFile = "validatedSolution-cbwDeploySpec.json"
         $submenuTitle = ("Cloud-Based Workload Protection for VMware Cloud Foundation")
 
-        $headingItem01 = "Cloud-Based Workload Protection"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -54435,7 +54808,10 @@ Function Start-CbwMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54449,11 +54825,16 @@ Function Start-CbwMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-CbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    Test-CbwPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
@@ -54474,10 +54855,13 @@ Function Start-CbrMenu {
         $jsonSpecFile = "validatedSolution-cbrDeploySpec.json"
         $submenuTitle = ("Cloud-Based Ransomware Recovery for VMware Cloud Foundation")
 
-        $headingItem01 = "Cloud-Based Ransomware Recovery"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -54501,7 +54885,11 @@ Function Start-CbrMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54515,11 +54903,16 @@ Function Start-CbrMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-CbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    Test-CbrPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
@@ -54540,10 +54933,13 @@ Function Start-CcmMenu {
         $jsonSpecFile = "validatedSolution-ccmDeploySpec.json"
         $submenuTitle = ("Cross Cloud Mobility for VMware Cloud Foundation")
 
-        $headingItem01 = "Cross Cloud Mobility"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -54567,7 +54963,10 @@ Function Start-CcmMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54581,11 +54980,16 @@ Function Start-CcmMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-CcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    Test-CcmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
