@@ -16,6 +16,7 @@ Select an option for the solution.
 
     | Function                                                                                                            | Type                  |
     | ------------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IlaPrerequisite`](Test-IlaPrerequisite.md)                                                                   | Prerequisites         |
     | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                                 | End-to-End Deployment |
     | [`Invoke-IlaDeployment`](./../../solutions/ila/Invoke-IlaDeployment.md)                                             | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                             | Procedure             |
@@ -45,6 +46,7 @@ Select an option for the solution.
 
     | Function                                                                                                  | Type                  |
     | --------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-IlaPrerequisite`](Test-IlaPrerequisite.md)                                                         | Prerequisites         |
     | [`Invoke-UndoIlaDeployment`](Invoke-UndoIlaDeployment.md)                                                 | End-to-End Removal    |
     | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                                           | Procedure             |
     | [`Undo-vRSLCMLockerLicense`](./../../aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerLicense.md)         | Procedure             |

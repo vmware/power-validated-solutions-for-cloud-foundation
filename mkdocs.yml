@@ -895,6 +895,7 @@ nav:
         - documentation/functions/solutions/ila/Export-IlaJsonSpec.md
         - documentation/functions/solutions/ila/Invoke-IlaDeployment.md
         - documentation/functions/solutions/ila/Invoke-UndoIlaDeployment.md
+        - documentation/functions/solutions/ila/Test-IlaPrerequisite.md
       - Intelligent Operations Management:
         - documentation/functions/solutions/iom/Export-IomJsonSpec.md
         - documentation/functions/solutions/iom/Invoke-IomDeployment.md
