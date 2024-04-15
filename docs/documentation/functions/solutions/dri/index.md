@@ -2,6 +2,12 @@
 
 [:material-cloud-check: &nbsp; Documentation][solution]{ .md-button }
 
+!!! note "Solution Prerequisites"
+
+    The following are prerequisites for this solution:
+
+    - [Identity and Access Management](./../iam/index.md)
+
 Select an option for the solution.
 
 === ":material-location-enter: &nbsp; Solution Deployment"
