@@ -11,25 +11,25 @@
     RootModule = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion = '2.10.0.1009'
+    ModuleVersion = '2.10.0.1010'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
+    GUID              = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
 
     # Author of this module
-    Author = 'Broadcom'
+    Author            = 'Broadcom'
 
     # Company or vendor of this module
-    CompanyName = 'Broadcom'
+    CompanyName       = 'Broadcom'
 
     # Copyright statement for this module
-    Copyright = 'Copyright 2023-2024 Broadcom. All Rights Reserved.'
+    Copyright         = 'Copyright 2023-2024 Broadcom. All Rights Reserved.'
 
     # Description of the functionality provided by this module
-    Description = 'PowerShell Module for VMware Validated Solutions'
+    Description       = 'PowerShell Module for VMware Validated Solutions'
 
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.2.0'
@@ -94,16 +94,16 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = @('VMware', 'ValidatedSolutions', 'VMwareValidatedSolutions', 'CloudFoundation', 'VMwareCloudFoundation')
+            Tags         = @('VMware', 'ValidatedSolutions', 'VMwareValidatedSolutions', 'CloudFoundation', 'VMwareCloudFoundation')
 
             # A URL to the license for this module.
-            LicenseUri = 'https://github.com/vmware/power-validated-solutions-for-cloud-foundation/blob/main/LICENSE'
+            LicenseUri   = 'https://github.com/vmware/power-validated-solutions-for-cloud-foundation/blob/main/LICENSE'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://vmware.github.io/power-validated-solutions-for-cloud-foundation/'
+            ProjectUri   = 'https://vmware.github.io/power-validated-solutions-for-cloud-foundation/'
 
             # A URL to an icon representing this module.
-            IconUri = 'https://raw.githubusercontent.com/vmware/power-validated-solutions-for-cloud-foundation/main/.github/icon-85px.svg'
+            IconUri      = 'https://raw.githubusercontent.com/vmware/power-validated-solutions-for-cloud-foundation/main/.github/icon-85px.svg'
 
             # ReleaseNotes of this module
             ReleaseNotes = 'https://vmware.github.io/power-validated-solutions-for-cloud-foundation/release-notes/'
