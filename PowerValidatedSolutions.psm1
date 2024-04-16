@@ -169,17 +169,17 @@ Function Test-IamPrerequisite {
                         Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserVsphere)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserVsphere)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserVsphere)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.domainBindUserNsx -pass $jsonInput.domainBindPassNsx -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): PRE_VALIDATION_FAILED"
                     }
@@ -9066,7 +9066,7 @@ Function Test-DriPrerequisite {
                     }
 
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
@@ -12532,17 +12532,17 @@ Function Test-IlaPrerequisite {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available: PRE_VALIDATION_FAILED"
                     }
                     if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations for Logs license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations for Logs license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Operations for Logs license is present in the JSON: PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUser)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUser)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUser)): PRE_VALIDATION_FAILED"
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
@@ -16211,22 +16211,22 @@ Function Test-IomPrerequisite {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available: PRE_VALIDATION_FAILED"
                     }
                     if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON: PRE_VALIDATION_FAILED"
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVcf -pass $jsonInput.serviceAccountOperationsVcfPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVsphere -pass $jsonInput.serviceAccountOperationsVspherePass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): PRE_VALIDATION_FAILED"
                     }
@@ -20136,6 +20136,136 @@ Export-ModuleMember -Function Add-vROPSNsxCredential
 #######################################################################################################################
 #Region             I N T E L L I G E N T  N E T W O R K  V I S I B I L I Y  F U N C T I O N S              ###########
 
+Function Export-InvJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Intelligent Network Visibility.
+
+        .DESCRIPTION
+        The Export-InvJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation Workbook
+        to deploy the Intelligent Network Visibility for VMware Cloud Foundation validated solution:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-InvJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\invDeploySpec.json
+        This example creates a JSON specification file for Intelligent Network Visibility using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Network Visibility"
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of $solutionName (.json) Specification File"
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+                # SDDC Manager Settings
+                'sddcManagerFqdn'                    = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'                    = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'                    = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'                 = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                # Certificate Authority Settings
+                'organization'                       = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'                 = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                            = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'                    = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                           = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'                  = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                            = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'                   = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                           = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'                = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                         = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                     = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                # VMware Aria Suite Lifecycle Settings
+                # Locker Settings: Certificate
+                'certificateAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_hostname"].Value
+                # Locker Settings: License
+                'licenseAlias'                       = $pnpWorkbook.Workbook.Names["vrni_license_alias"].Value
+                'licenseKey'                         = $pnpWorkbook.Workbook.Names["vrni_license"].Value
+                # Locker Settings: Passwords
+                'xintUsername'                       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
+                'xintPassword'                       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
+                'xintPasswordAlias'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
+                'ariaNetworksAdminUsername'          = "admin"
+                'ariaNetworksAdminPassword'          = $pnpWorkbook.Workbook.Names["xreg_vrni_root_password"].Value
+                'ariaNetworksAdminPasswordAlias'     = $pnpWorkbook.Workbook.Names["xreg_vrni_root_password_alias"].Value
+                'ariaNetworksSupportUsername'        = "support"
+                'ariaNetworksSupportPassword'        = $pnpWorkbook.Workbook.Names["xreg_vrni_support_password"].Value
+                'ariaNetworksSupportPasswordAlias'   = $pnpWorkbook.Workbook.Names["xreg_vrni_support_password_alias"].Value
+                'ariaNetworksConsoleUsername'        = "consoleuser"
+                'ariaNetworksConsolePassword'        = $pnpWorkbook.Workbook.Names["xreg_vrni_consoleuser_password"].Value
+                'ariaNetworksConsolePasswordAlias'   = $pnpWorkbook.Workbook.Names["xreg_vrni_consoleuser_password_alias"].Value
+                # Environment Settings
+                'environmentName'                    = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                'datacenter'                         = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+                # Infrastructure Settings
+                'vcenterFqdn'                        = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                'vcenterDatacenter'                  = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
+                'vcenterCluster'                     = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
+                'vcenterDatastore'                   = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'network'                            = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                'dns'                                = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'ntp'                                = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                'domain'                             = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                'searchpath'                         = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                # Product Settings: Platform Nodes
+                'ariaNetworksPlatformNodeSize'       = $pnpWorkbook.Workbook.Names["xreg_vrni_platform_node_size"].Value.ToLower()
+                'ariaNetworksPlatformNodeaFqdn'      = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_fqdn"].Value
+                'ariaNetworksPlatformNodeaHostname'  = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_hostname"].Value
+                'ariaNetworksPlatformNodeaIp'        = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_ip"].Value
+                'ariaNetworksPlatformNodeVmFolder'   = $pnpWorkbook.Workbook.Names["inv_vm_folder"].Value
+                # Product Settings: Collector Nodes
+                'ariaNetworksCollectorNodeSize'      = $pnpWorkbook.Workbook.Names["region_vrni_controller_node_size"].Value.ToLower()
+                'ariaNetworksCollectorNodeaFqdn'     = $pnpWorkbook.Workbook.Names["region_vrni_nodea_fqdn"].Value
+                'ariaNetworksCollectorNodeaHostname' = $pnpWorkbook.Workbook.Names["region_vrni_nodea_hostname"].Value
+                'ariaNetworksCollectorNodeaIp'       = $pnpWorkbook.Workbook.Names["region_vrni_nodea_ip"].Value
+                # Post Configuration
+                'vmList'                             = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrni_nodea_hostname"].Value
+                # Identity Management Settings
+                'domainFqdn'                         = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainAlias'                        = $pnpWorkbook.Workbook.Names["region_ad_child_netbios"].Value
+                'domainBindUserVsphere'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPassVsphere'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            }
+            Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq 'Value Missing' -or $null -eq $jsonValue.value ) {
+                    $issueWithJson = $true
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for $solutionName, missing data: PRE_VALIDATION_FAILED"
+            } else {
+                Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for $solutionName : SUCCESSFUL"
+            }
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Generation of $solutionName (.json) Specification File"
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Export-InvJsonSpec
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -20392,22 +20522,22 @@ Function Test-PcaPrerequisite {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Automation are available: PRE_VALIDATION_FAILED"
                     }
                     if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON: PRE_VALIDATION_FAILED"
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountAutomation -pass $jsonInput.serviceAccountAutomationPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountOrchestrator -pass $jsonInput.serviceAccountOrchestratorPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): PRE_VALIDATION_FAILED"
                     }
@@ -22956,7 +23086,7 @@ Function Export-HrmJsonSpec {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
-    
+
     $solutionName = "Health Reporting and Monitoring"
 
     Try {
@@ -23083,12 +23213,12 @@ Function Test-HrmPrerequisite {
                         }
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.hrmVcfServiceAccount -pass $jsonInput.hrmVcfServiceAccountPassword -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): PRE_VALIDATION_FAILED"
                     }
@@ -23641,22 +23771,22 @@ Function Test-CbwPrerequisite {
                         }
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountVcdr -pass $jsonInput.serviceAccountVcdrPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
                     }
@@ -24235,17 +24365,17 @@ Function Test-CcmPrerequisite {
                         }
                     }
                     if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
                     }
                     if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL" 
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
                     }
@@ -25730,7 +25860,7 @@ Function Add-vRSLCMGroupRole {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {    
+                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                         if (!(Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group })) {
                             $groupName = $group.Split('@')[-0]
                             Add-vRSLCMGroup -group $groupName -role $role | Out-Null
@@ -25793,7 +25923,7 @@ Function Undo-vRSLCMGroupRole {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {    
+                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                         if (Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group }) {
                             Remove-vRSLCMGroup -vmid (Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group }).vmid | Out-Null
                             if (!(Get-vRSLCMGroup | Where-Object { $_.displayName -eq $group })) {
@@ -41829,7 +41959,7 @@ Function Remove-vRSLCMGroup {
         Remove-vRSLCMGroup -vmid a3f18959-00b1-4703-a9ab-fad5de8efa84
         This example removes a group and its role assignments from VMware Aria Suite Lifecycle.
 
-        .PARAMETER vmid 
+        .PARAMETER vmid
         The unique identifier of the group in VMware Aria Sute Lifecycle.
     #>
 
@@ -53870,7 +54000,7 @@ Function Start-ValidatedSolutionMenu {
         $Script:binaryPath = $binaryPath
         $Script:protectedWorkbook = $protectedWorkbook
         $Script:recoveryWorkbook = $recoveryWorkbook
-        
+
         $submenuTitle = ("VMware Validated Solutions")
 
         $headingItem01 = "Platform Prerequsites"
@@ -54262,7 +54392,7 @@ Function Start-DriMenu {
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
-        
+
         $headingItem02 = "Implementation"
         $menuitem03 = "End-to-End Deployment"
         $menuitem04 = "Remove from Environment"
