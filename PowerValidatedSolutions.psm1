@@ -9175,8 +9175,7 @@ Function Invoke-DriDeployment {
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Creating a Storage Policy that Uses the New vSphere Tag for $solutionName"
                             $StatusMsg = Add-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -tagName $jsonInput.tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                         }
 
                         if (!$failureDetected) {
@@ -10057,15 +10056,15 @@ Function Set-DatastoreTag {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
                                 if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $datastore }) {
-                                    if (!(Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
-                                        if (!(Get-TagCategory -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagCategoryName })) {
+                                    if (!(Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
+                                        if (!(Get-TagCategory -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagCategoryName })) {
                                             New-TagCategory -Name $tagCategoryName -EntityType Datastore -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                         }
-                                        if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
+                                        if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName })) {
                                             New-Tag -Name $tagName -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                         }
                                         Get-Datastore -Name $Datastore -Server $vcfVcenterDetails.fqdn | New-TagAssignment -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
-                                        if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
+                                        if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                             Write-Output "Creating vSphere Tag ($tagName) for datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                         } else {
                                             Write-Error "Creating vSphere Tag ($tagName) for datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
@@ -10145,7 +10144,7 @@ Function Undo-DatastoreTag {
                                 if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName }) {
                                     Remove-Tag -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     Remove-TagCategory -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
-                                    if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
+                                    if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName })) {
                                         Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                     } else {
                                         Write-Error "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
@@ -10219,10 +10218,10 @@ Function Add-StoragePolicy {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
-                                    if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName }) {
+                                if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
+                                    if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName }) {
                                         New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcfVcenterDetails.fqdn)) -Server $vcfVcenterDetails.fqdn | Out-Null
-                                        if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                        if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
                                             Write-Output "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
                                         } else {
                                             Write-Error "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
@@ -12357,86 +12356,86 @@ Function Export-IlaJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'contentLibraryName'            = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
-                'licenseAlias'                  = $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
-                'licenseKey'                    = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrli_license"].Value }
-                'certificateAlias'              = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value
-                'adminPasswordAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value
-                'adminPassword'                 = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
-                'adminUsername'                 = $pnpWorkbook.Workbook.Names["region_vrli_admin_user"].Value
-                'environemntName'               = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
-                'datacenter'                    = $pnpWorkbook.Workbook.Names["vrslcm_reg_dc"].Value
-                'vcenterFqdn'                   = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                'vcenterDatacenter'             = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'              = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                'network'                       = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
-                'gateway'                       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                'netmask'                       = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-                'domain'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'searchpath'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'dns'                           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                'ntp'                           = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                'nodeSize'                      = $pnpWorkbook.Workbook.Names["region_vrli_appliance_size"].Value.ToLower()
-                'adminEmail'                    = $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
-                'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
-                'clusterIp'                     = $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
-                'vmNameNodeA'                   = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value
-                'hostNameNodeA'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodea_fqdn"].Value
-                'ipNodeA'                       = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
-                'vmNameNodeB'                   = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
-                'hostNameNodeB'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
-                'ipNodeB'                       = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
-                'vmNameNodeC'                   = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-                'hostNameNodeC'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
-                'ipNodeC'                       = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
-                'vmFolder'                      = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
-                'vmList'                        = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-                'drsVmGroupNameAz'              = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
-                'smtpServer'                    = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-                'port'                          = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
-                'sender'                        = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
-                'smtpUser'                      = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
-                'smtpPass'                      = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
-                'emailAddress'                  = $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
-                'retentionNotificationDays'     = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[0]
-                'retentionInterval'             = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[1]
-                'retentionPeriodDays'           = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_period"].Value -as [Int]
-                'archiveLocation'               = $pnpWorkbook.Workbook.Names["region_vrli_archive_location"].Value
-                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                = $pnpWorkbook.Workbook.Names["svc_ila_ad_user"].Value
-                'domainBindPass'                = $pnpWorkbook.Workbook.Names["svc_ila_ad_password"].Value
-                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'domainServers'                 = ($pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value)
-                'logsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value
-                'logsUserGroup'                 = $pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value
-                'logsViewerGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value
-                'adGroups'                      = "$($pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value)"
-                'parentDomain'                  = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                'childDomain'                   = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                'vmNameNode1'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                'vmNameNode2'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                'vmNameNode3'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'agentGroupNameWsa'             = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_wsa"].Value
-                'agentGroupNamePhoton'          = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_photon"].Value
-                'gitHubToken'                   = $pnpWorkbook.Workbook.Names["ila_github_token"].Value
-                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'sddcManagerFqdn'             = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'             = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'             = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'          = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'contentLibraryName'          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+                'licenseAlias'                = $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
+                'licenseKey'                  = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrli_license"].Value }
+                'certificateAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value
+                'adminPasswordAlias'          = $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value
+                'adminPassword'               = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
+                'adminUsername'               = $pnpWorkbook.Workbook.Names["region_vrli_admin_user"].Value
+                'environemntName'             = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
+                'datacenter'                  = $pnpWorkbook.Workbook.Names["vrslcm_reg_dc"].Value
+                'vcenterFqdn'                 = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                'vcenterDatacenter'           = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
+                'vcenterCluster'              = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
+                'vcenterDatastore'            = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'network'                     = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                'gateway'                     = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                'netmask'                     = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                'domain'                      = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'searchpath'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'dns'                         = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'ntp'                         = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                'nodeSize'                    = $pnpWorkbook.Workbook.Names["region_vrli_appliance_size"].Value.ToLower()
+                'adminEmail'                  = $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
+                'clusterFqdn'                 = $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
+                'clusterIp'                   = $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
+                'vmNameNodeA'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value
+                'hostNameNodeA'               = $pnpWorkbook.Workbook.Names["region_vrli_nodea_fqdn"].Value
+                'ipNodeA'                     = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
+                'vmNameNodeB'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
+                'hostNameNodeB'               = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
+                'ipNodeB'                     = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
+                'vmNameNodeC'                 = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
+                'hostNameNodeC'               = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
+                'ipNodeC'                     = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
+                'vmFolder'                    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
+                'vmList'                      = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
+                'drsVmGroupNameAz'            = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'smtpServer'                  = $pnpWorkbook.Workbook.Names["smtp_server"].Value
+                'port'                        = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
+                'sender'                      = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
+                'smtpUser'                    = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
+                'smtpPass'                    = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
+                'emailAddress'                = $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
+                'retentionNotificationDays'   = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[0]
+                'retentionInterval'           = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[1]
+                'retentionPeriodDays'         = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_period"].Value -as [Int]
+                'archiveLocation'             = $pnpWorkbook.Workbook.Names["region_vrli_archive_location"].Value
+                'domainFqdn'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'              = $pnpWorkbook.Workbook.Names["svc_ila_ad_user"].Value
+                'domainBindPass'              = $pnpWorkbook.Workbook.Names["svc_ila_ad_password"].Value
+                'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'domainServers'               = ($pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value)
+                'logsAdminGroup'              = $pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value
+                'logsUserGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value
+                'logsViewerGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value
+                'adGroups'                    = "$($pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value)"
+                'parentDomain'                = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                'childDomain'                 = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                'vmNameNode1'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                'vmNameNode2'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                'vmNameNode3'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'agentGroupNameWsa'           = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_wsa"].Value
+                'agentGroupNamePhoton'        = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_photon"].Value
+                'gitHubToken'                 = $pnpWorkbook.Workbook.Names["ila_github_token"].Value
+                'organization'                = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'          = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                     = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                    = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'           = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                     = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'            = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -16008,118 +16007,116 @@ Function Export-IomJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'                  = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'                  = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'                  = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'               = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'contentLibraryName'               = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
-                'licenseAlias'                     = $pnpWorkbook.Workbook.Names["vrops_license_alias"].Value
-                'licenseKey'                       = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrops_license"].Value }
-                'certificateAlias'                 = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value
-                'rootPasswordAlias'                = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
-                'rootPassword'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
-                'rootUserName'                     = "root"
-                'xintPasswordAlias'                = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
-                'xintPassword'                     = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
-                'xintUserName'                     = $pnpWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
-                'environmentName'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                'datacenter'                       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
-                'vcenterFqdn'                      = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                'vcenterDatacenter'                = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'                 = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                'network'                          = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                'gateway'                          = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                'netmask'                          = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                'domain'                           = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                'searchpath'                       = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                'dns'                              = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                'ntp'                              = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                'deployOption'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
-                'clusterFqdn'                      = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
-                'clusterIp'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value
-                'vmNameNodeA'                      = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                'hostNameNodeA'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
-                'ipNodeA'                          = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
-                'vmNameNodeB'                      = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
-                'hostNameNodeB'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
-                'ipNodeB'                          = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
-                'vmNameNodeC'                      = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                'hostNameNodeC'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
-                'ipNodeC'                          = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
-                'networkProxies'                   = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
-                'gatewayProxies'                   = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                'netmaskProxies'                   = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-                'domainProxies'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'searchpathProxies'                = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'vmNameProxyA'                     = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
-                'hostNameProxyA'                   = $pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
-                'ipProxyA'                         = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
-                'vmNameProxyB'                     = $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'hostNameProxyB'                   = $pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
-                'ipProxyB'                         = $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
-                'vmFolderOperations'               = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
-                'vmFolderProxies'                  = $pnpWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
-                'vmListOperations'                 = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                'vmListProxies'                    = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'vmListAll'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'antiAffinityRuleNameOperations'   = $pnpWorkbook.Workbook.Names["xreg_vrops_anti_affinity_rule_name"].Value
-                'antiAffinityRuleNameProxies'      = $pnpWorkbook.Workbook.Names["xreg_vropsrc_anti_affinity_rule_name"].Value
-                'drsGroupNameOperations'           = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
-                'drsGroupNameIdentity'             = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
-                'drsGroupNameProxies'              = $pnpWorkbook.Workbook.Names["region_vropsrc_vm_group_name"].Value
-                'drsGroupNameAz'                   = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
-                'vmToVmRuleNameWsa'                = $pnpWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
-                'vmToVmRuleNameOperations'         = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
-                'vmToVmRuleNameProxies'            = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
-                'stretchedCluster'                 = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'currency'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_currency"].Value
-                'wsaFqdn'                          = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
-                'wsaUser'                          = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
-                'wsaPass'                          = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
-                'domainFqdn'                       = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                   = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'                   = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'domainControllerMachineName'      = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'serviceAccountOperationsVcf'      = $pnpWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
-                'serviceAccountOperationsVcfPass'  = $pnpWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
-                'vsphereRoleNameOperations'        = $pnpWorkbook.Workbook.Names["iom_vsphere_role"].Value
-                'wsaBindUser'                      = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
-                'wsaBindPass'                      = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-                'baseDnGroup'                      = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
-                'adGroups'                         = "$($pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value)"
-                'smtpServer'                       = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-                'smtpPort'                         = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
-                'smtpAuthUser'                     = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
-                'smtpAuthPass'                     = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
-                'senderAddress'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
-                'operationsAdminGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
-                'operationsContentAdminGroup'      = $pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
-                'operationsReadOnlyGroup'          = $pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
-                'iomVcfServiceAccount'             = $pnpWorkbook.Workbook.Names["iom_vcf_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                'iomVcfServiceAccountPassword'     = $pnpWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
-                'iomVsphereServiceAccount'         = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                'iomVsphereServiceAccountPassword' = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_password"].Value
-                'collectorGroupName'               = $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
-                'defaultCollectorGroup'            = $pnpWorkbook.Workbook.Names["xreg_vrops_default_collector_group"].Value
-                'ipListOperations'                 = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
-                'ipListProxies'                    = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
-                'ipListIdentity'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
-                'pingAdapterNameProxies'           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-operations-proxies"
-                'pingAdapterNameOperations'        = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value + "-cluster"
-                'pingAdapterNameIdentity'          = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value + "-cluster"
-                'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'                = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                           = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'                   = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                          = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'                 = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                           = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'                  = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                          = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'               = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                        = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                    = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'sddcManagerFqdn'                     = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'                     = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'                     = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'                  = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'contentLibraryName'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+                'licenseAlias'                        = $pnpWorkbook.Workbook.Names["vrops_license_alias"].Value
+                'licenseKey'                          = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrops_license"].Value }
+                'certificateAlias'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value
+                'rootPasswordAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
+                'rootPassword'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
+                'rootUserName'                        = "root"
+                'xintPasswordAlias'                   = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
+                'xintPassword'                        = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
+                'xintUserName'                        = $pnpWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
+                'environmentName'                     = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                'datacenter'                          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+                'vcenterFqdn'                         = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                'vcenterDatacenter'                   = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
+                'vcenterCluster'                      = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
+                'vcenterDatastore'                    = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'network'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                'gateway'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                'netmask'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                'domain'                              = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                'searchpath'                          = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                'dns'                                 = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'ntp'                                 = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                'deployOption'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
+                'clusterFqdn'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+                'clusterIp'                           = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value
+                'vmNameNodeA'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                'hostNameNodeA'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
+                'ipNodeA'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
+                'vmNameNodeB'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                'hostNameNodeB'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
+                'ipNodeB'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
+                'vmNameNodeC'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                'hostNameNodeC'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
+                'ipNodeC'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
+                'networkProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                'gatewayProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                'netmaskProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                'domainProxies'                       = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'searchpathProxies'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'vmNameProxyA'                        = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
+                'hostNameProxyA'                      = $pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
+                'ipProxyA'                            = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
+                'vmNameProxyB'                        = $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+                'hostNameProxyB'                      = $pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
+                'ipProxyB'                            = $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
+                'vmFolderOperations'                  = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
+                'vmFolderProxies'                     = $pnpWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
+                'vmListOperations'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                'vmListProxies'                       = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+                'vmListAll'                           = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+                'antiAffinityRuleNameOperations'      = $pnpWorkbook.Workbook.Names["xreg_vrops_anti_affinity_rule_name"].Value
+                'antiAffinityRuleNameProxies'         = $pnpWorkbook.Workbook.Names["xreg_vropsrc_anti_affinity_rule_name"].Value
+                'drsGroupNameOperations'              = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
+                'drsGroupNameIdentity'                = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
+                'drsGroupNameProxies'                 = $pnpWorkbook.Workbook.Names["region_vropsrc_vm_group_name"].Value
+                'drsGroupNameAz'                      = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'vmToVmRuleNameWsa'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
+                'vmToVmRuleNameOperations'            = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+                'vmToVmRuleNameProxies'               = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+                'stretchedCluster'                    = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'currency'                            = $pnpWorkbook.Workbook.Names["xreg_vrops_currency"].Value
+                'wsaFqdn'                             = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
+                'wsaUser'                             = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
+                'wsaPass'                             = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
+                'domainFqdn'                          = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'                      = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'                      = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'         = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'serviceAccountOperationsVcf'         = $pnpWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
+                'serviceAccountOperationsVcfPass'     = $pnpWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
+                'serviceAccountOperationsVsphere'     = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_user"].Value
+                'serviceAccountOperationsVspherePass' = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_password"].Value
+                'vsphereRoleNameOperations'           = $pnpWorkbook.Workbook.Names["iom_vsphere_role"].Value
+                'wsaBindUser'                         = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
+                'wsaBindPass'                         = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+                'baseDnGroup'                         = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
+                'adGroups'                            = "$($pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value)"
+                'smtpServer'                          = $pnpWorkbook.Workbook.Names["smtp_server"].Value
+                'smtpPort'                            = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
+                'smtpAuthUser'                        = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
+                'smtpAuthPass'                        = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
+                'senderAddress'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
+                'operationsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
+                'operationsContentAdminGroup'         = $pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
+                'operationsReadOnlyGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
+                'collectorGroupName'                  = $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                'defaultCollectorGroup'               = $pnpWorkbook.Workbook.Names["xreg_vrops_default_collector_group"].Value
+                'ipListOperations'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
+                'ipListProxies'                       = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
+                'ipListIdentity'                      = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
+                'pingAdapterNameProxies'              = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-operations-proxies"
+                'pingAdapterNameOperations'           = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value + "-cluster"
+                'pingAdapterNameIdentity'             = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value + "-cluster"
+                'organization'                        = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'                  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                             = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'                     = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                            = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'                   = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                             = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                            = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'                 = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'                      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -16227,6 +16224,11 @@ Function Test-IomPrerequisite {
                         Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): SUCCESSFUL" 
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): PRE_VALIDATION_FAILED"
+                    }
+                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVsphere -pass $jsonInput.serviceAccountOperationsVspherePass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): SUCCESSFUL" 
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): PRE_VALIDATION_FAILED"
                     }
                     Foreach ($securityGroup in $jsonInput.adGroups) {
                         $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
@@ -16373,7 +16375,7 @@ Function Invoke-IomDeployment {
                                         Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for vSphere Integration"
                                         foreach ($sddcDomain in $allWorkloadDomains) {
                                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                                $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountOperationsVcf -role $jsonInput.vsphereRoleNameOperations -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal ($jsonInput.serviceAccountOperationsVsphere.Split('@'))[-0] -role $jsonInput.vsphereRoleNameOperations -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -16522,10 +16524,10 @@ Function Invoke-IomDeployment {
 
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Configuring Credentials for SDDC Components in $operationsProductName"
-                                        $StatusMsg = Add-vROPSVcfCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -serviceUser $jsonInput.iomVcfServiceAccount -servicePassword $jsonInput.iomVcfServiceAccountPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        $StatusMsg = Add-vROPSVcfCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -serviceUser $jsonInput.serviceAccountOperationsVcf -servicePassword $jsonInput.serviceAccountOperationsVcfPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         foreach ($sddcDomain in $allWorkloadDomains) {
-                                            $StatusMsg = Add-vROPSVcenterCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -serviceUser $jsonInput.iomVsphereServiceAccount -servicePassword $jsonInput.iomVsphereServiceAccountPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Add-vROPSVcenterCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -serviceUser $jsonInput.serviceAccountOperationsVsphere -servicePassword $jsonInput.serviceAccountOperationsVspherePass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $nsxCertKey = $certificates + $sddcDomain.nsxtCluster.vipFqdn.Split('.')[0] + ".key"
                                             $nsxCert = $certificates + $sddcDomain.nsxtCluster.vipFqdn.Split('.')[0] + ".cer"
@@ -16717,7 +16719,7 @@ Function Invoke-UndoIomDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for vSphere Integration"
                                     foreach ($sddcDomain in $allWorkloadDomains) {
                                         if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountOperationsVcf -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountOperationsVsphere -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
                                     }
@@ -22966,30 +22968,30 @@ Function Export-HrmJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vmFolder'                      = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
-                'vmName'                        = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
-                'fqdn'                          = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
-                'ipAddress'                     = $pnpWorkbook.Workbook.Names["hrm_vm_ip"].Value
-                'netmask'                       = ((($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value -Split ('/'))[-1]) + " (" + ($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_mask"].Value) + ")")
-                'gateway'                       = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
-                'dns'                           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                'searchDomain'                  = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                'ntp'                           = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                'rootPassword'                  = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
-                'ova'                           = "vvs_appliance_v0.0.1.ova"
-                'portgroup'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
-                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'drsVmGroupNameAz'              = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
-                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'hrmVcfServiceAccount'          = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
-                'hrmVcfServiceAccountPassword'  = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
+                'sddcManagerFqdn'              = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'              = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'              = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vmFolder'                     = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
+                'vmName'                       = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
+                'fqdn'                         = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
+                'ipAddress'                    = $pnpWorkbook.Workbook.Names["hrm_vm_ip"].Value
+                'netmask'                      = ((($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value -Split ('/'))[-1]) + " (" + ($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_mask"].Value) + ")")
+                'gateway'                      = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                'dns'                          = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                'searchDomain'                 = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                'rootPassword'                 = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
+                'ova'                          = "vvs_appliance_v0.0.1.ova"
+                'portgroup'                    = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
+                'stretchedCluster'             = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'drsVmGroupNameAz'             = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'domainFqdn'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName'  = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'hrmVcfServiceAccount'         = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
+                'hrmVcfServiceAccountPassword' = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23530,38 +23532,38 @@ Function Export-CbwJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vsphereRoleNameVcdr'           = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_role"].Value
-                'vsphereRoleNameHcx'            = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_role"].Value
-                'serviceAccountVcdr'            = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_user"].Value
-                'serviceAccountVcdrPass'        = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_password"].Value
-                'serviceAccountHcx'             = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_user"].Value
-                'serviceAccountHcxPass'         = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'             = ($pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
-                'serviceAccountNsxPass'         = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_password"].Value
-                'vmFolderVcdr'                  = $pnpWorkbook.Workbook.Names["cbw_vm_folder"].Value
-                'vmFolderHcx'                   = $pnpWorkbook.Workbook.Names["cbw_hcx_vm_folder"].Value
-                'resourcePoolHcx'               = $pnpWorkbook.Workbook.Names["cbw_hcx_resource_pool"].Value
-                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'sddcManagerFqdn'             = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'             = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'             = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'          = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vsphereRoleNameVcdr'         = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_role"].Value
+                'vsphereRoleNameHcx'          = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_role"].Value
+                'serviceAccountVcdr'          = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_user"].Value
+                'serviceAccountVcdrPass'      = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_password"].Value
+                'serviceAccountHcx'           = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_user"].Value
+                'serviceAccountHcxPass'       = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_password"].Value
+                'serviceAccountNsx'           = ($pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsxPass'       = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_password"].Value
+                'vmFolderVcdr'                = $pnpWorkbook.Workbook.Names["cbw_vm_folder"].Value
+                'vmFolderHcx'                 = $pnpWorkbook.Workbook.Names["cbw_hcx_vm_folder"].Value
+                'resourcePoolHcx'             = $pnpWorkbook.Workbook.Names["cbw_hcx_resource_pool"].Value
+                'domainFqdn'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'                = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'          = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                     = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                    = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'           = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                     = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'            = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -23887,24 +23889,24 @@ Function Export-CbrJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vmFolderVcdr'                  = $pnpWorkbook.Workbook.Names["cbr_vm_folder"].Value
-                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'sddcManagerFqdn'     = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'     = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'     = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'  = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vmFolderVcdr'        = $pnpWorkbook.Workbook.Names["cbr_vm_folder"].Value
+                'stretchedCluster'    = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'        = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'             = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'     = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'            = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'   = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'             = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'    = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'            = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate' = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -24127,35 +24129,35 @@ Function Export-CcmJsonSpec {
             $pnpWorkbook = Open-ExcelPackage -Path $workbook
             $jsonObject = @()
             $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'vsphereRoleNameHcx'            = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
-                'serviceAccountHcx'             = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
-                'serviceAccountHcxPass'         = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'             = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
-                'serviceAccountNsxPass'         = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
-                'vmFolder'                      = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
-                'folderSuffix'                  = "-fd-hcx"
-                'resourcePoolSuffix'            = "-rp-hcx"
-                'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'organization'                  = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'            = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                       = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'               = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                      = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'             = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                       = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'              = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                      = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'           = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                    = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'sddcManagerFqdn'             = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'             = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'             = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'          = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vsphereRoleNameHcx'          = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
+                'serviceAccountHcx'           = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
+                'serviceAccountHcxPass'       = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
+                'serviceAccountNsx'           = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsxPass'       = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
+                'vmFolder'                    = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
+                'folderSuffix'                = "-fd-hcx"
+                'resourcePoolSuffix'          = "-rp-hcx"
+                'domainFqdn'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                'organization'                = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'          = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                     = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                    = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'           = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                     = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'            = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -54379,7 +54381,7 @@ Function Start-IlaMenu {
                     Export-IlaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
-                                2 {
+                2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-IlaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
