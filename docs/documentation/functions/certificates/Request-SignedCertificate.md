@@ -7,28 +7,24 @@ Certificate Signing Request (CSR) file.
 
 ## Syntax
 
-```powershell
-Request-SignedCertificate [-mscaComputerName] <String> [-mscaName] <String> [-domainUsername] <String>
- [-domainPassword] <String> [[-certificateTemplate] <String>] [-certificateRequestFile] <String>
- [-certificateFile] <String> [-SkipValidation] [-ValidateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+```powerShell
+Request-SignedCertificate [-mscaComputerName] <String> [-mscaName] <String> [-domainUsername] <String> [-domainPassword] <String> [[-certificateTemplate] <String>] [-certificateRequestFile] <String> [-certificateFile] <String> [-SkipValidation] [-ValidateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-SignedCertificate` cmdlet requests a Signed Certificate from a Microsoft Enterprise Certificate
-Authority by providing Certificate Signing Request (CSR) file.
-Issued certificate is written to Base64-encoded
-output file.
+The `Request-SignedCertificate` cmdlet requests a Signed Certificate from a Microsoft Enterprise Certificate Authority by providing Certificate Signing Request (CSR) file.
+Issued certificate is written to Base64-encoded output file.
 
 ## Examples
 
 ### Example 1
 
-```powershell
+```powerShell
 Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer" 
 ```
 
-This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer".
+This example requests a signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automatically issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer".
 
 ## Parameters
 

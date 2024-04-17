@@ -20,6 +20,7 @@ Select an option for the solution.
     | [`Test-IlaPrerequisite`](Test-IlaPrerequisite.md)                                                                   | Prerequisites         |
     | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                                 | End-to-End Deployment |
     | [`Invoke-IlaDeployment`](./../../solutions/ila/Invoke-IlaDeployment.md)                                             | End-to-End Deployment |
+    | [`Request-vRLIMscaSignedCertificate`](./../../aria-suite/aria-operations-logs/Request-vRLIMscaSignedCertificate.md) | Procedure             |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                             | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                       | Procedure             |
     | [`New-vRSLCMLockerLicense`](./../../aria-suite/aria-suite-lifecycle/New-vRSLCMLockerLicense.md)                     | Procedure             |

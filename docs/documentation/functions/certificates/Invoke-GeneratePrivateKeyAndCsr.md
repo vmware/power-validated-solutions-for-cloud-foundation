@@ -7,9 +7,7 @@ Generate the private key and certificate signing request (CSR) files using OpenS
 ## Syntax
 
 ```powershell
-Invoke-GeneratePrivateKeyAndCsr [-outDirPath] <String> [-subjectAlternativeNames] <String> [-keySize] <Int>
- [-expireDays] <Int> [-organization] <String> [-organizationUnit] <String> [-locality] <String>
- [-state] <String> [-country] <String>
+Invoke-GeneratePrivateKeyAndCsr [-outDirPath] <String> [-subjectAlternativeNames] <String> [-keySize] <Int> [-expireDays] <Int> [-organization] <String> [-organizationUnit] <String> [-locality] <String> [-state] <String> [-country] <String>
 ```
 
 ## Description
@@ -21,10 +19,10 @@ The `Invoke-GeneratePrivateKeyAndCsr` cmdlet generates the private key and certi
 ### Example 1
 
 ```powershell
-Invoke-GeneratePrivateKeyAndCsr -outDirPath "C:\certificates" -commonName "sfo-vrli01.sfo.rainpole.io" -subjectAlternativeNames "sfo-vrli01a.rainpole.io, sfo-vrli01b.rainpole.io, sfo-vrli01c.rainpole.io" -keySize 4096 -expireDays 720 -organization "rainpole" -organizationUnit "IT" -locality "San Francisco" -state "California" -country "US"
+Invoke-GeneratePrivateKeyAndCsr -outDirPath ".\certificates" -commonName "sfo-vrli01.sfo.rainpole.io" -subjectAlternativeNames "sfo-vrli01a.sfo.rainpole.io, sfo-vrli01b.sfo.rainpole.io, sfo-vrli01c.sfo.rainpole.io" -keySize 4096 -expireDays 720 -organization "rainpole" -organizationUnit "IT" -locality "San Francisco" -state "California" -country "US"
 ```
 
-This example will generate a private key and CSR pair for VMware Aria Operations for Logs where the integrated load balancer has a common name of sfo-vrli01.sfo.rainpole.io and includes SANs for each cluster node's fully qualified domain name value. 
+This example will generate a private key and CSR pair for VMware Aria Operations for Logs where the integrated load balancer has a common name of sfo-vrli01.sfo.rainpole.io and includes SANs for each cluster node's fully qualified domain name value.
 
 ## Parameters
 

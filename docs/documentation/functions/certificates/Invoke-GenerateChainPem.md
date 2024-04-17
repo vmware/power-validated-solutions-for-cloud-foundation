@@ -6,9 +6,8 @@ Combine private key, signed certificate and/or root certificate chain into a sin
 
 ## Syntax
 
-```powershell
-Invoke-GenerateChainPem [-outDirPath] <String> [-keyFilePath] <String> [-crtFilePath] <String>
- [-rootCaFilePath] <String>
+```powerShell
+Invoke-GenerateChainPem [-outDirPath] <String> [-keyFilePath] <String> [-crtFilePath] <String> [-rootCaFilePath] <String>
 ```
 
 ## Description
@@ -19,27 +18,27 @@ The `Invoke-GenerateChainPem` cmdlet takes in private key, signed certificate an
 
 ### Example 1
 
-```powershell
-Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath "C:\certificates\rpl-ad01.rainpole.io-rootCA.pem"
+```powerShell
+Invoke-GenerateChainPem -outDirPath ".\certificates" -keyFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath .\certificates\rpl-ad01.rainpole.io-rootCA.pem"
 ```
 
-This example will combine sfo-vrli01's private key, signed certificate and rpl0-ad01's root chain certificate into single sfo-vrli01.bundle.pem file. 
+This example will combine sfo-vrli01.sfo.rainpole.io's private key, signed certificate and rpl0-ad01's root chain certificate into single sfo-vrli01sfo-vrli01.sfo.rainpole.io.pem file.
 
 ### Example 2
 
-```powershell
-Invoke-GenerateChainPem -outDirPath "C:\certificates" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath "C:\certificates\sfo-rainpole-ca01.sfo.rainpole.io-rootCA.pem"
+```powerShell
+Invoke-GenerateChainPem -outDirPath ".\certificates" -crtFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath ".\certificates\sfo-rainpole-ca01.sfo.rainpole.io-rootCA.pem"
 ```
 
-This example will combine sfo-vrli01's signed certificate and sfo-rainpole-ca01's root chain certificate into single sfo-vrli01.bundle.pem file.
+This example will combine sfo-vrli01.sfo.rainpole.io's signed certificate and sfo-rainpole-ca01's root chain certificate into single sfo-vrli01sfo-vrli01.sfo.rainpole.io.pem file.
 
 ### Example 3
 
-```powershell
-Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt"
+```powerShell
+Invoke-GenerateChainPem -outDirPath ".\certificates" -keyFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.crt"
 ```
 
-This example will combine sfo-vrli01's private key and signed certificate into single sfo-vrli01.bundle.pem file.
+This example will combine sfo-vrli01.sfo.rainpole.io's private key and signed certificate into single sfo-vrli01sfo-vrli01.sfo.rainpole.io.pem file.
 
 ## Parameters
 

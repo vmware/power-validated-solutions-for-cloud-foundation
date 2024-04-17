@@ -343,6 +343,8 @@ Function Invoke-IamDeployment {
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
+                            Show-PowerValidatedSolutionsOutput -TYPE ADVISORY -message "Going to Sleep for 5 Minutes to Allow vCenter Server Single Sign-On to Finishing Replicating"
+                            Start-Sleep 360
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $serviceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -role $jsonInput.vsphereRoleName -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -12578,6 +12580,75 @@ Function Test-IlaPrerequisite {
 }
 Export-ModuleMember -Function Test-IlaPrerequisite
 
+Function Request-vRLIMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for VMware Aria Operations for Logs
+
+        .DESCRIPTION
+        The Request-vRLIMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for Logs
+        from a Microsoft Certificate Authority using the details from the Intelligent Logging and Analytics JSON
+        specification file.
+
+        .EXAMPLE
+        Request-vRLIMscaSignedCertificate -jsonFile .\ilaDeploySpec.json -certificates .\certificates\
+        This example verifies the prerequisites for Intelligent Logging and Analytics.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Intelligent Logging and Analytics for VMware Cloud Foundation"
+    $productName = "VMware Aria Operations for Logs"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.clusterFqdn -subjectAlternativeNames "$($jsonInput.hostNameNodeA), $($jsonInput.hostNameNodeB), $($jsonInput.hostNameNodeC)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+                
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-vRLIMscaSignedCertificate
+
 Function Invoke-IlaDeployment {
     <#
         .SYNOPSIS
@@ -16261,6 +16332,76 @@ Function Test-IomPrerequisite {
     }
 }
 Export-ModuleMember -Function Test-IomPrerequisite
+
+
+Function Request-vROPSMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for VMware Aria Operations
+
+        .DESCRIPTION
+        The Request-vROPSMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations from a
+        Microsoft Certificate Authority using the details from the Intelligent Operations Management JSON specification
+        file.
+
+        .EXAMPLE
+        Request-vROPSMscaSignedCertificate -jsonFile .\iomDeploySpec.json -certificates .\certificates\
+        This example verifies the prerequisites for Intelligent Operations Management.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Intelligent Operations Management for VMware Cloud Foundation"
+    $productName = "VMware Aria Operations"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.clusterFqdn -subjectAlternativeNames "$($jsonInput.hostNameNodeA), $($jsonInput.hostNameNodeB), $($jsonInput.hostNameNodeB)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+                
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-vROPSMscaSignedCertificate
 
 Function Invoke-IomDeployment {
     <#
@@ -20575,6 +20716,74 @@ Function Test-PcaPrerequisite {
     }
 }
 Export-ModuleMember -Function Test-PcaPrerequisite
+
+Function Request-vRAMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for VMware Aria Automation
+
+        .DESCRIPTION
+        The Request-vRAMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Automation from a
+        Microsoft Certificate Authority using the details from the Private Cloud Automation JSON specification file.
+
+        .EXAMPLE
+        Request-vRAMscaSignedCertificate -jsonFile .\pcaDeploySpec.json -certificates .\certificates\
+        This example verifies the prerequisites for Private Cloud Automation.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Private Cloud Automation for VMware Cloud Foundation"
+    $productName = "VMware Aria Automation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.clusterFqdn -subjectAlternativeNames "$($jsonInput.vraNodeaFqdn), $($jsonInput.vraNodebFqdn), $($jsonInput.vraNodecFqdn)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+                
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-vRAMscaSignedCertificate
 
 Function Invoke-PcaDeployment {
     <#
@@ -27264,10 +27473,10 @@ Function Set-vCenterPermission {
                                             $principal = $domain.ToUpper() + "\" + $principal
                                             if ($PsBoundParameters.ContainsKey("folderName") -and ($PsBoundParameters.ContainsKey("folderType"))) {
                                                 if (($objectCheck = Get-Folder -Name $folderName -Type $folderType -ErrorAction Ignore | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }).Name) {
-                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue) {
+                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore) {
                                                         if (!($objectCheck.Role -eq $role)) {
-                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue | Out-Null
-                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue
+                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore | Out-Null
+                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): SUCCESSFUL"
                                                             } else {
@@ -27286,10 +27495,10 @@ Function Set-vCenterPermission {
                                                 if ($folderName -or $folderType) {
                                                     Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
                                                 } else {
-                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue ) {
+                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore ) {
                                                         if (!($objectCheck.Role -eq $role)) {
-                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue | Out-Null
-                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue
+                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore | Out-Null
+                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction Ignore
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): SUCCESSFUL"
                                                             } else {
@@ -51308,7 +51517,7 @@ Function Invoke-GeneratePrivateKeyAndCsr {
         The Invoke-GeneratePrivateKeyAndCsr cmdlet generates the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary.
 
         .EXAMPLE
-        Invoke-GeneratePrivateKeyAndCsr -outDirPath "C:\certificates" -commonName "sfo-vrli01.sfo.rainpole.io" -subjectAlternativeNames "sfo-vrli01a.sfo.rainpole.io, sfo-vrli01b.sfo.rainpole.io, sfo-vrli01c.sfo.rainpole.io" -keySize 4096 -expireDays 720 -organization "rainpole" -organizationUnit "IT" -locality "San Francisco" -state "California" -country "US"
+        Invoke-GeneratePrivateKeyAndCsr -outDirPath ".\certificates" -commonName "sfo-vrli01.sfo.rainpole.io" -subjectAlternativeNames "sfo-vrli01a.sfo.rainpole.io, sfo-vrli01b.sfo.rainpole.io, sfo-vrli01c.sfo.rainpole.io" -keySize 2048 -expireDays 720 -organization "rainpole" -organizationUnit "IT" -locality "San Francisco" -state "California" -country "US"
         This example will generate a private key and CSR pair for VMware Aria Operations for Logs where the integrated load balancer has a common name of sfo-vrli01.sfo.rainpole.io and includes SANs for each cluster node's fully qualified domain name value.
 
         .PARAMETER outDirPath
@@ -51364,124 +51573,125 @@ Function Invoke-GeneratePrivateKeyAndCsr {
                 "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "COM", "EDU", "GOV", "INT", "MIL", "NET", "ORG", "ARPA")] [String]$country
     )
 
-    # Validate inputs.
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
+    Try {
+        if (Test-Path -Path $outDirPath) {
+            if ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl)) {
+                $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
+                if ($opensslVersion -gt "3.0.0") {
+                    for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
+                        $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
+                        $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.cfg"
+                        $orginalKeyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.key"
+                        if ((-Not(Test-Path -Path $cfgFilePath)) -and (-Not (Test-Path -Path $orginalKeyFilePath))) {
+                            Write-Output "1" | Set-Content $cfgFilePath
+                            Write-Output "1" | Set-Content $orginalKeyFilePath
+                            if ((Test-Path -Path $cfgFilePath) -and (Test-Path -Path $orginalKeyFilePath)) {
+                                Remove-Item $cfgFilePath
+                                Remove-Item $orginalKeyFilePath
+                                break
+                            }
+                        } else {
+                            if ($createRandomCounter -gt 6) {
+                                Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                                Exit
+                            }
+                        }
+                    }
+                    $keyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.key"
+                    $csrFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.csr"
+                    if (-Not (Test-Path -Path $keyFilePath)) {
+                        if (-Not (Test-Path -Path $csrFilePath)) {
+                            if ($expireDays -ge 2) {
+                                # Create temporary cfg file
+                                $cfgString = '[ req ]
+                                days = ' + $expireDays + '
+                                default_md = sha512
+                                default_bits = ' + $keySize + '
+                                distinguished_name = req_distinguished_name
+                                prompt = no
+                                req_extensions = v3_req
 
-    if (-Not ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl))) {
-        Write-Error "OpenSSL not found.  Please verify OpenSSL is installed: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    } else {
-        $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
-        if ($opensslVersion -lt "3.0.0") {
-            Write-Error "OpenSSL version is less than 3.0: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-    }
+                                [ v3_req ]
+                                basicConstraints = CA:FALSE
+                                keyUsage = digitalSignature, keyEncipherment, dataEncipherment, nonRepudiation
+                                extendedKeyUsage = serverAuth, clientAuth
+                                subjectAltName = @alternate_names
 
-    for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-        $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
-        $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.cfg"
-        $orginalKeyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.key"
-        if ((-Not(Test-Path -Path $cfgFilePath)) -and (-Not (Test-Path -Path $orginalKeyFilePath))) {
-            Write-Output "1" | Set-Content $cfgFilePath
-            Write-Output "1" | Set-Content $orginalKeyFilePath
-            if ((Test-Path -Path $cfgFilePath) -and (Test-Path -Path $orginalKeyFilePath)) {
-                Remove-Item $cfgFilePath
-                Remove-Item $orginalKeyFilePath
-                break
-            }
+                                [ req_distinguished_name ]
+                                commonName = ' + $commonName + '
+                                countryName = ' + $country + '
+                                stateOrProvinceName = ' + $state + '
+                                localityName = ' + $locality + '
+                                0.organizationName = ' + $organization + '
+                                organizationalUnitName = ' + $organizationUnit + '
+
+                                [ alternate_names ]
+                                '
+                                # Parsing SAN string
+                                $sanArrary = $subjectAlternativeNames -split "\s*,\s*"
+                                $sanCount = 1
+
+                                foreach ($san in $sanArrary) {
+                                    $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
+                                    $sanCount++
+                                }
+
+                                # Generate RSA private key and CSR file
+                                $cfgString | Out-File $cfgFilePath
+                                openssl req -new -sha256 -nodes -out $csrFilePath -keyout $orginalKeyFilePath -config $cfgFilePath >> $null 2>$null
+                                openssl rsa -in $orginalKeyFilePath -out $keyFilePath -traditional >> $null 2>$null
+
+                                # Clean up
+                                Remove-Item $cfgFilePath
+                                Remove-Item $orginalKeyFilePath
+                                if ((Test-Path -Path $keyFilePath) -and (Test-Path -Path $csrFilePath)) {
+                                    Write-Output "Creation of Private Key (.key) file named ($($commonName + ".key")) and Certificate Signing Request (.csr) file named ($($commonName + ".csr")): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Creation of Private Key (.key) file named ($($commonName + ".key")) and Certificate Signing Request (.csr) file named ($($commonName + ".csr")) Files: POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Error "Certificate expiration days ($expireDays) is less than 2 days, use value greater than 1 day: : PRE_VALIDATION_FAILED"
+                            }
+                        } else {
+                            Write-Warning "Creation of Vertificate Signing Request (.csr) file named ($($commonName + ".csr")) already exists: SKIPPED"
+                        }
+                    } else {
+                        Write-Warning "Creation of Private Key (.key) file name ($($commonName + ".key")) already exists: SKIPPED"
+                    }
+                } else {
+                    Write-Error "OpenSSL Version is less than 3.0: PRE_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
+            } 
         } else {
-            if ($createRandomCounter -gt 6) {
-                Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                Exit
-            }
+            Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
         }
+    } Catch {
+        Debug-ExceptionWriter -object $_
     }
-
-    $keyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.key"
-    $csrFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.csr"
-
-    if (Test-Path -Path $keyFilePath) {
-        Write-Error "$keyFilePath file already exists.  Please remove or rename the current file or use an alternate directory path." -ErrorAction Stop
-    }
-
-    if (Test-Path -Path $csrFilePath) {
-        Write-Error "$csrFilePath file already exists.  Please remove or rename the current file or use an alternate directory path." -ErrorAction Stop
-    }
-
-    if ($expireDays -lt 2) {
-        Write-Error "Certificate expiration day ($expireDays) is less than 1 day.  Please provide a value greater than 1 day."
-    }
-
-    # Create temporary cfg file
-    $cfgString = '[ req ]
-    days = ' + $expireDays + '
-    default_md = sha512
-    default_bits = ' + $keySize + '
-    distinguished_name = req_distinguished_name
-    prompt = no
-    req_extensions = v3_req
-
-    [ v3_req ]
-    basicConstraints = CA:FALSE
-    keyUsage = digitalSignature, keyEncipherment, dataEncipherment, nonRepudiation
-    extendedKeyUsage = serverAuth, clientAuth
-    subjectAltName = @alternate_names
-
-    [ req_distinguished_name ]
-    commonName = ' + $commonName + '
-    countryName = ' + $country + '
-    stateOrProvinceName = ' + $state + '
-    localityName = ' + $locality + '
-    0.organizationName = ' + $organization + '
-    organizationalUnitName = ' + $organizationUnit + '
-
-    [ alternate_names ]
-    '
-
-    # Parsing SAN string.
-    $sanArrary = $subjectAlternativeNames -split "\s*,\s*"
-    $sanCount = 1
-
-    foreach ($san in $sanArrary) {
-        $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
-        $sanCount++
-    }
-
-    # Generate RSA private key and CSR file.
-    $cfgString | Out-File $cfgFilePath
-    openssl req -new -sha256 -nodes -out $csrFilePath -keyout $orginalKeyFilePath -config $cfgFilePath >> $null 2>$null
-    openssl rsa -in $orginalKeyFilePath -out $keyFilePath -traditional >> $null 2>$null
-
-    # Clean up.
-    Remove-Item $cfgFilePath
-    Remove-Item $orginalKeyFilePath
 }
 Export-ModuleMember -Function Invoke-GeneratePrivateKeyAndCsr
 
 Function Invoke-RequestSignedCertificate {
     <#
         .SYNOPSIS
-        Request Certificate Signing Request (CSR) to be signed by a Certificate Authority.
+        Use the Certificate Signing Request (CSR) file to request a signed certifcate from the Certificate Authority.
 
         .DESCRIPTION
         The Invoke-RequestSignedCertificate cmdlet signs off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
 
         .EXAMPLE
-        Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware"
-        This example will request the sfo-vrli01 CSR file to be signed by the Certificate Authority rainpole-ca01.rainpole.io.
+        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "msca" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware"
+        This example will request the sfo-vrli01.sfo.rainpole.io.csr CSR file to be signed by the Certificate Authority rpl-ad01.rainpole.io.
 
         .EXAMPLE
-        Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "OpenSSL" -caKeyPath "C:\certificates\CAroot.key" -caCertPath "C:\certificates\CAroot.pem" -expireDays 365
-        This example will request the sfo-vrli01.sfo.rainpole.io CSR file to be signed using OpenSSL and provided the Certificate Authority key and certificate.
+        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "OpenSSL" -caKeyPath ".\certificates\CAroot.key" -caCertPath ".\certificates\CAroot.pem" -expireDays 365
+        This example will request the sfo-vrli01.sfo.rainpole.io.csr CSR file to be signed using OpenSSL and provided the Certificate Authority key and certificate.
 
         .EXAMPLE
-        Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
-        This example will request the sfo-vrli01 CSR file to be signed by the Certificate Authority rainpole-ca01.rainpole.io and will retrieve the Certificate Authority's root certificate.
-
-        .EXAMPLE
-        Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "sfo-rainpole-ca01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
-        This example will request the sfo-vrli01 CSR file to be signed by the intermediate Certificate Authority sfo-rainpole-ca01.sfo.rainpole.io and will retrieve the Certificate Authority's full root chain certificate.
+        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "msca" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
+        This example will request the sfo-vrli01.sfo.rainpole.io.csr CSR file to be signed by the Certificate Authority rpl-ad01.rainpole.io and will retrieve the Certificate Authority's root chain certificate.
 
         .PARAMETER csrFilePath
         The full file path for the certificate signing request file.
@@ -51531,170 +51741,165 @@ Function Invoke-RequestSignedCertificate {
         [Parameter (Mandatory = $false, ParameterSetName = 'msca')] [Switch]$getCArootCert
     )
 
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
+    Try {
+        # Validate inputs
+        if (Test-Path -Path $outDirPath) {
+            if (Test-Path -Path $csrFilePath) {
+                $fileName = Split-Path -Path $csrFilePath -LeafBase
+                $crtFileName = $fileName + ".crt"
+                $crtFilePath = Join-Path -Path $outDirPath -ChildPath $crtFileName
+                if (-Not (Test-Path -Path $crtFilePath)) {
+                    if ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl)) {
+                        $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
+                        if ($opensslVersion -ge "3.0.0") {
+                            if ($certificateAuthority -eq "openssl") {
+                                # validate inputs
+                                if (-Not (Test-Path -Path $caKeyPath)) {
+                                    Write-Error "OpenSSL CA private key file ($caKeyPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
+                                }
+                                if (-Not (Test-Path -Path $caCertPath)) {
+                                    Write-Error "OpenSSL CA certificate file ($caCertPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
+                                }
+                                if ($expireDays -lt 2) {
+                                    Write-Error "Certificate expiration day ($expireDays) is less than 1 day.  Please provide a value greater than 1 day."
+                                }
 
-    if (-Not (Test-Path -Path $csrFilePath)) {
-        Write-Error "Certificate signing request file ($csrFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
+                                for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
+                                    $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 8 | % { [char]$_ })
+                                    $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$randomString.cfg"
+                                    if (-Not(Test-Path -Path $cfgFilePath)) {
+                                        Write-Output "1" | Set-Content $cfgFilePath
+                                        if (Test-Path -Path $cfgFilePath) {
+                                            Remove-Item $cfgFilePath
+                                            break
+                                        }
+                                    } else {
+                                        if ($createRandomCounter -gt 6) {
+                                            Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                                            Exit
+                                        }
+                                    }
+                                }
 
-    $fileName = Split-Path -Path $csrFilePath -LeafBase
-    $crtFileName = $fileName + ".crt"
-    $crtFilePath = Join-Path -Path $outDirPath -ChildPath $crtFileName
+                                # Generate extension configuration file for OpenSSL
+                                $configurationText = openssl req -in $csrFilePath -text -noout
+                                $configurationTextArray = $configurationText.split('`n')
+                                $lineCount = 0
+                                $sanArray = @()
+                                foreach ($line in $configurationTextArray) {
+                                    if ($line -match "Subject Alternative Name:") {
+                                        $lineCount++
+                                        if ($configurationTextArray[$lineCount] -match "DNS:") {
+                                            $sanString = $configurationTextArray[$lineCount]
+                                            $sanString = $sanString.replace('DNS:', '')
+                                            $sanArray = $sanString -split "\s*,\s*"
+                                        }
+                                    } else {
+                                        $lineCount++
+                                    }
+                                }
+                                if ($sanArray.count -gt 0) {
+                                    $cfgString = 'authorityKeyIdentifier=keyid,issuer
+                                    basicConstraints=CA:FALSE
+                                    keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+                                    subjectAltName = @alt_names
 
-    if (Test-Path -Path $crtFilePath) {
-        Write-Error "$crtFilePath file exists.  Please remove or rename the existing file." -ErrorAction Stop
-    }
+                                    [alt_names]
+                                    '
+                                    $sanCount = 1
+                                    foreach ($san in $sanArray) {
+                                        $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
+                                        $sanCount++
+                                    }
+                                }
+                                $cfgString | Out-File $cfgFilePath
 
-    if (-Not ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl))) {
-        Write-Error "OpenSSL not found.  Please verify OpenSSL is installed: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    } else {
-        $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
-        if ($opensslVersion -lt "3.0.0") {
-            Write-Error "OpenSSL version is less than 3.0: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-    }
+                                # Generate self-signed certificate
+                                Try {
+                                    openssl x509 -req -in $csrFilePath -CA $caCertPath -CAkey $caKeyPath -CAcreateserial -out $crtFilePath -extfile $cfgFilePath -days $expireDays
+                                } Catch {
+                                    Debug-ExceptionWriter -object $_
+                                }
+                            } elseif ($certificateAuthority -eq "msca") {
+                                $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
+                                $domainCreds = New-Object System.Management.Automation.PSCredential ($username, $securePass)
+                                $respond = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certrqxt.asp" -Credential $domainCreds -Method Get -SkipCertificateCheck
+                                if ($respond.Content -match ".*Microsoft RSA SChannel Cryptographic Provider.*$certificateTemplate.*") {
+                                    $CertAttributes = "CertificateTemplate:$certificateTemplate"
+                                    if ($getCArootCert.IsPresent) {
+                                        $createRandomCounter = 0
+                                        for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
+                                            $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
+                                            $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$fileName-$randomString.p7b"
+                                            if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
+                                                Write-Output "1" | Set-Content $rootCaFilePathTemp
+                                                if (Test-Path -Path $rootCaFilePathTemp) {
+                                                    Remove-Item $rootCaFilePathTemp
+                                                }
+                                            } else {
+                                                if ($createRandomCounter -gt 6) {
+                                                    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                                                }
+                                            }
+                                        }
+                                        $rootCaFilename = "$caFqdn-rootCA.pem"
+                                        $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
+                                        if (Test-Path -Path $rootCaFilePath) {
+                                            Write-Warning "$rootCaFilePath file exists. Please remove or rename the existing file: SKIPPED"
+                                        }
+                                    }
 
-    if ($certificateAuthority -eq "openssl") {
-        if (-Not (Test-Path -Path $caKeyPath)) {
-            Write-Error "OpenSSL CA private key file ($caKeyPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-        if (-Not (Test-Path -Path $caCertPath)) {
-            Write-Error "OpenSSL CA certificate file ($caCertPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-        if ($expireDays -lt 2) {
-            Write-Error "Certificate expiration day ($expireDays) is less than 1 day.  Please provide a value greater than 1 day."
-        }
+                                    # Create form array
+                                    $formFields = @{
+                                        Mode             = "newreq"
+                                        FriendlyType     = "Saved-Request Certificate"
+                                        CertRequest      = Get-Content -Path $csrFilePath -Raw
+                                        CertAttrib       = $CertAttributes
+                                        TargetStoreFlags = 0
+                                        SaveCert         = "yes"
+                                    }
 
-        for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-            $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 8 | % { [char]$_ })
-            $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$randomString.cfg"
-            if (-Not(Test-Path -Path $cfgFilePath)) {
-                Write-Output "1" | Set-Content $cfgFilePath
-                if (Test-Path -Path $cfgFilePath) {
-                    Remove-Item $cfgFilePath
-                    break
-                }
-            } else {
-                if ($createRandomCounter -gt 6) {
-                    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                    Exit
-                }
-            }
-        }
-
-        # Generate extension configuration file for OpenSSL.
-        $configurationText = openssl req -in $csrFilePath -text -noout
-        $configurationTextArray = $configurationText.split('`n')
-        $lineCount = 0
-        $sanArray = @()
-
-        foreach ($line in $configurationTextArray) {
-            if ($line -match "Subject Alternative Name:") {
-                $lineCount++
-                if ($configurationTextArray[$lineCount] -match "DNS:") {
-                    $sanString = $configurationTextArray[$lineCount]
-                    $sanString = $sanString.replace('DNS:', '')
-                    $sanArray = $sanString -split "\s*,\s*"
-                }
-            } else {
-                $lineCount++
-            }
-        }
-
-        if ($sanArray.count -gt 0) {
-            $cfgString = 'authorityKeyIdentifier=keyid,issuer
-            basicConstraints=CA:FALSE
-            keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-            subjectAltName = @alt_names
-
-            [alt_names]
-            '
-            $sanCount = 1
-            foreach ($san in $sanArray) {
-                $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
-                $sanCount++
-            }
-        }
-
-        $cfgString | Out-File $cfgFilePath
-
-        # Generate self-signed certificate.
-        Try {
-            openssl x509 -req -in $csrFilePath -CA $caCertPath -CAkey $caKeyPath -CAcreateserial -out $crtFilePath -extfile $cfgFilePath -days $expireDays
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-    } elseif ($certificateAuthority -eq "msca") {
-        $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
-        $domainCreds = New-Object System.Management.Automation.PSCredential ($username, $securePass)
-
-        Try {
-            $respond = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certrqxt.asp" -Credential $domainCreds -Method Get -SkipCertificateCheck
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-
-        if (-Not ($respond.Content -match ".*Microsoft RSA SChannel Cryptographic Provider.*$certificateTemplate.*")) {
-            Write-Error "The Microsoft Certificate Authority's certificate template $certificateTemplate not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        } else {
-            $CertAttributes = "CertificateTemplate:$certificateTemplate"
-        }
-
-        if ($getCArootCert.IsPresent) {
-            $createRandomCounter = 0
-            for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-                $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
-                $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$fileName-$randomString.p7b"
-                if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
-                    Write-Output "1" | Set-Content $rootCaFilePathTemp
-                    if (Test-Path -Path $rootCaFilePathTemp) {
-                        Remove-Item $rootCaFilePathTemp
-                        break;
-                    }
+                                    # Request CSR to be signed by MSCA
+                                    Try {
+                                        $CertSubmitted = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certfnsh.asp" -Credential $domainCreds -Method Post -Body $formFields -SkipCertificateCheck
+                                        $RequestID = ($CertSubmitted.content -split '\n' | Where-Object -FilterScript { $_ -match "certnew.cer\?ReqID=[0-9]" }) -replace '[^0-9]'
+                                        $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.cer?ReqID=${RequestID}&Enc=b64" -Credential $domainCreds -OutFile $crtFilePath -SkipCertificateCheck
+                                        if ($getCArootCert.IsPresent) {
+                                            $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.p7b?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePathTemp -SkipCertificateCheck
+                                            openssl pkcs7 -inform PEM -outform PEM -in $rootCaFilePathTemp -print_certs > $rootCaFilePath
+                                        }
+                                    } Catch {
+                                        Debug-ExceptionWriter -object $_
+                                    }
+                                    if ($rootCaFilePathTemp) {
+                                        Remove-Item $rootCaFilePathTemp
+                                    }
+                                    if (Test-Path -Path $crtFilePath) {
+                                        Write-Output "Creation of Certificate (.crt) file named ($crtFileName): SUCCESSFUL"
+                                    } else {
+                                        Write-Errort "Creation of Certificate (.crt) file named ($crtFileName): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Microsoft Certificate Authority Certificate Template ($certificateTemplate) not found: PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        } else {
+                            Write-Error "OpenSSL Version is less than 3.0: PRE_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
+                    } 
                 } else {
-                    if ($createRandomCounter -gt 6) {
-                        Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                        Exit
-                    }
+                    Write-Warning "Creation of Certificate (.crt) file named ($crtFileName), already exists: SKIPPED"
                 }
+            } else {    
+                Write-Error "Certificate Signing Request file named ($csrFilePath) not found: PRE_VALIDATION_FAILED"
             }
-            $rootCaFilename = "$caFqdn-rootCA.pem"
-            $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
-            if (Test-Path -Path $rootCaFilePath) {
-                Write-Error "$rootCaFilePath file exists.  Please remove or rename the existing file." -ErrorAction Stop
-            }
+        } else {
+            Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
         }
-
-        # Create form array.
-        $formFields = @{
-            Mode             = "newreq"
-            FriendlyType     = "Saved-Request Certificate"
-            CertRequest      = Get-Content -Path $csrFilePath -Raw
-            CertAttrib       = $CertAttributes
-            TargetStoreFlags = 0
-            SaveCert         = "yes"
-        }
-
-        # Request CSR to be signed by MSCA.
-        Try {
-            $CertSubmitted = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certfnsh.asp" -Credential $domainCreds -Method Post -Body $formFields -SkipCertificateCheck
-            $RequestID = ($CertSubmitted.content -split '\n' | Where-Object -FilterScript { $_ -match "certnew.cer\?ReqID=[0-9]" }) -replace '[^0-9]'
-            $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.cer?ReqID=${RequestID}&Enc=b64" -Credential $domainCreds -OutFile $crtFilePath -SkipCertificateCheck
-            if ($getCArootCert.IsPresent) {
-                $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.p7b?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePathTemp -SkipCertificateCheck
-                openssl pkcs7 -inform PEM -outform PEM -in $rootCaFilePathTemp -print_certs > $rootCaFilePath
-            }
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-
-        # Clean up.
-        Remove-Item $rootCaFilePathTemp
-    } else {
-        # The Parameter ValidateSet will prevent the script from reaching this step.
-        Write-Error "The cmdlet encounted an illegalArgumentException." -ErrorAction Stop
+    } Catch {
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Invoke-RequestSignedCertificate
@@ -51708,16 +51913,16 @@ Function Invoke-GenerateChainPem {
         The Invoke-GenerateChainPem cmdlet takes in private key, signed certificate and/or root certificate files and combine them into a single PEM file.
 
         .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath "C:\certificates\rpl-ad01.rainpole.io-rootCA.pem"
-        This example will combine sfo-vrli01's private key, signed certificate and rpl0-ad01's root chain certificate into single sfo-vrli01.bundle.pem file.
+        Invoke-GenerateChainPem -outDirPath ".\certificates" -keyFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath "C:\certificates\rpl-ad01.rainpole.io-rootCA.pem"
+        This example will combine sfo-vrli01.sfo.rainpole.io's private key, signed certificate and rpl-ad01.rainpole.io-rootCA's root chain certificate into single sfo-vrli01.sfo.rainpole.io.pem file.
 
         .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath "C:\certificates\sfo-rainpole-ca01.sfo.rainpole.io-rootCA.pem"
-        This example will combine sfo-vrli01's signed certificate and sfo-rainpole-ca01's root chain certificate into single sfo-vrli01.bundle.pem file.
+        Invoke-GenerateChainPem -outDirPath ".\certificates" -crtFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.crt" -rootCaFilePath ".\certificates\rpl-ad01.rainpole.io-rootCA.pem"
+        This example will combine sfo-vrli01.sfo.rainpole.io's signed certificate and rpl-ad01.rainpole.io-rootCA's root chain certificate into single sfo-vrli01.sfo.rainpole.io.pem file.
 
         .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.crt"
-        This example will combine sfo-vrli01's private key and signed certificate into single sfo-vrli01.bundle.pem file.
+        Invoke-GenerateChainPem -outDirPath ".\certificates" -keyFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.key" -crtFilePath ".\certificates\sfo-vrli01.rainpole.io.crt"
+        This example will combine sfo-vrli01.sfo.rainpole.io's private key and signed certificate into single sfo-vrli01.sfo.rainpole.io.pem file.
 
         .PARAMETER outDirPath
         The directory path to store the combined certificate bundle file.
@@ -51734,44 +51939,52 @@ Function Invoke-GenerateChainPem {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$keyFilePath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$crtFilePath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$keyFilePath,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$rootCaFilePath
     )
 
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-
-    if (-Not (Test-Path -Path $keyFilePath) -and ($PSBoundParameters.ContainsKey('keyFilePath'))) {
-        Write-Error "Certificate Key ($keyFilePath) file not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-
-    if (-Not (Test-Path -Path $crtFilePath)) {
-        Write-Error "Certificate (.cer) file ($crtFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-
-    if (-Not (Test-Path -Path $rootCaFilePath) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Write-Error "Microsoft Certificate Authority Root file ($rootCaFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-
-    $pemFileName = Split-Path -Path $crtFilePath -LeafBase
-    $pemFileName = $pemFileName + ".bundle.pem"
-    $pemFilePath = Join-Path -Path $outDirPath -ChildPath $pemFileName
-
-    if (Test-Path -Path $pemFilePath) {
-        Write-Error "$pemFilePath file exists.  Please rename/remove the existing file." -ErrorAction Stop
-    }
-
-    # Combine files.
-    if (($PSBoundParameters.ContainsKey('keyFilePath')) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Get-Content $keyFilePath, $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
-    } elseif (($PSBoundParameters.ContainsKey('keyFilePath')) -and (-Not ($PSBoundParameters.ContainsKey('rootCaFilePath')))) {
-        Get-Content $keyFilePath, $crtFilePath | Set-Content $pemFilePath
-    } elseif ((-Not ($PSBoundParameters.ContainsKey('keyFilePath'))) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Get-Content $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
-    } else {
-        Write-Warning "Only certificate file is provided. No bundle PEM file generated."
+    Try {
+        if (Test-Path -Path $outDirPath) {
+            if (Test-Path -Path $crtFilePath) {
+                $pemFileName = Split-Path -Path $crtFilePath -LeafBase
+                $pemFileName = $pemFileName + ".pem"
+                $pemFilePath = Join-Path -Path $outDirPath -ChildPath $pemFileName
+                if (-Not (Test-Path -Path $pemFilePath)) {
+                    if (-Not (Test-Path -Path $keyFilePath) -and ($PSBoundParameters.ContainsKey('keyFilePath'))) {
+                        Write-Error "Microsoft Certificate Authority Root file ($rootCaFilePath) not found: PRE_VALIDATION_FAILED"
+                        Break
+                    }
+                    if (-Not (Test-Path -Path $rootCaFilePath) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
+                        Write-Error "Private Key File ($keyFilePath) not found: PRE_VALIDATION_FAILED"
+                        Break
+                    }
+                    # Combine files
+                    if (($PSBoundParameters.ContainsKey('keyFilePath')) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
+                        Get-Content $keyFilePath, $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
+                    } elseif (($PSBoundParameters.ContainsKey('keyFilePath')) -and (-Not ($PSBoundParameters.ContainsKey('rootCaFilePath')))) {
+                        Get-Content $keyFilePath, $crtFilePath | Set-Content $pemFilePath
+                    } elseif ((-Not ($PSBoundParameters.ContainsKey('keyFilePath'))) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
+                        Get-Content $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
+                    } else {
+                        Write-Warning "Only certificate file is provided. No bundle PEM file generated."
+                    }
+                    if (Test-Path -Path $pemFilePath) {
+                        Write-Output "Creation of Privacy Enhanced Mail (.pem) file named ($pemFileName): SUCCESSFUL"
+                    } else {
+                        Write-Error "Creation of Privacy Enhanced Mail (.pem) file named ($pemFileName): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Creation of Privacy Enhanced Mail (.pem) file named ($pemFileName), already exists: SKIPPED"
+                }
+            } else {
+                Write-Error "Certificate File ($crtFilePath) not found: PRE_VALIDATION_FAILED"
+            }
+        } else {
+            Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Invoke-GenerateChainPem
@@ -53289,469 +53502,6 @@ Function Test-WMSubnetInput {
 
 }
 Export-ModuleMember -Function Test-WMSubnetInput
-
-Function Invoke-GeneratePrivateKeyAndCsr {
-    <#
-        .SYNOPSIS
-        Generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary.
-
-        .DESCRIPTION
-        The Invoke-GeneratePrivateKeyAndCsr cmdlet generates the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary.
-
-        .EXAMPLE
-        Invoke-GeneratePrivateKeyAndCsr -outDirPath "C:\certificates" -commonName "sfo-vrli01.rainpole.io" -subjectAlternativeNames "sfo-vrli01a.rainpole.io, sfo-vrli01b.rainpole.io, sfo-vrli01c.rainpole.io" -keySize 4096 -expireDays 720 -organization "rainpole" -organizationUnit "IT" -locality "San Francisco" -state "California" -country "US"
-        This example will generate a private key and CSR pair for VMware Aria Operations for Logs where the integrated load balancer has a common name of sfo-vrli01.rainpole.io and includes SANs for each cluster node's fully qualified domain name value.
-
-        .PARAMETER outDirPath
-        The directory path to store the signed certificate, private key and certificate signing request file.
-
-        .PARAMETER commonName
-        The common name for the signed certificate request.
-
-        .PARAMETER subjectAlternativeNames
-        The subject alternative names (SAN) for the signed certificate request.  Separate each SAN with comma.
-
-        .PARAMETER keySize
-        The key size for the signed certificate request.
-
-        .PARAMETER expireDays
-        The expiration days for the signed certificate request.
-
-        .PARAMETER organization
-        The organization for the signed certificate request.
-
-        .PARAMETER organizationUnit
-        The organization unit for the signed certificate request.
-
-        .PARAMETER locality
-        The locality for the signed certificate request.
-
-        .PARAMETER state
-        The state or province for the signed certificate request.
-
-        .PARAMETER country
-        The country code for the signed certificate request.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$commonName,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$subjectAlternativeNames,
-        [Parameter (Mandatory = $false)] [ValidateSet (2048, 3072, 4096)] [int]$keySize = 2048,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$expireDays = 365,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organization,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organizationUnit,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$locality,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$state,
-        [Parameter (Mandatory = $true)] [ValidateSet ("US", "CA", "AX", "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AN", "AO", "AQ", "AR", "AS", "AT", "AU", `
-                "AW", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", "BS", "BT", "BV", "BW", "BZ", "CA", "CC", "CF", "CH", "CI", "CK", `
-                "CL", "CM", "CN", "CO", "CR", "CS", "CV", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "FI", "FJ", "FK", `
-                "FM", "FO", "FR", "FX", "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM", "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", "HK", "HM", "HN", `
-                "HR", "HT", "HU", "ID", "IE", "IL", "IM", "IN", "IO", "IS", "IT", "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM", "KN", "KR", "KW", "KY", "KZ", "LA", `
-                "LC", "LI", "LK", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MH", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", `
-                "MW", "MX", "MY", "MZ", "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP", "NR", "NT", "NU", "NZ", "OM", "PA", "PE", "PF", "PG", "PH", "PK", "PL", "PM", `
-                "PN", "PR", "PS", "PT", "PW", "PY", "QA", "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM", "SN", "SR", "ST", `
-                "SU", "SV", "SZ", "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TM", "TN", "TO", "TP", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", `
-                "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "COM", "EDU", "GOV", "INT", "MIL", "NET", "ORG", "ARPA")] [String]$country
-    )
-
-    # Validate inputs
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    if (-Not ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl))) {
-        Write-Error "OpenSSL not found.  Please verify OpenSSL is installed: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    } else {
-        $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
-        if ($opensslVersion -lt "3.0.0") {
-            Write-Error "OpenSSL version is less than 3.0: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-    }
-
-    for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-        $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
-        $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.cfg"
-        $orginalKeyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName-$randomString.key"
-        if ((-Not(Test-Path -Path $cfgFilePath)) -and (-Not (Test-Path -Path $orginalKeyFilePath))) {
-            Write-Output "1" | Set-Content $cfgFilePath
-            Write-Output "1" | Set-Content $orginalKeyFilePath
-            if ((Test-Path -Path $cfgFilePath) -and (Test-Path -Path $orginalKeyFilePath)) {
-                Remove-Item $cfgFilePath
-                Remove-Item $orginalKeyFilePath
-                break
-            }
-        } else {
-            if ($createRandomCounter -gt 6) {
-                Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                Exit
-            }
-        }
-    }
-
-    $keyFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.key"
-    $csrFilePath = Join-Path -path $outDirPath -ChildPath "$commonName.csr"
-    if (Test-Path -Path $keyFilePath) {
-        Write-Error "$keyFilePath file already exists.  Please remove or rename the current file or use an alternate directory path." -ErrorAction Stop
-    }
-    if (Test-Path -Path $csrFilePath) {
-        Write-Error "$csrFilePath file already exists.  Please remove or rename the current file or use an alternate directory path." -ErrorAction Stop
-    }
-    if ($expireDays -lt 2) {
-        Write-Error "Certificate expiration day ($expireDays) is less than 1 day.  Please provide a value greater than 1 day."
-    }
-
-    # Create temporary cfg file
-    $cfgString = '[ req ]
-    days = ' + $expireDays + '
-    default_md = sha512
-    default_bits = ' + $keySize + '
-    distinguished_name = req_distinguished_name
-    prompt = no
-    req_extensions = v3_req
-
-    [ v3_req ]
-    basicConstraints = CA:FALSE
-    keyUsage = digitalSignature, keyEncipherment, dataEncipherment, nonRepudiation
-    extendedKeyUsage = serverAuth, clientAuth
-    subjectAltName = @alternate_names
-
-    [ req_distinguished_name ]
-    commonName = ' + $commonName + '
-    countryName = ' + $country + '
-    stateOrProvinceName = ' + $state + '
-    localityName = ' + $locality + '
-    0.organizationName = ' + $organization + '
-    organizationalUnitName = ' + $organizationUnit + '
-
-    [ alternate_names ]
-    '
-    # Parsing SAN string
-    $sanArrary = $subjectAlternativeNames -split "\s*,\s*"
-    $sanCount = 1
-
-    foreach ($san in $sanArrary) {
-        $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
-        $sanCount++
-    }
-
-    # Generate RSA private key and CSR file
-    $cfgString | Out-File $cfgFilePath
-    openssl req -new -sha256 -nodes -out $csrFilePath -keyout $orginalKeyFilePath -config $cfgFilePath >> $null 2>$null
-    openssl rsa -in $orginalKeyFilePath -out $keyFilePath -traditional >> $null 2>$null
-
-    # Clean up
-    Remove-Item $cfgFilePath
-    Remove-Item $orginalKeyFilePath
-
-}
-Export-ModuleMember -Function Invoke-GeneratePrivateKeyAndCsr
-
-Function Invoke-RequestSignedCertificate {
-    <#
-        .SYNOPSIS
-        Request Certificate Signing Request (CSR) to be signed by a Certificate Authority.
-
-        .DESCRIPTION
-        The Invoke-RequestSignedCertificate cmdlet signs off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
-
-        .EXAMPLE
-        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath "C:\certificates\sfo-vrli01.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware"
-        This example will request the sfo-vrli01 CSR file to be signed by the Certificate Authority rpl-ad01.rainpole.io.
-
-        .EXAMPLE
-        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath "C:\certificates\sfo-vrli01.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "OpenSSL" -caKeyPath "C:\certificates\CAroot.key" -caCertPath "C:\certificates\CAroot.pem" -expireDays 365
-        This example will request the sfo-vrli01 CSR file to be signed using OpenSSL and provided the Certificate Authority key and certificate.
-
-        .EXAMPLE
-        Invoke-RequestSignedCertificate -caFqdn "rpl-ad01.rainpole.io" -csrFilePath "C:\certificates\sfo-vrli01.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
-        This example will request the sfo-vrli01 CSR file to be signed by the Certificate Authority rpl-ad01.rainpole.io and will retrieve the Certificate Authority's root chain certificate.
-
-        .PARAMETER csrFilePath
-        The full file path for the certificate signing request file.
-
-        .PARAMETER outDirPath
-        The directory path to store the signed certificate file.
-
-        .PARAMETER certificateAuthority
-        The Certificate Authority (Microsoft Certificate Authority or OpenSSL) to be used by the function.
-
-        .PARAMETER caKeyPath
-        The full file path for the Certificate Authority root private key.
-
-        .PARAMETER caCertPath
-        The full file path for the Certificate Authority root certificate.
-
-        .PARAMETER expireDays
-        The expiration days for the certificate to be signed.
-
-        .PARAMETER caFqdn
-        The FQDN of the Microsoft Certificate Authority web enrollment service.
-
-        .PARAMETER username
-        The username to authenticate to the Microsoft Certificate Authority web enrollment service.
-
-        .PARAMETER password
-        The password to authenticate to the Microsoft Certificate Authority web enrollment service.
-
-        .PARAMETER certificateTemplate
-        The name of the certificate template to be used.
-
-        .PARAMETER getCArootCert
-        Retrieve the Microsoft Certificate Authority root chain certificate.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$csrFilePath,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
-        [Parameter (Mandatory = $true)] [ValidateSet ("msca", "openssl")] [String]$certificateAuthority,
-        [Parameter (Mandatory = $true, ParameterSetName = 'openssl')] [ValidateNotNullOrEmpty()] [String]$caKeyPath,
-        [Parameter (Mandatory = $true, ParameterSetName = 'openssl')] [ValidateNotNullOrEmpty()] [String]$caCertPath,
-        [Parameter (Mandatory = $true, ParameterSetName = 'openssl')] [ValidateNotNullOrEmpty()] [Int]$expireDays = 365,
-        [Parameter (Mandatory = $true, ParameterSetName = 'msca')] [ValidateNotNullOrEmpty()] [String]$caFqdn,
-        [Parameter (Mandatory = $true, ParameterSetName = 'msca')] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true, ParameterSetName = 'msca')] [ValidateNotNullOrEmpty()] [String]$password,
-        [Parameter (Mandatory = $true, ParameterSetName = 'msca')] [ValidateNotNullOrEmpty()] [String]$certificateTemplate,
-        [Parameter (Mandatory = $false, ParameterSetName = 'msca')] [Switch]$getCArootCert
-    )
-
-    # Validate inputs
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    if (-Not (Test-Path -Path $csrFilePath)) {
-        Write-Error "Certificate signing request file ($csrFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    $fileName = Split-Path -Path $csrFilePath -LeafBase
-    $crtFileName = $fileName + ".crt"
-    $crtFilePath = Join-Path -Path $outDirPath -ChildPath $crtFileName
-    if (Test-Path -Path $crtFilePath) {
-        Write-Error "$crtFilePath file exists.  Please remove or rename the existing file." -ErrorAction Stop
-    }
-    if (-Not ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl))) {
-        Write-Error "OpenSSL not found.  Please verify OpenSSL is installed: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    } else {
-        $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
-        if ($opensslVersion -lt "3.0.0") {
-            Write-Error "OpenSSL version is less than 3.0: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-    }
-
-    if ($certificateAuthority -eq "openssl") {
-        # validate inputs
-        if (-Not (Test-Path -Path $caKeyPath)) {
-            Write-Error "OpenSSL CA private key file ($caKeyPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-        if (-Not (Test-Path -Path $caCertPath)) {
-            Write-Error "OpenSSL CA certificate file ($caCertPath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        }
-        if ($expireDays -lt 2) {
-            Write-Error "Certificate expiration day ($expireDays) is less than 1 day.  Please provide a value greater than 1 day."
-        }
-
-        for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-            $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 8 | % { [char]$_ })
-            $cfgFilePath = Join-Path -path $outDirPath -ChildPath "$randomString.cfg"
-            if (-Not(Test-Path -Path $cfgFilePath)) {
-                Write-Output "1" | Set-Content $cfgFilePath
-                if (Test-Path -Path $cfgFilePath) {
-                    Remove-Item $cfgFilePath
-                    break
-                }
-            } else {
-                if ($createRandomCounter -gt 6) {
-                    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                    Exit
-                }
-            }
-        }
-
-        # Generate extension configuration file for OpenSSL
-        $configurationText = openssl req -in $csrFilePath -text -noout
-        $configurationTextArray = $configurationText.split('`n')
-        $lineCount = 0
-        $sanArray = @()
-        foreach ($line in $configurationTextArray) {
-            if ($line -match "Subject Alternative Name:") {
-                $lineCount++
-                if ($configurationTextArray[$lineCount] -match "DNS:") {
-                    $sanString = $configurationTextArray[$lineCount]
-                    $sanString = $sanString.replace('DNS:', '')
-                    $sanArray = $sanString -split "\s*,\s*"
-                }
-            } else {
-                $lineCount++
-            }
-        }
-        if ($sanArray.count -gt 0) {
-            $cfgString = 'authorityKeyIdentifier=keyid,issuer
-            basicConstraints=CA:FALSE
-            keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-            subjectAltName = @alt_names
-
-            [alt_names]
-            '
-            $sanCount = 1
-            foreach ($san in $sanArray) {
-                $cfgString = $cfgString + "DNS." + $sanCount + " = " + $san + "`n"
-                $sanCount++
-            }
-        }
-        $cfgString | Out-File $cfgFilePath
-
-        # Generate self-signed certificate
-        Try {
-            openssl x509 -req -in $csrFilePath -CA $caCertPath -CAkey $caKeyPath -CAcreateserial -out $crtFilePath -extfile $cfgFilePath -days $expireDays
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-    } elseif ($certificateAuthority -eq "msca") {
-        $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
-        $domainCreds = New-Object System.Management.Automation.PSCredential ($username, $securePass)
-
-        Try {
-            $respond = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certrqxt.asp" -Credential $domainCreds -Method Get -SkipCertificateCheck
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-
-        if (-Not ($respond.Content -match ".*Microsoft RSA SChannel Cryptographic Provider.*$certificateTemplate.*")) {
-            Write-Error "The Microsoft Certificate Authority's certificate template $certificateTemplate not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-        } else {
-            $CertAttributes = "CertificateTemplate:$certificateTemplate"
-        }
-
-        if ($getCArootCert.IsPresent) {
-            $createRandomCounter = 0
-            for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
-                $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
-                $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$fileName-$randomString.p7b"
-                if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
-                    Write-Output "1" | Set-Content $rootCaFilePathTemp
-                    if (Test-Path -Path $rootCaFilePathTemp) {
-                        Remove-Item $rootCaFilePathTemp
-                        break;
-                    }
-                } else {
-                    if ($createRandomCounter -gt 6) {
-                        Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-                        Exit
-                    }
-                }
-            }
-            $rootCaFilename = "$caFqdn-rootCA.pem"
-            $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
-            if (Test-Path -Path $rootCaFilePath) {
-                Write-Error "$rootCaFilePath file exists.  Please remove or rename the existing file." -ErrorAction Stop
-            }
-        }
-
-        # Create form array
-        $formFields = @{
-            Mode             = "newreq"
-            FriendlyType     = "Saved-Request Certificate"
-            CertRequest      = Get-Content -Path $csrFilePath -Raw
-            CertAttrib       = $CertAttributes
-            TargetStoreFlags = 0
-            SaveCert         = "yes"
-        }
-
-        # Request CSR to be signed by MSCA
-        Try {
-            $CertSubmitted = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certfnsh.asp" -Credential $domainCreds -Method Post -Body $formFields -SkipCertificateCheck
-            $RequestID = ($CertSubmitted.content -split '\n' | Where-Object -FilterScript { $_ -match "certnew.cer\?ReqID=[0-9]" }) -replace '[^0-9]'
-            $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.cer?ReqID=${RequestID}&Enc=b64" -Credential $domainCreds -OutFile $crtFilePath -SkipCertificateCheck
-            if ($getCArootCert.IsPresent) {
-                $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.p7b?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePathTemp -SkipCertificateCheck
-                openssl pkcs7 -inform PEM -outform PEM -in $rootCaFilePathTemp -print_certs > $rootCaFilePath
-            }
-        } Catch {
-            Debug-ExceptionWriter -object $_
-        }
-
-        # Clean up
-        Remove-Item $rootCaFilePathTemp
-    } else {
-        # The Parameter ValidateSet will prevent the script from reaching this step.
-        Write-Error "The cmdlet encounted an illegalArgumentException." -ErrorAction Stop
-    }
-
-}
-Export-ModuleMember -Function Invoke-RequestSignedCertificate
-
-Function Invoke-GenerateChainPem {
-    <#
-        .SYNOPSIS
-        Combine private key, signed certificate and/or root certificate chain into a single PEM file.
-
-        .DESCRIPTION
-        The Invoke-GenerateChainPem cmdlet takes in private key, signed certificate and/or root certificate files and combine them into a single PEM file.
-
-        .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.rainpole.io.crt" -rootCaFilePath "C:\certificates\rpl-ad01.rainpole.io-rootCA.pem"
-        This example will combine sfo-vrli01's private key, signed certificate and rpl0-ad01's root chain certificate into single sfo-vrli01.bundle.pem file.
-
-        .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -crtFilePath "C:\certificates\sfo-vrli01.rainpole.io.crt" -rootCaFilePath "C:\certificates\rpl-ad01.rainpole.io-rootCA.pem"
-        This example will combine sfo-vrli01's signed certificate and rpl0-ad01's root chain certificate into single sfo-vrli01.bundle.pem file.
-
-        .EXAMPLE
-        Invoke-GenerateChainPem -outDirPath "C:\certificates" -keyFilePath "C:\certificates\sfo-vrli01.rainpole.io.key" -crtFilePath "C:\certificates\sfo-vrli01.rainpole.io.crt"
-        This example will combine sfo-vrli01's private key and signed certificate into single sfo-vrli01.bundle.pem file.
-
-        .PARAMETER outDirPath
-        The directory path to store the combined certificate bundle file.
-
-        .PARAMETER keyFilePath
-        The full file path for the private key file.
-
-        .PARAMETER crtFilePath
-        The full file path for the signed certificate file.
-
-        .PARAMETER rootCaFilePath
-        The full file path for the Microsoft Certificate Authority root certificate file.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$keyFilePath,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$crtFilePath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$rootCaFilePath
-    )
-
-    # Validate inputs
-    if (-Not (Test-Path -Path $outDirPath)) {
-        Write-Error "Certificate directory $outDirPath does not exist: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    if (-Not (Test-Path -Path $keyFilePath) -and ($PSBoundParameters.ContainsKey('keyFilePath'))) {
-        Write-Error "Certificate Key ($keyFilePath) file not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    if (-Not (Test-Path -Path $crtFilePath)) {
-        Write-Error "Certificate (.cer) file ($crtFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-    if (-Not (Test-Path -Path $rootCaFilePath) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Write-Error "Microsoft Certificate Authority Root file ($rootCaFilePath) not found: PRE_VALIDATION_FAILED" -ErrorAction Stop
-    }
-
-    $pemFileName = Split-Path -Path $crtFilePath -LeafBase
-    $pemFileName = $pemFileName + ".bundle.pem"
-    $pemFilePath = Join-Path -Path $outDirPath -ChildPath $pemFileName
-
-    if (Test-Path -Path $pemFilePath) {
-        Write-Error "$pemFilePath file exists.  Please rename/remove the existing file." -ErrorAction Stop
-    }
-
-    # Combine files
-    if (($PSBoundParameters.ContainsKey('keyFilePath')) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Get-Content $keyFilePath, $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
-    } elseif (($PSBoundParameters.ContainsKey('keyFilePath')) -and (-Not ($PSBoundParameters.ContainsKey('rootCaFilePath')))) {
-        Get-Content $keyFilePath, $crtFilePath | Set-Content $pemFilePath
-    } elseif ((-Not ($PSBoundParameters.ContainsKey('keyFilePath'))) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-        Get-Content $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
-    } else {
-        Write-Warning "Only certificate file is provided. No bundle PEM file generated."
-    }
-}
-Export-ModuleMember -Function Invoke-GenerateChainPem
 
 Function Test-IpAddress {
     <#
