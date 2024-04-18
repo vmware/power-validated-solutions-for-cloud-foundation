@@ -27264,10 +27264,10 @@ Function Set-vCenterPermission {
                                             $principal = $domain.ToUpper() + "\" + $principal
                                             if ($PsBoundParameters.ContainsKey("folderName") -and ($PsBoundParameters.ContainsKey("folderType"))) {
                                                 if (($objectCheck = Get-Folder -Name $folderName -Type $folderType -ErrorAction Ignore | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }).Name) {
-                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" })) {
+                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue) {
                                                         if (!($objectCheck.Role -eq $role)) {
-                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) | Out-Null
-                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" })
+                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue | Out-Null
+                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): SUCCESSFUL"
                                                             } else {
@@ -27286,10 +27286,10 @@ Function Set-vCenterPermission {
                                                 if ($folderName -or $folderType) {
                                                     Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
                                                 } else {
-                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" })) {
+                                                    if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue ) {
                                                         if (!($objectCheck.Role -eq $role)) {
-                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) | Out-Null
-                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" })
+                                                            New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue | Out-Null
+                                                            $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object { $_.Uid -like "*" + $vcfVcenterDetails.fqdn + "*" }) -ErrorAction SilentlyContinue
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): SUCCESSFUL"
                                                             } else {
