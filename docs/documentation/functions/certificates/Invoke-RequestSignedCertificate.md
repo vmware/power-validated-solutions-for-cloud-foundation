@@ -7,9 +7,7 @@ Request Certificate Signing Request (CSR) to be signed by a Certificate Authorit
 ## Syntax
 
 ```powershell
-Invoke-RequestSignedCertificate [-csrFilePath] <String> [-outDirPath] <String> [-certificateAuthority] <String>
-[-caKeyPath] <String> [-caCertPath] <String> [-expireDays] <Int> [-caFqdn] <String> [-username] <String> 
-[-password] <String> [-certificateTemplate] <String> [-getCArootCert] <Switch>
+Invoke-RequestSignedCertificate [-csrFilePath] <String> [-outDirPath] <String> [-certificateAuthority] <String> [-caKeyPath] <String> [-caCertPath] <String> [-expireDays] <Int> [-caFqdn] <String> [-username] <String>  [-password] <String> [-certificateTemplate] <String> [-getCArootCert] <Switch>
 ```
 
 ## Description
@@ -21,34 +19,34 @@ The `Invoke-RequestSignedCertificate` cmdlet signs off a certificate signing req
 ### Example 1
 
 ```powershell
-Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware"
+Invoke-RequestSignedCertificate -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware"
 ```
 
-This example will request the sfo-vrli01 Certificate Signing Request (CSR) file to be signed by the Certificate Authority rpl-ad01.rainpole.io.
+This example will request the sfo-vrli01.sfo.rainpole.io Certificate Signing Request (CSR) file to be signed by the Certificate Authority rpl-ad01.rainpole.io.
 
 ### Example 2
 
 ```powershell
-Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
+Invoke-RequestSignedCertificate -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "msca" -caFqdn "rainpole-ca01.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
 ```
 
-This example will request the sfo-vrli01 Certificate Signing Request (CSR) file to be signed by the Certificate Authority rpl-ad01.rainpole.io and will retrieve the Certificate Authority's root chain certificate.
+This example will request the sfo-vrli01.sfo.rainpole.io Certificate Signing Request (CSR) file to be signed by the Certificate Authority rpl-ad01.rainpole.io and will retrieve the Certificate Authority's root chain certificate.
 
 ### Example 3
 
 ```powershell
-Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "openssl" -caKeyPath "C:\certificates\CAroot.key" -caCertPath "C:\certificates\CAroot.pem" -expireDays 365
+Invoke-RequestSignedCertificate -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "openssl" -caKeyPath ".\certificates\CAroot.key" -caCertPath ".\certificates\CAroot.pem" -expireDays 365
 ```
 
-This example will request the sfo-vrli01 CSR file to be signed using OpenSSL and provided the Certificate Authority key and certificate.
+This example will request the sfo-vrli01.sfo.rainpole.io CSR file to be signed using OpenSSL and provided the Certificate Authority key and certificate.
 
 ### Example 4
 
 ```powershell
-Invoke-RequestSignedCertificate -csrFilePath "C:\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath "C:\certificates" -certificateAuthority "msca" -caFqdn "sfo-rainpole-ca01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
+Invoke-RequestSignedCertificate -csrFilePath ".\certificates\sfo-vrli01.sfo.rainpole.io.csr" -outDirPath ".\certificates" -certificateAuthority "msca" -caFqdn "sfo-rainpole-ca01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -certificateTemplate "VMware" -getCArootCert
 ```
 
-This example will request the sfo-vrli01 CSR file to be signed by the intermediate Certificate Authority sfo-rainpole-ca01.sfo.rainpole.io and will retrieve the Certificate Authority's full root chain certificate.
+This example will request the sfo-vrli01.sfo.rainpole.io CSR file to be signed by the intermediate Certificate Authority sfo-rainpole-ca01.sfo.rainpole.io and will retrieve the Certificate Authority's full root chain certificate.
 
 ## Parameters
 

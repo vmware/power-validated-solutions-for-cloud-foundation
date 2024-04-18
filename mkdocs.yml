@@ -210,6 +210,7 @@ nav:
       - documentation/functions/aria-suite/aria-automation/Remove-vRAUserOrgRole.md
       - documentation/functions/aria-suite/aria-automation/Remove-vRAUserServiceRole.md
       - documentation/functions/aria-suite/aria-automation/Remove-vRAvRLIConfig.md
+      - documentation/functions/aria-suite/aria-automation/Request-vRAMscaSignedCertificate.md
       - documentation/functions/aria-suite/aria-automation/Request-vRAToken.md
       - documentation/functions/aria-suite/aria-automation/Set-vRADnsConfig.md
       - documentation/functions/aria-suite/aria-automation/Set-vRAGroupOrgRole.md
@@ -312,6 +313,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSNotification.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSUserAccount.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSUserGroup.md
+      - documentation/functions/aria-suite/aria-operations/Request-vROPSMscaSignedCertificate.md
       - documentation/functions/aria-suite/aria-operations/Request-vROPSToken.md
       - documentation/functions/aria-suite/aria-operations/Search-vROPSUserAccount.md
       - documentation/functions/aria-suite/aria-operations/Search-vROPSUserGroup.md
@@ -380,6 +382,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations-logs/Remove-vRLIAuthenticationWSA.md
       - documentation/functions/aria-suite/aria-operations-logs/Remove-vRLIGroup.md
       - documentation/functions/aria-suite/aria-operations-logs/Remove-vRLILogForwarder.md
+      - documentation/functions/aria-suite/aria-operations-logs/Request-vRLIMscaSignedCertificate.md
       - documentation/functions/aria-suite/aria-operations-logs/Request-vRLIToken.md
       - documentation/functions/aria-suite/aria-operations-logs/Set-vRLIAlert.md
       - documentation/functions/aria-suite/aria-operations-logs/Set-vRLIAuthenticationAD.md

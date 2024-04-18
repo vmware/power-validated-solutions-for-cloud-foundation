@@ -36,6 +36,9 @@
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
   - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
+- Added `Request-vRLIMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
+- Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
+- Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
@@ -48,6 +51,9 @@
 - Enhanced `Export-GlobalWsaJsonSpec` cmdlet to add missing items pulled from the PLanning and Preparation Workbook to support `Export-WsaJsonSpec`.
 - Enhanced `Export-WsaJsonSpec` cmdlet to generate the API based deployment JSON spec for Workspace ONE Access using VMware Aria Suite Lifecycle using the global JSON.
 - Enhanced `Invoke-GlobalWsaDeployment` cmdlet to use `Add-vRLCMSGroupRole` to configure VMware Aria Suite Lifecycle roles.
+- Enhanced `Invoke-GeneratePrivateKeyAndCsr` cmdlet for error handling and message output.
+- Enhanced `Invoke-RequestSignedCertificate` cmdlet for error handling and message output.
+- Enhanced `Invoke-GenerateChainPem` cmdlet for error handling and message output.
 
 ## v2.9.0
 
