@@ -92,6 +92,7 @@
 - Enhanced `Invoke-vRSLCMDeployment` cmdlet to use the internal `messageHandler` function for better message output handling.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to check the certificate before attempting to install.
 - Enhanced `Start-vRSLCMUpgrade` cmdlet perform better status checks during the upgrade process.
+- Enhanced `Enable-vRLIContentPack` cmdlet to handle invalid Git Hub tokens, and additional checks to ensure content pack URL is obtained.
 
 ## v2.9.0
 
