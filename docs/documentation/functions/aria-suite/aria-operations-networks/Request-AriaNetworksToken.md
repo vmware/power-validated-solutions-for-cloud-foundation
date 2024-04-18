@@ -6,20 +6,21 @@ Connects to VMware Aria Operations for Networks and obtains an authorization tok
 
 ## Syntax
 
-``` PowerShell
+```powershell
 Request-AriaNetworksToken [-fqdn] <String> [[-username] <String>] [[-password] <String>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-AriaNetworksToken` cmdlet connects to the specified VMware Aria Operations for Networks instance and obtains an authorization token.
-It is required once per session before running all other cmdlets.
+The `Request-AriaNetworksToken` cmdlet connects to the specified VMware Aria
+Operations for Networks instance and obtains an authorization token. It is
+required once per session before running all other cmdlets.
 
 ## Examples
 
 ### Example 1
 
-``` PowerShell
+```powershell
 Request-AriaNetworksToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
 ```
 
