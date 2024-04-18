@@ -40,6 +40,7 @@
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
 - Fixed `Invoke-IomDeployment` cmdlet where the wrong service account was being assigned a vCenter Server global permission.
+- Fixed `Invoke-GlobalWsaDeployment` cmdlet to handle single and multiple nodes when using `Add-ClusterGroup` with Workspace ONE Access.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
