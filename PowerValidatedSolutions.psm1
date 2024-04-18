@@ -20185,7 +20185,6 @@ Function Export-InvJsonSpec {
                 'country'                            = $pnpWorkbook.Workbook.Names["ca_country"].Value
                 'stateOrProvince'                    = $pnpWorkbook.Workbook.Names["ca_state"].Value
                 'locality'                           = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'                  = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
                 'KeySize'                            = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
                 'mscaComputerName'                   = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
                 'mscaName'                           = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
@@ -20231,7 +20230,11 @@ Function Export-InvJsonSpec {
                 'ariaNetworksPlatformNodeaIp'        = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_ip"].Value
                 'ariaNetworksPlatformNodeVmFolder'   = $pnpWorkbook.Workbook.Names["inv_vm_folder"].Value
                 # Product Settings: Collector Nodes
-                'ariaNetworksCollectorNodeSize'      = $pnpWorkbook.Workbook.Names["region_vrni_controller_node_size"].Value.ToLower()
+                'ariaNetworksCollectorNodeSize'      = if ($null -ne $pnpWorkbook.Workbook.Names["region_vrni_collector_node_size"]) {
+                    $pnpWorkbook.Workbook.Names["region_vrni_collector_node_size"].Value.ToLower()
+                } else {
+                    $pnpWorkbook.Workbook.Names["region_vrni_controller_node_size"].Value.ToLower()
+                }
                 'ariaNetworksCollectorNodeaFqdn'     = $pnpWorkbook.Workbook.Names["region_vrni_nodea_fqdn"].Value
                 'ariaNetworksCollectorNodeaHostname' = $pnpWorkbook.Workbook.Names["region_vrni_nodea_hostname"].Value
                 'ariaNetworksCollectorNodeaIp'       = $pnpWorkbook.Workbook.Names["region_vrni_nodea_ip"].Value
@@ -20262,7 +20265,7 @@ Function Export-InvJsonSpec {
             Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
         }
     } Catch {
-        Write-Error $_.Exception.Message
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Export-InvJsonSpec
