@@ -9316,28 +9316,28 @@ Function Invoke-DriDeployment {
 apiVersion: run.tanzu.vmware.com/v1alpha1
 kind: TanzuKubernetesCluster
 metadata:
-name: $($jsonInput.tanzuNamespaceName)
-namespace: $($jsonInput.tanzuNamespaceName)
+    name: $($jsonInput.tanzuNamespaceName)
+    namespace: $($jsonInput.tanzuNamespaceName)
 spec:
-topology:
-controlPlane:
-count: 3
-class: guaranteed-small
-storageClass: $($jsonInput.storagePolicyName)
-workers:
-count: 3
-class: guaranteed-small
-storageClass: $($jsonInput.storagePolicyName)
+    topology:
+        controlPlane:
+            count: 3
+            class: guaranteed-small
+            storageClass: $($jsonInput.storagePolicyName)
+        workers:
+            count: 3
+            class: guaranteed-small
+            storageClass: $($jsonInput.storagePolicyName)
 distribution:
-version: v1.24
+    version: v1.24
 settings:
-network:
-cni:
-    name: antrea
-services:
-    cidrBlocks: ["198.51.100.0/12"]
-pods:
-    cidrBlocks: ["192.0.2.0/16"]
+    network:
+        cni:
+            name: antrea
+        services:
+            cidrBlocks: ["198.51.100.0/12"]
+        pods:
+            cidrBlocks: ["192.0.2.0/16"]
 "@
                             $content | Out-File $yamlFile
                             Show-PowerValidatedSolutionsOutput -message "Provisioning a Tanzu Kubernetes Cluster for $solutionName"
@@ -11597,11 +11597,11 @@ Function Add-Namespace {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if (!(Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue)) {
+                                if (!(Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                     if (Get-Cluster -Name $cluster -ErrorAction SilentlyContinue) {
                                         if (Get-SpbmStoragePolicy -Name $storagePolicy -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             New-WMNamespace -Name $namespace -Cluster $cluster | Out-Null
-                                            if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
+                                            if (Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
                                                 New-WMNamespaceStoragePolicy -Namespace $namespace -StoragePolicy $storagePolicy | Out-Null
                                                 Write-Output "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                             } else {
@@ -11797,15 +11797,15 @@ Function Add-NamespacePermission {
                                                 Invoke-RestMethod -Method 'POST' -URI $uri -Body $json -Headers $vcApiHeaders | Out-Null
                                                 $getWMNamespacePost = Invoke-RestMethod -Method 'GET' -URI https://$($vcfVcenterDetails.fqdn)/api/vcenter/namespaces/instances/$namespace -Headers $vcApiHeaders
                                                 if (($getWMNamespacePost.access_list.subject -contains $principal) -eq $true) {
-                                                    Write-Output "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): SUCCESSFUL"
+                                                    Write-Output "Assigning Role ($role) to $($type.ToLower()) ($principal) in Namespace ($namespace): SUCCESSFUL"
                                                 } else {
-                                                    Write-Error "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
+                                                    Write-Error "Assigning Role ($role) to $($type.ToLower()) ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
                                                 }
                                             } else {
-                                                Write-Warning "Assigning Role ($role) to $type ($principal) in Namespace ($namespace), already assigned: SKIPPED"
+                                                Write-Warning "Assigning Role ($role) to $($type.ToLower()) ($principal) in Namespace ($namespace), already assigned: SKIPPED"
                                             }
                                         } else {
-                                            Write-Error "Active Directory $type ($principal) not found in the Active Directory Domain: PRE_VALIDATION_FAILED"
+                                            Write-Error "Active Directory $($type.ToLower()) ($principal) not found in the Active Directory Domain: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -11957,23 +11957,27 @@ Function Enable-Registry {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
                                     if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.Name -eq $domain }).clusters.id) }).Name
-                                        if (!(Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue)) {
-                                            if (Get-SpbmStoragePolicy -Name $storagePolicy -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
-                                                Enable-WMRegistry -cluster $cluster -StoragePolicy $storagePolicy | Out-Null
-                                                Do {
-                                                    $configStatus = Get-WMRegistry -cluster $cluster | Get-WMRegistryHealth
-                                                } Until ($configStatus -eq "RUNNING")
-                                                if (Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue) {
-                                                    Write-Output "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
+                                        if ($vCenterApi -lt 800) {
+                                            $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.Name -eq $domain }).clusters.id) }).Name
+                                            if (!(Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue)) {
+                                                if (Get-SpbmStoragePolicy -Name $storagePolicy -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                                    Enable-WMRegistry -cluster $cluster -StoragePolicy $storagePolicy | Out-Null
+                                                    Do {
+                                                        $configStatus = Get-WMRegistry -cluster $cluster | Get-WMRegistryHealth
+                                                    } Until ($configStatus -eq "RUNNING")
+                                                    if (Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue) {
+                                                        Write-Output "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
+                                                    }
                                                 } else {
-                                                    Write-Error "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
+                                                    Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                                 }
                                             } else {
-                                                Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                                Write-Warning "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
                                             }
                                         } else {
-                                            Write-Warning "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
+                                            Write-Warning "The Embedded Harbour Registry is not supported on vSphere 8.0 and higher: SKIPPED"
                                         }
                                     }
                                 }
