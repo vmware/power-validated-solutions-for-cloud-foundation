@@ -39,6 +39,7 @@
 - Added `Request-vRLIMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
 - Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
 - Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
+- Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.

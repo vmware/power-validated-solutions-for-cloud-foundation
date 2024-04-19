@@ -52022,9 +52022,27 @@ Function Show-PowerValidatedSolutionsOutput {
     } else {
         Write-Host "$ESC[${timestampcolour} [$timestamp]$ESC[${threadColour} $ESC[${messageColour} [$type] $message$ESC[0m"
     }
+
+    $logContent = '[' + $timeStamp + '] [' + $type + '] ' + $message
+    Add-Content -path $logFile $logContent
 }
 Export-ModuleMember -Function Show-PowerValidatedSolutionsOutput
 
+Function New-PowerValidatedSolutionsLogFile {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logPath
+    )
+
+    $Script:filetimeStamp = Get-Date -Format "MM-dd-yyyy_hh_mm_ss"
+    $Script:logFile = $logPath + '\logs\validationSolution-' + $filetimeStamp + '.log'
+    $logFolder = $logPath + '\logs'
+    If (-Not (Test-Path -Path $logFolder)) {
+        New-Item -ItemType Directory -Path $logFolder | Out-Null
+    }
+    New-Item -type File -path $logFile | Out-Null
+    $logContent = '[' + $filetimeStamp + '] Creating Log for VMware Validated Solutions'
+    Add-Content -path $logFile $logContent
+}
 Function messageHandler {
     Param (
         [Parameter (Mandatory = $false)] [Array]$statusMessage,
@@ -53743,7 +53761,8 @@ Function Start-ValidatedSolutionMenu {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificatePath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaryPath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$logPath
     )
 
     Try {
@@ -53753,6 +53772,10 @@ Function Start-ValidatedSolutionMenu {
         $Script:binaryPath = $binaryPath
         $Script:protectedWorkbook = $protectedWorkbook
         $Script:recoveryWorkbook = $recoveryWorkbook
+        if ($PsBoundParameters.ContainsKey("logPath")) {
+            $Script:logPath = $logPath
+            New-PowerValidatedSolutionsLogFile -logPath $logPath
+        }
 
         $submenuTitle = ("VMware Validated Solutions")
 
