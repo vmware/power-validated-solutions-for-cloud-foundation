@@ -55,6 +55,8 @@
 - Enhanced `Invoke-GeneratePrivateKeyAndCsr` cmdlet for error handling and message output.
 - Enhanced `Invoke-RequestSignedCertificate` cmdlet for error handling and message output.
 - Enhanced `Invoke-GenerateChainPem` cmdlet for error handling and message output.
+- Enhanced `Enable-Registry` cmdlet to handle clean exit of function when running vSphere 8.0.
+- Enhanced `Add-Namespace` cmdlet to handle expected missing object and not throw an error.
 
 ## v2.9.0
 

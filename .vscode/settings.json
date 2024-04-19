@@ -23,6 +23,10 @@
     "editor.trimAutoWhitespace": true,
     "editor.wordWrap": "off"
   },
+  "[yaml]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false
+  },
   "editor.bracketPairColorization.enabled": true,
   "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
