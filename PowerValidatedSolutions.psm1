@@ -12628,10 +12628,10 @@ Function Request-vRLIMscaSignedCertificate {
                     $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
-                
+
                 if (!$failureDetected) {
                     Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
-                
+
                     $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
@@ -16382,10 +16382,10 @@ Function Request-vROPSMscaSignedCertificate {
                     $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
-                
+
                 if (!$failureDetected) {
                     Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
-                
+
                     $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
@@ -20414,6 +20414,170 @@ Function Export-InvJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-InvJsonSpec
+Function Request-AriaNetworksToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
+
+        .DESCRIPTION
+        The Request-AriaNetworksToken cmdlet connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-AriaNetworksToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
+        This example shows how to connect to the VMware Aria Operations for Networks platform node.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Operations for Networks platform node.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $Global:ariaNetworksAppliance = $fqdn
+        $Global:ariaNetworksHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $ariaNetworksHeader.Add("Accept", "application/json")
+        $ariaNetworksHeader.Add("Content-Type", "application/json")
+        $uri = "https://$ariaNetworksAppliance/api/ni/auth/token"
+        $body = '{
+            "username": "'+ $username +'",
+            "password": "'+ $password +'",
+            "domain": {
+                "domain_type": "LOCAL",
+                "value": "local"
+            }
+        }'
+        if ($PSEdition -eq 'Core') {
+            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body
+        }
+        if ($ariaNetworksResponse.token) {
+            $ariaNetworksHeader.Add("Authorization", "NetworkInsight " + $ariaNetworksResponse.token)
+            Write-Output "Successfully connected to VMware Aria Operations for Networks: $ariaNetworksAppliance"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-AriaNetworksToken
+
+Function Get-AriaNetworksNodes {
+    <#
+        .SYNOPSIS
+        Get various details about the VMware Aria Operations for Networks nodes.
+
+        .DESCRIPTION
+        The Get-AriaNetworksNodes cmdlet gets various details about the VMware Aria Operations for Networks nodes.  This is necessary in order to find out the id of a specified VMware Aria Operations for Networks collector node.
+
+        .EXAMPLE
+        Get-AriaNetworksNodes
+        This example gets the ids of all of the collector nodes in a VMware Aria Operations for Networks deployment.
+
+        .EXAMPLE
+        Get-AriaNetworksNodes -ipAddress 192.168.31.41
+        This example gets the details of the collector node with the IP address 192.168.31.41
+
+        .PARAMETER expandedNodes
+        Get list of infrastructure nodes with all details.
+
+	    .PARAMETER ipAddress
+        The IP address of the collector node to use for authentication.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$expandedNodes,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($PsBoundParameters.ContainsKey("expandedNodes")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } elseif (($PsBoundParameters.ContainsKey("ipAddress"))) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.ip_address -eq $ipAddress}
+            } else {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+        }
+        } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-AriaNetworksNodes
+
+Function Get-AriaNetworksDataSource {
+    <#
+        .SYNOPSIS
+        Get all the data sources in a VMware Aria Operations for Networks deployment.
+
+        .DESCRIPTION
+        The Get-AriaNetworksDataSource cmdlet collects data sources are connected to a VMware Aria Operations for Networks deployment.  This is necessary in order to find the "entity_id" for use in other modules, such as the Delete-AriaNetworksDataSource.
+
+        .EXAMPLE
+        Get-AriaNetworksDataSource
+        This example gets all of the items which are configured as a data source in a VMware Aria Operations for Networks deployment.
+
+        .EXAMPLE
+        Get-AriaNetworksDataSource -fqdn sfo-m01-vc01.sfo.rainpole.io
+        This example gets the details of the vCenter Server with the fqdn sfo-m01-vc01.sfo.rainpole.io
+
+        .PARAMETER fqdn
+        The fqdn of the data source.
+
+        .PARAMETER dataSourceType
+        Specifies the type of the resource. One of: vcenter or nsxt.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter(Mandatory = $false)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($PsBoundParameters.ContainsKey("fqdn")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.fqdn -eq $fqdn}
+            } elseif ($dataSourceType -eq 'vcenter') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } elseif ($dataSourceType -eq 'nsxt') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } else {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-AriaNetworksDataSource
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -20764,10 +20928,10 @@ Function Request-vRAMscaSignedCertificate {
                     $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
-                
+
                 if (!$failureDetected) {
                     Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
-                
+
                     $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
@@ -48153,18 +48317,18 @@ Export-ModuleMember -Function Remove-vRLIContentPack
 Function Request-AriaNetworksToken {
     <#
         .SYNOPSIS
-        Connects to VMware Aria Operations for Networks and obtains an authorization token.
+        Connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
 
         .DESCRIPTION
-        The Request-AriaNetworksToken cmdlet connects to the specified VMware Aria Operations for Networks instance
-        and obtains an authorization token. It is required once per session before running all other cmdlets.
+        The Request-AriaNetworksToken cmdlet connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-AriaNetworksToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
-        This example shows how to connect to the VMware Aria Operations for Networks appliance.
+        This example shows how to connect to the VMware Aria Operations for Networks platform node.
 
         .PARAMETER fqdn
-        The fully qualified domain name of the VMware Aria Operations for Networks appliance.
+        The fully qualified domain name of the VMware Aria Operations for Networks platform node.
 
         .PARAMETER username
         The username to use for authentication.
@@ -48192,8 +48356,8 @@ Function Request-AriaNetworksToken {
         $ariaNetworksHeader.Add("Content-Type", "application/json")
         $uri = "https://$ariaNetworksAppliance/api/ni/auth/token"
         $body = '{
-            "username": "'+ $username + '",
-            "password": "'+ $password + '",
+            "username": "'+ $username +'",
+            "password": "'+ $password +'",
             "domain": {
                 "domain_type": "LOCAL",
                 "value": "local"
@@ -48213,6 +48377,107 @@ Function Request-AriaNetworksToken {
     }
 }
 Export-ModuleMember -Function Request-AriaNetworksToken
+
+Function Get-AriaNetworksNodes {
+    <#
+        .SYNOPSIS
+        Get various details about the VMware Aria Operations for Networks nodes.
+
+        .DESCRIPTION
+        The Get-AriaNetworksNodes cmdlet gets various details about the VMware Aria Operations for Networks nodes.  This is necessary in order to find out the id of a specified VMware Aria Operations for Networks collector node.
+
+        .EXAMPLE
+        Get-AriaNetworksNodes
+        This example gets the ids of all of the collector nodes in a VMware Aria Operations for Networks deployment.
+
+        .EXAMPLE
+        Get-AriaNetworksNodes -ipAddress 192.168.31.41
+        This example gets the details of the collector node with the IP address 192.168.31.41
+
+        .PARAMETER expandedNodes
+        Get list of infrastructure nodes with all details.
+
+	    .PARAMETER ipAddress
+        The IP address of the collector node to use for authentication.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$expandedNodes,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($PsBoundParameters.ContainsKey("expandedNodes")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } elseif (($PsBoundParameters.ContainsKey("ipAddress"))) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.ip_address -eq $ipAddress}
+            } else {
+                $uri = "https://$ariaNetworksAppliance/api/ni/infra/nodes/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+        }
+        } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-AriaNetworksNodes
+
+Function Get-AriaNetworksDataSource {
+    <#
+        .SYNOPSIS
+        Get all the data sources in a VMware Aria Operations for Networks deployment.
+
+        .DESCRIPTION
+        The Get-AriaNetworksDataSource cmdlet collects data sources are connected to a VMware Aria Operations for Networks deployment.  This is necessary in order to find the "entity_id" for use in other modules, such as the Delete-AriaNetworksDataSource.
+
+        .EXAMPLE
+        Get-AriaNetworksDataSource
+        This example gets all of the items which are configured as a data source in a VMware Aria Operations for Networks deployment.
+
+        .EXAMPLE
+        Get-AriaNetworksDataSource -fqdn sfo-m01-vc01.sfo.rainpole.io
+        This example gets the details of the vCenter Server with the fqdn sfo-m01-vc01.sfo.rainpole.io
+
+        .PARAMETER fqdn
+        The fqdn of the data source.
+
+        .PARAMETER dataSourceType
+        Specifies the type of the resource. One of: vcenter or nsxt.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter(Mandatory = $false)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($PsBoundParameters.ContainsKey("fqdn")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.fqdn -eq $fqdn}
+            } elseif ($dataSourceType -eq 'vcenter') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } elseif ($dataSourceType -eq 'nsxt') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            } else {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources"
+                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-AriaNetworksDataSource
 
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
@@ -51667,7 +51932,7 @@ Function Invoke-GeneratePrivateKeyAndCsr {
                 }
             } else {
                 Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
-            } 
+            }
         } else {
             Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
         }
@@ -51892,11 +52157,11 @@ Function Invoke-RequestSignedCertificate {
                         }
                     } else {
                         Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
-                    } 
+                    }
                 } else {
                     Write-Warning "Creation of Certificate (.crt) file named ($crtFileName), already exists: SKIPPED"
                 }
-            } else {    
+            } else {
                 Write-Error "Certificate Signing Request file named ($csrFilePath) not found: PRE_VALIDATION_FAILED"
             }
         } else {
