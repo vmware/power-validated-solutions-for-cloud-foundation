@@ -158,51 +158,21 @@ Function Test-IamPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that the required service accounts are created in Active Directory
+                    $serviceAccounts = '[
+                        {"user": "'+ $jsonInput.domainBindUserVsphere +'", "password": "'+ $jsonInput.domainBindPassVsphere +'"},
+                        {"user": "'+ $jsonInput.domainBindUserNsx +'", "password": "'+ $jsonInput.domainBindPassNsx +'"}
+                    ]' | ConvertFrom-Json
+                    foreach ( $serviceAccount in $serviceAccounts ) {
+                        Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserVsphere)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserVsphere)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.domainBindUserNsx -pass $jsonInput.domainBindPassNsx -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUserNsx)): PRE_VALIDATION_FAILED"
-                    }
-                    Foreach ($securityGroup in $jsonInput.nsxAdGroups) {
-                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPassVsphere -AsPlainText -Force
-                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUserVsphere, $securePassword)
-                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
-                        }
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    # Verify that the required security groups are created in Active Directory
+                    $adGroups = $jsonInput.nsxAdGroups; $allGroups += @($jsonInput.vcenterAdminGroup, $jsonInput.vcenterReadOnlyGroup, $jsonInput.ssoAdminGroup, $jsonInput.vcfAdminGroup, $jsonInput.vcfOperatorGroup, $jsonInput.vcfViewerGroup)
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $adGroups
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -2639,12 +2609,17 @@ Function Export-PdrJsonSpec {
                     'vmNameWsaNodeA'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
                     'vmNameWsaNodeB'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
                     'vmNameWsaNodeC'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                    'vmNameOperationsNodeA'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                    'vmNameOperationsNodeB'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
-                    'vmNameOperationsNodeC'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                    'vmNameAutomationNodeA'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
-                    'vmNameAutomationNodeB'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
-                    'vmNameAutomationNodeC'     = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                    'vmNameOperationsNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                    'vmNameOperationsNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                    'vmNameOperationsNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                    'vmNameAutomationNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
+                    'vmNameAutomationNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
+                    'vmNameAutomationNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                    'domainBindUserVsphere'       = ($pnpWorkbook.Workbook.Names["iam_vsphere_ad_bind_username"].Value -Split ("@"))[0]
+                    'domainBindPassVsphere'       = $pnpWorkbook.Workbook.Names["iam_vsphere_ad_bind_password"].Value
+                    'domainBindUserNsx'           = ($pnpWorkbook.Workbook.Names["iam_nsx_ad_bind_username"].Value -Split ("@"))[0]
+                    'domainBindPassNsx'           = $pnpWorkbook.Workbook.Names["iam_nsx_ad_bind_password"].Value
+                    'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 }
                 Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -9036,66 +9011,16 @@ Function Test-DriPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
-                    }
-
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-
-                    if (Get-VCFEdgeCluster | Where-Object { $_.nsxtCluster.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $jsonInput.tanzuSddcDomainName }).nsxtCluster.id) }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqEdgeCluster -workloadDomain $jsonInput.tanzuSddcDomainName # Verify that an NSX Edge Cluster is deployed to the VI Workload Domain
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "vSphere with Tanzu" # Verify a license key is present
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that the required security groups are created in Active Directory
                     $adGroups = @($jsonInput.namespaceEditUserGroup, $jsonInput.namespaceViewUserGroup)
-                    Foreach ($securityGroup in $adGroups) {
-                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
-                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUser, $securePassword)
-                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
-                        }
-                    }
-
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $adGroups
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -12500,78 +12425,17 @@ Function Test-IlaPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFApplicationVirtualNetwork) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "REGION_A"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFvRSLCM) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Log-Insight" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Log-Insight" }).name))): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations for Logs are available: PRE_VALIDATION_FAILED"
-                    }
-                    if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations for Logs license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Operations for Logs license is present in the JSON: PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUser)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.domainBindUser)): PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    Foreach ($securityGroup in $jsonInput.adGroups) {
-                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
-                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUser, $securePassword)
-                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
-                        }
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqBinary -searchCriteria "Log-Insight" # Verify that the required binaries are available
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Logs" # Verify a license key is present
+                    Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -16250,81 +16114,25 @@ Function Test-IomPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                    Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
+                    Test-PrereqBinary -searchCriteria "Operations-Cloud-Proxy" # Verify that the required binaries are available
+                    Test-PrereqBinary -searchCriteria "Operations-Manager-Appliance" # Verify that the required binaries are available
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations" # Verify a license key is present
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that the required service accounts are created in Active Directory
+                    $serviceAccounts = '[
+                        {"user": "'+ $jsonInput.serviceAccountOperationsVcf +'", "password": "'+ $jsonInput.serviceAccountOperationsVcfPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountOperationsVsphere +'", "password": "'+ $jsonInput.serviceAccountOperationsVspherePass +'"}
+                    ]' | ConvertFrom-Json
+                    foreach ( $serviceAccount in $serviceAccounts ) {
+                        Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFApplicationVirtualNetwork) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFvRSLCM) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFWsa) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Workspace ONE Access has been deployed ($((Get-VCFWsa).loadBalancerFqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Cloud-Proxy" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Cloud-Proxy" }).name))): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations Cloud Proxy are available: PRE_VALIDATION_FAILED"
-                    }
-                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance" }).name))): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Operations are available: PRE_VALIDATION_FAILED"
-                    }
-                    if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Operations license is present in the JSON: PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVcf -pass $jsonInput.serviceAccountOperationsVcfPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVcf)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOperationsVsphere -pass $jsonInput.serviceAccountOperationsVspherePass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOperationsVsphere)): PRE_VALIDATION_FAILED"
-                    }
-                    Foreach ($securityGroup in $jsonInput.adGroups) {
-                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPass -AsPlainText -Force
-                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUser, $securePassword)
-                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
-                        }
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -20791,88 +20599,25 @@ Function Test-PcaPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                    Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqBinary -searchCriteria "Prelude_VA" # Verify that the required binaries are available
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Automation" # Verify a license key is present
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that the required service accounts are created in Active Directory
+                    $serviceAccounts = '[
+                        {"user": "'+ $jsonInput.serviceAccountAutomation +'", "password": "'+ $jsonInput.serviceAccountAutomationPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountOrchestrator +'", "password": "'+ $jsonInput.serviceAccountOrchestratorPass +'"}
+                    ]' | ConvertFrom-Json
+                    foreach ( $serviceAccount in $serviceAccounts ) {
+                        Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFApplicationVirtualNetwork) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFvRSLCM) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFWsa) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Workspace ONE Access has been deployed ($((Get-VCFWsa).loadBalancerFqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Automation are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match "Prelude_VA" }).name))): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for VMware Aria Automation are available: PRE_VALIDATION_FAILED"
-                    }
-                    if ($jsonInput.licenseKey) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON ($($jsonInput.licenseKey)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite or VMware Aria Automation license is present in the JSON: PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUserVsphere -pass $jsonInput.domainBindPassVsphere -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountAutomation -pass $jsonInput.serviceAccountAutomationPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountAutomation)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountOrchestrator -pass $jsonInput.serviceAccountOrchestratorPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountOrchestrator)): PRE_VALIDATION_FAILED"
-                    }
-                    Foreach ($securityGroup in $jsonInput.adGroups) {
-                        $securePassword = ConvertTo-SecureString -String $jsonInput.domainBindPassVsphere -AsPlainText -Force
-                        $creds = New-Object System.Management.Automation.PSCredential ($jsonInput.domainBindUserVsphere, $securePassword)
-                        if ((Get-ADGroup -Server $jsonInput.domainFqdn -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                            Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
-                        }
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -23560,48 +23305,12 @@ Function Test-HrmPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFvRops) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Operatios has been deployed ($((Get-VCFvRops).loadBalancerFqdn)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Operatios has been deployed: PRE_VALIDATION_FAILED"
-                    }
-                    if ((Get-ChildItem $binaries | Where-Object { $_.name -match $jsonInput.ova }).name) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match $jsonInput.ova }).name))): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available: PRE_VALIDATION_FAILED"
-                    }
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.hrmVcfServiceAccount -pass $jsonInput.hrmVcfServiceAccountPassword -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.hrmVcfServiceAccount)): PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqBinary -searchCriteria $jsonInput.ova # Verify that the required binaries are available
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    Test-PrereqServiceAccount -user $jsonInput.hrmVcfServiceAccount -password $jsonInput.hrmVcfServiceAccountPassword -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                 }
             }
         } else {
@@ -24052,7 +23761,7 @@ Function Export-CbwJsonSpec {
                 'serviceAccountVcdrPass'      = $pnpWorkbook.Workbook.Names["cbw_vcdr_vsphere_svc_password"].Value
                 'serviceAccountHcx'           = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_user"].Value
                 'serviceAccountHcxPass'       = $pnpWorkbook.Workbook.Names["cbw_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'           = ($pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsx'           = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_user"].Value
                 'serviceAccountNsxPass'       = $pnpWorkbook.Workbook.Names["cbw_hcx_nsx_svc_password"].Value
                 'vmFolderVcdr'                = $pnpWorkbook.Workbook.Names["cbw_vm_folder"].Value
                 'vmFolderHcx'                 = $pnpWorkbook.Workbook.Names["cbw_hcx_vm_folder"].Value
@@ -24128,59 +23837,20 @@ Function Test-CbwPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify Service Accounts
+                    $serviceAccounts = '[
+                        {"user": "'+ $jsonInput.serviceAccountVcdr +'", "password": "'+ $jsonInput.serviceAccountVcdrPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountHcx +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountNsx +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
+                    ]' | ConvertFrom-Json
+                    foreach ( $serviceAccount in $serviceAccounts ) {
+                        Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountVcdr -pass $jsonInput.serviceAccountVcdrPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountVcdr)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -24253,7 +23923,7 @@ Function Invoke-CbwDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for NSX Integration for $solutionName"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -ne "MANAGEMENT") {
-                                $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal $jsonInput.serviceAccountNsx -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal ($jsonInput.serviceAccountNsx + "@" + $jsonInput.domainFqdn) -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
@@ -24309,7 +23979,7 @@ Function Invoke-UndoCbwDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for NSX Integration for $solutionName"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -ne "MANAGEMENT") {
-                                $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal ($jsonInput.serviceAccountNsx + "@" + $jsonInput.domainFqdn) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
@@ -24471,16 +24141,7 @@ Function Test-CbrPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
                 }
             }
         } else {
@@ -24525,7 +24186,7 @@ Function Invoke-CbrDeployment {
                     $failureDetected = $false
 
                     if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Create Virtual Machine and Template Folder for the DRaaS Connector Appliances for $solutionName"
+                        Show-PowerValidatedSolutionsOutput -message "Create Virtual Machine and Template Folder for the Cyber Recovery Connector Appliances for $solutionName"
                         $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
@@ -24576,7 +24237,7 @@ Function Invoke-UndoCbrDeployment {
                     $failureDetected = $false
 
                     if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the DRaaS Connector Appliances for $solutionName"
+                        Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the Cyber Recovery Connector Appliances for $solutionName"
                         $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
@@ -24646,7 +24307,7 @@ Function Export-CcmJsonSpec {
                 'vsphereRoleNameHcx'          = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
                 'serviceAccountHcx'           = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
                 'serviceAccountHcxPass'       = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
-                'serviceAccountNsx'           = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsx'           = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value
                 'serviceAccountNsxPass'       = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
                 'vmFolder'                    = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
                 'folderSuffix'                = "-fd-hcx"
@@ -24722,54 +24383,19 @@ Function Test-CcmPrerequisite {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that the required service accounts are created in Active Directory
+                    $serviceAccounts = '[
+                        {"user": "'+ $jsonInput.serviceAccountHcx +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountNsx +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
+                    ]' | ConvertFrom-Json
+                    foreach ( $serviceAccount in $serviceAccounts ) {
+                        Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
-                    }
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
-                                if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $jsonInput.domainFqdn }) {
-                                    Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): SUCCESSFUL"
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($($jsonInput.domainFqdn)): PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
-                        }
-                    }
-                    if (Test-ADAuthentication -user $jsonInput.domainBindUser -pass $jsonInput.domainBindPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controllers are available in the environment ($($jsonInput.domainControllerMachineName)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountHcx -pass $jsonInput.serviceAccountHcxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($jsonInput.serviceAccountHcx)): PRE_VALIDATION_FAILED"
-                    }
-                    if ((Test-ADAuthentication -user $jsonInput.serviceAccountNsx -pass $jsonInput.serviceAccountNsxPass -server $jsonInput.domainFqdn -domain $jsonInput.domainFqdn)[1] -match "AD Authentication Successful") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($($(($jsonInput.serviceAccountNsx) -Split ('@'))[-0])): PRE_VALIDATION_FAILED"
-                    }
-                    if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
-                    }
-                    $openSslVersion = openssl version 2>&1
-                    if ($openSslVersion -match "^Openssl 3*") {
-                        Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
-                    }
+                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
         } else {
@@ -24859,7 +24485,7 @@ Function Invoke-CcmDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for NSX Integration for $solutionName"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -ne "MANAGEMENT") {
-                                $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal $jsonInput.serviceAccountNsx -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal ($jsonInput.serviceAccountNsx + "@" + $jsonInput.domainFqdn) -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
@@ -24915,7 +24541,7 @@ Function Invoke-UndoCcmDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for NSX Integration for $solutionName"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -ne "MANAGEMENT") {
-                                $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal ($jsonInput.serviceAccountNsx + "@" + $jsonInput.domainFqdn) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
                         }
@@ -52286,14 +51912,16 @@ Function Show-PowerValidatedSolutionsOutput {
 
     $timeStamp = Get-Date -Format "MM-dd-yyyy_HH:mm:ss"
 
-    If ($skipnewline) {
+    if ($skipnewline) {
         Write-Host -NoNewline "$ESC[${timestampcolour} [$timestamp]$ESC[${threadColour} $ESC[${messageColour} [$type] $message$ESC[0m"
     } else {
         Write-Host "$ESC[${timestampcolour} [$timestamp]$ESC[${threadColour} $ESC[${messageColour} [$type] $message$ESC[0m"
     }
 
     $logContent = '[' + $timeStamp + '] [' + $type + '] ' + $message
-    Add-Content -path $logFile $logContent
+    if ($logPath) {
+        Add-Content -path $logFile $logContent
+    }
 }
 Export-ModuleMember -Function Show-PowerValidatedSolutionsOutput
 
@@ -52312,6 +51940,7 @@ Function New-PowerValidatedSolutionsLogFile {
     $logContent = '[' + $filetimeStamp + '] Creating Log for VMware Validated Solutions'
     Add-Content -path $logFile $logContent
 }
+
 Function messageHandler {
     Param (
         [Parameter (Mandatory = $false)] [Array]$statusMessage,
@@ -54014,6 +53643,255 @@ Function Test-NtpServer {
     Return $ntpStatus
 }
 Export-ModuleMember -Function Test-NtpServer
+
+Function Test-PrereqWorkloadDomains {
+    Try {
+        if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+        }
+        if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains at least one VI Workload Domain: SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Verify that SDDC Manager Contains at least one VI Workload Domain: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqApplicationVirtualNetwork {
+    Try {
+        if (Get-VCFApplicationVirtualNetwork) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqEdgeCluster {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Get-VCFEdgeCluster | Where-Object { $_.nsxtCluster.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $workloadDomain }).nsxtCluster.id) }) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain ($workloadDomain): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that an NSX Edge Cluster is deployed to the VI Workload Domain: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqBinary {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$searchCriteria
+    )
+
+    Try {
+        if ((Get-ChildItem $binaries | Where-Object { $_.name -match $searchCriteria }).name) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match $searchCriteria }).name))): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type Error -message "Verify that the required binaries for Host Virtual Machine are available: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqLicenseKey {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$productName
+    )
+
+    Try {
+        if ($licenseKey) {
+            Show-PowerValidatedSolutionsOutput -message "Verify a $productName license key is in the JSON ($licenseKey): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that $productName license is present in the JSON: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqAriaSuiteLifecycle {
+    Try {
+        if (Get-VCFvRSLCM) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Suite Lifecycle has been deployed ($((Get-VCFvRSLCM).fqdn)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Suite Lifecycle has been deployed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqWorkspaceOneAccess {
+    Try {
+        if (Get-VCFWsa) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that VMware Workspace ONE Access has been deployed ($((Get-VCFWsa).loadBalancerFqdn)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Workspace ONE Access has been deployed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqAriaOperationsLogs {
+    Try {
+        if (Get-VCFvRLI) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Operations for Logs has been deployed ($((Get-VCFvRops).loadBalancerFqdn)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Operations for Logs has been deployed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqAriaOperations {
+    Try {
+        if (Get-VCFvRops) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Operations has been deployed ($((Get-VCFvRops).loadBalancerFqdn)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Operations has been deployed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqAriaAutomation {
+    Try {
+        if (Get-VCFvRA) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that VMware Aria Automation has been deployed ($((Get-VCFvRA).loadBalancerFqdn)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Aria Automation has been deployed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqActiveDirectoryIntegration {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $password -domainType "MANAGEMENT")) {
+            if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                if ((Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass)) {
+                    if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($domain): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that VMware Cloud Foundation is integrated with Active Directory ($domain): PRE_VALIDATION_FAILED"
+                    }
+                }
+                Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqAdGroup {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$adGroups
+    )
+
+    Try {
+        Foreach ($securityGroup in $adGroups) {
+            $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+            $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
+            if ((Get-ADGroup -Server $server -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
+                Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+            } else {
+                Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqMsca {
+    Try {
+        if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqOpenSsl {
+    Try {
+        $openSslVersion = openssl version 2>&1
+        if ($openSslVersion -match "^Openssl 3*") {
+            Show-PowerValidatedSolutionsOutput -message "Verify that OpenSSL version (v3) installed: SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that OpenSSL version (v3) installed: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Function Test-PrereqDomainController {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    Try {
+        $ports = @("LDAP,389", "LDAPS,636")
+        foreach ( $port in $ports ) {
+            if (Test-EndpointConnection -server $server -Port $port.Split(',')[-1]) {
+                Show-PowerValidatedSolutionsOutput -message "Verify that Active Directory Domain Controller ($server) is available for $($port.Split(',')[-0]) (Port $($port.Split(',')[-1])): SUCCESSFUL"
+            } else {
+                Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Active Directory Domain Controller ($server) is available for for $($port.Split(',')[-0]) (Port $($port.Split(',')[-1])): PRE_VALIDATION_FAILED"
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqServiceAccount {
+        Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if ((Test-ADAuthentication -user $user -pass $password -server $server -domain $domain)[-1] -match "AD Authentication Successful") {
+            Show-PowerValidatedSolutionsOutput -message "Verify that the required service accounts are created in Active Directory ($user): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service accounts are created in Active Directory ($user): PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
 
 #EndRegion  End of Test Functions                                            ######
 ###################################################################################
