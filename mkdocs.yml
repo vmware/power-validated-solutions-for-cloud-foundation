@@ -917,6 +917,7 @@ nav:
         - documentation/functions/solutions/pdr/Export-PdrJsonSpec.md
         - documentation/functions/solutions/pdr/Invoke-PdrDeployment.md
         - documentation/functions/solutions/pdr/Invoke-UndoPdrDeployment.md
+        - documentation/functions/solutions/pdr/Test-PdrPrerequisite.md
       - Health Reporting and Monitoring:
         - documentation/functions/solutions/hrm/Export-HrmJsonSpec.md
         - documentation/functions/solutions/hrm/Invoke-HrmDeployment.md

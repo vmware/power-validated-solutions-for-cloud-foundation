@@ -101,8 +101,18 @@ Function Export-IamJsonSpec {
                 'nsxAuditorGroup'             = $pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxAdGroups'                 = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)"
                 'vsphereRoleName'             = $pnpWorkbook.Workbook.Names["nsxt_vsphere_role_name"].Value
+                'organization'                = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'          = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                     = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                    = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'           = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                     = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
                 'mscaComputerName'            = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
                 'mscaName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -171,7 +181,8 @@ Function Test-IamPrerequisite {
                     # Verify that the required security groups are created in Active Directory
                     $adGroups = $jsonInput.nsxAdGroups; $allGroups += @($jsonInput.vcenterAdminGroup, $jsonInput.vcenterReadOnlyGroup, $jsonInput.ssoAdminGroup, $jsonInput.vcfAdminGroup, $jsonInput.vcfOperatorGroup, $jsonInput.vcfViewerGroup)
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $adGroups
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -2582,44 +2593,57 @@ Function Export-PdrJsonSpec {
 
                 $jsonObject = @()
                 $jsonObject += [pscustomobject]@{
-                    'protected'                 = $protectedObject
-                    'recovery'                  = $recoveryObject
-                    'vmFolderWsa'               = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_folder"].Value
-                    'vmFolderOperations'        = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
-                    'vmFolderAutomation'        = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_folder"].Value
-                    'vmFolderLifecycle'         = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_vm_folder"].Value
-                    'vmListLifecycle'           = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
-                    'serviceInterfaceIp'        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_t1_si_ip"].Value
-                    'certificateNameWsa'        = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value
-                    'dns'                       = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + " " + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
-                    'searchDomain'              = $pnpProtectedWorkbook.Workbook.Names["parent_dns_zone"].Value
-                    'environmentName'           = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                    'automationUser'            = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
-                    'automationPassword'        = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
-                    'recoveryPointObjective'    = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value
-                    'instancesPerDay'           = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value
-                    'days'                      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value
-                    'protectionGroupWsa'        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_pg"].Value
-                    'recoveryPlanWsa'           = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_rp"].Value
-                    'protectionGroupOperations' = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
-                    'recoveryPlanOperations'    = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_rp"].Value
-                    'protectionGroupAutomation' = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_pg"].Value
-                    'recoveryPlanAutomation'    = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_rp"].Value
-                    'vmNameLifecycle'           = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
-                    'vmNameWsaNodeA'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                    'vmNameWsaNodeB'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                    'vmNameWsaNodeC'            = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                    'protected'                   = $protectedObject
+                    'recovery'                    = $recoveryObject
+                    'vmFolderWsa'                 = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_folder"].Value
+                    'vmFolderOperations'          = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
+                    'vmFolderAutomation'          = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_folder"].Value
+                    'vmFolderLifecycle'           = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_vm_folder"].Value
+                    'vmListLifecycle'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
+                    'serviceInterfaceIp'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_t1_si_ip"].Value
+                    'certificateNameWsa'          = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value
+                    'dns'                         = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + " " + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
+                    'searchDomain'                = $pnpProtectedWorkbook.Workbook.Names["parent_dns_zone"].Value
+                    'environmentName'             = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                    'automationUser'              = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
+                    'automationPassword'          = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
+                    'recoveryPointObjective'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value
+                    'instancesPerDay'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value
+                    'days'                        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value
+                    'protectionGroupWsa'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_pg"].Value
+                    'recoveryPlanWsa'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_rp"].Value
+                    'protectionGroupOperations'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
+                    'recoveryPlanOperations'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_rp"].Value
+                    'protectionGroupAutomation'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_pg"].Value
+                    'recoveryPlanAutomation'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_rp"].Value
+                    'vmNameLifecycle'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
+                    'vmNameWsaNodeA'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                    'vmNameWsaNodeB'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                    'vmNameWsaNodeC'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
                     'vmNameOperationsNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
                     'vmNameOperationsNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
                     'vmNameOperationsNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
                     'vmNameAutomationNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
                     'vmNameAutomationNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
                     'vmNameAutomationNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
-                    'domainBindUserVsphere'       = ($pnpWorkbook.Workbook.Names["iam_vsphere_ad_bind_username"].Value -Split ("@"))[0]
-                    'domainBindPassVsphere'       = $pnpWorkbook.Workbook.Names["iam_vsphere_ad_bind_password"].Value
-                    'domainBindUserNsx'           = ($pnpWorkbook.Workbook.Names["iam_nsx_ad_bind_username"].Value -Split ("@"))[0]
-                    'domainBindPassNsx'           = $pnpWorkbook.Workbook.Names["iam_nsx_ad_bind_password"].Value
-                    'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                    'domainBindUserVsphere'       = ($pnpProtectedWorkbook.Workbook.Names["iam_vsphere_ad_bind_username"].Value -Split ("@"))[0]
+                    'domainBindPassVsphere'       = $pnpProtectedWorkbook.Workbook.Names["iam_vsphere_ad_bind_password"].Value
+                    'domainBindUserNsx'           = ($pnpProtectedWorkbook.Workbook.Names["iam_nsx_ad_bind_username"].Value -Split ("@"))[0]
+                    'domainBindPassNsx'           = $pnpProtectedWorkbook.Workbook.Names["iam_nsx_ad_bind_password"].Value
+                    'domainFqdn'                  = $pnpProtectedWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                    'domainControllerMachineName' = $pnpProtectedWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                    'organization'                = $pnpProtectedWorkbook.Workbook.Names["ca_organization"].Value
+                    'organizationalUnit'          = $pnpProtectedWorkbook.Workbook.Names["ca_organization_unit"].Value
+                    'country'                     = $pnpProtectedWorkbook.Workbook.Names["ca_country"].Value
+                    'stateOrProvince'             = $pnpProtectedWorkbook.Workbook.Names["ca_state"].Value
+                    'locality'                    = $pnpProtectedWorkbook.Workbook.Names["ca_locality"].Value
+                    'adminEmailAddress'           = if ($null -eq $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpProtectedWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value }
+                    'KeySize'                     = $pnpProtectedWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                    'mscaComputerName'            = $pnpProtectedWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                    'mscaName'                    = $pnpProtectedWorkbook.Workbook.Names["certificate_authority_name"].Value
+                    'certificateTemplate'         = $pnpProtectedWorkbook.Workbook.Names["ca_template_name"].Value
+                    'caUsername'                  = $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                    'caUserPassword'              = $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
                 }
                 Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -2662,6 +2686,75 @@ Function Export-PdrJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-PdrJsonSpec
+
+Function Test-PdrPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Site Protection and Disaster Recovery
+
+        .DESCRIPTION
+        The Test-PdrPrerequisite cmdlet verifies the prerequisites for Site Protection and Disaster Recovery for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-PdrPrerequisite -jsonFile .\pdrDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Site Protection and Disaster Recovery.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Site Protection and Disaster Recovery for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Protected Site"
+            if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                    Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
+                    Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
+                    Test-PrereqAriaAutomation # Verify that VMware Aria Automation has been deployed
+                    Test-PrereqActiveDirectoryIntegration -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    Test-PrereqBinary -searchCriteria "srm-va_OVF10.ovf" # Verify that the required binaries are available
+                    Test-PrereqBinary -searchCriteria "vSphere_Replication_OVF10.ovf" # Verify that the required binaries are available
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.protected.srmLicenseKey -productName "VMware Site Recovery Manager" # Verify a license key is present
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
+                }
+            }
+
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Recovery Site"
+            if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqLicenseKey -licenseKey $jsonInput.recovery.srmLicenseKey -productName "VMware Site Recovery Manager" # Verify a license key is present
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-PdrPrerequisite
 
 Function Invoke-PdrDeployment {
     <#
@@ -9019,7 +9112,8 @@ Function Test-DriPrerequisite {
                     # Verify that the required security groups are created in Active Directory
                     $adGroups = @($jsonInput.namespaceEditUserGroup, $jsonInput.namespaceViewUserGroup)
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $adGroups
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -12434,7 +12528,8 @@ Function Test-IlaPrerequisite {
                     Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -16131,7 +16226,8 @@ Function Test-IomPrerequisite {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -20616,7 +20712,8 @@ Function Test-PcaPrerequisite {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -23849,7 +23946,8 @@ Function Test-CbwPrerequisite {
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -24394,7 +24492,8 @@ Function Test-CcmPrerequisite {
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    Test-PrereqMsca # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
             }
@@ -53712,7 +53811,7 @@ Function Test-PrereqLicenseKey {
     )
 
     Try {
-        if ($licenseKey) {
+        if (($licenseKey) -and ($licenseKey -ne "Value Missing")) {
             Show-PowerValidatedSolutionsOutput -message "Verify a $productName license key is in the JSON ($licenseKey): SUCCESSFUL"
         } else {
             Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that $productName license is present in the JSON: PRE_VALIDATION_FAILED"
@@ -53832,11 +53931,42 @@ Function Test-PrereqAdGroup {
 }
 
 Function Test-PrereqMsca {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
     Try {
-        if (Test-EndpointConnection -server $jsonInput.mscaComputerName -port 443) {
-            Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): SUCCESSFUL"
+        $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
+        $creds = New-Object System.Management.Automation.PSCredential ($user, $securePass)
+        $respond = Invoke-WebRequest -Uri "https://$server/certsrv/certrqxt.asp" -Credential $creds -Method Get -SkipCertificateCheck
+        if ($respond.StatusCode -eq 200) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that a Microsoft Certificate Authority is available for the environment ($server): SUCCESSFUL"
         } else {
-            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($($jsonInput.mscaComputerName)): PRE_VALIDATION_FAILED"
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that a Microsoft Certificate Authority is available for the environment ($server): PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqMscaTemplate {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$template
+    )
+
+    Try {
+        $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
+        $creds = New-Object System.Management.Automation.PSCredential ($user, $securePass)
+        $respond = Invoke-WebRequest -Uri "https://$server/certsrv/certrqxt.asp" -Credential $creds -Method Get -SkipCertificateCheck
+        if ($respond.Content -match ".*Microsoft RSA SChannel Cryptographic Provider.*$template.*") {
+            Show-PowerValidatedSolutionsOutput -message "Verify that the Microsoft Certificate Authority template ($template) is present: SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the Microsoft Certificate Authority template ($template) is present: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -54686,10 +54816,13 @@ Function Start-PdrMenu {
         $jsonSpecFile = "validatedSolution-pdrDeploySpec.json"
         $submenuTitle = ("Site Protection and Disaster Recovery for VMware Cloud Foundation")
 
-        $headingItem01 = "Site Protection and Disaster Recovery"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem03 = "End-to-End Deployment"
+        $menuitem04 = "Remove from Environment"
 
         Do {
             Clear-Host
@@ -54713,7 +54846,10 @@ Function Start-PdrMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54731,11 +54867,16 @@ Function Start-PdrMenu {
                 }
                 2 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    Test-PdrPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
                     Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    waitKey
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
