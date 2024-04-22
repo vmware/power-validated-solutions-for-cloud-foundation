@@ -10,6 +10,7 @@ Select an option for the solution.
 
     | Function                                                                                                | Type                  |
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-PdrPrerequisite`](Test-PdrPrerequisite.md)                                                       | Prerequisites         |
     | [`Export-PdrJsonSpec`](Export-PdrJsonSpec.md)                                                           | End-to-End Deployment |
     | [`Invoke-PdrDeployment`](Invoke-PdrDeployment.md)                                                       | End-to-End Deployment |
     | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                                       | Procedure             |
@@ -50,6 +51,7 @@ Select an option for the solution.
 
     | Function                                                                                          | Type                  |
     | ------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-PdrPrerequisite`](Test-PdrPrerequisite.md)                                                 | Prerequisites         |
     | [`Export-PdrJsonSpec`](Export-PdrJsonSpec.md)                                                     | End-to-End Removal    |
     | [`Invoke-UndoPdrDeployment`](Invoke-UndoPdrDeployment.md)                                         | End-to-End Removal    |
     | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                                               | Procedure             |

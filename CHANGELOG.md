@@ -31,6 +31,7 @@
   - Added `Test-IlaPrerequisite` cmdlet to verify prerequisites for Intelligent Logging and Analytics.
   - Added `Test-IomPrerequisite` cmdlet to verify prerequisites for Intelligent Operations Management.
   - Added `Test-PcaPrerequisite` cmdlet to verify prerequisites for Private Cloud Automation.
+  - Added `Test-PdrPrerequisite` cmdlet to verify prerequisites for Site Protection and Disaster Recovery.
   - Added `Test-HrmPrerequisite` cmdlet to verify prerequisites for Health Reporting anf Monitoring.
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
