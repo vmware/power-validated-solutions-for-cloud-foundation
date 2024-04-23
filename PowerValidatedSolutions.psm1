@@ -4356,75 +4356,82 @@ Function Backup-VMOvfProperties {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fileDir
     )
 
+    if (!$PsBoundParameters.ContainsKey("fileDir")) {
+        $fileDir = Get-ExternalDirectoryPath
+    } else {
+        if (!(Test-Path -Path $fileDir)) {
+            Write-Error "Directory '$fileDir' Not Found"
+            Break
+        }
+    }
+
     Try {
-        if (!$PsBoundParameters.ContainsKey("fileDir")) {
-            $fileDir = Get-ExternalDirectoryPath
-        } else {
-            if (!(Test-Path -Path $fileDir)) {
-                Write-Error "Directory '$fileDir' Not Found"
-                Break
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VCFvRSLCM) {
+                                # Retrieve VMware Aria Suite Lifecycle VM Name
+                                if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                    Write-Output "Gathering VMware Aria Suite Lifecycle Virtual Machine Name"
+                                    $vrslcmVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vrslcmDetails.fqdn } | Select-Object Name
+                                    $vrslcmVMName = $vrslcmVMName.Name
+                                    $Global:vmsToBackup = @("$vrslcmVMName")
+                                }
+                            } else {
+                                Write-Warning "VMware Aria Suite Lifecycle Not Found in SDDC Manager: SKIPPED"
+                            }
+                            if (Get-VCFWsa) {
+                                # Retrieve Workpace ONE Access VM Names
+                                if ($wsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass) {
+                                    Write-Output "Gathering Workspace ONE Access Virtual Machine Name(s)"
+                                    Foreach ($wsaFQDN in $wsaDetails.fqdn) {
+                                        $wsaVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $wsaFQDN } | Select-Object Name
+                                        $wsaVMName = $wsaVMName.Name
+                                        $vmsToBackup += , $wsaVMName
+                                    }
+                                }
+                            } else {
+                                Write-Warning "Workspace ONE Access Not Found in SDDC Manager: SKIPPED"
+                            }
+                            if (Get-VCFvROPS) {
+                                # Retrieve VMware Aria Operations VM Names
+                                if ($vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass) {
+                                    Write-Output "Gathering VMware Aria Operations Virtual Machine Name(s)"
+                                    Foreach ($vropsFQDN in $vropsDetails.fqdn) {
+                                        $vropsVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vropsFQDN } | Select-Object Name
+                                        $vropsVMName = $vropsVMName.Name
+                                        $vmsToBackup += , $vropsVMName
+                                    }
+                                }
+                            } else {
+                                Write-Warning "VMware Aria Operations Not Found in SDDC Manager: SKIPPED"
+                            }
+                            if (Get-VCFvRA) {
+                                # Retrieve VMware Aria Automation VM Names
+                                if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass) {
+                                    Write-Output "Gathering VMware Aria Automation Virtual Machine Name(s)"
+                                    Foreach ($vraFQDN in $vraDetails.fqdn) {
+                                        $vraVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vraFQDN } | Select-Object Name
+                                        $vraVMName = $vraVMName.Name
+                                        $vmsToBackup += , $vraVMName
+                                    }
+                                }
+                            } else {
+                                Write-Warning "VMware Aria Automation Not Found in SDDC Manager: SKIPPED"
+                            }
+                            Foreach ($vm in $vmsToBackup) {
+                                $vmToBackup = Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn
+                                Get-VMvAppConfig -vm $vmToBackup
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                        
+                    }
+                }
             }
         }
-        # Disconnect all connected vCenter Server instances to ensure only the desired vCenter Server instance is available
-        if ($defaultviservers) {
-            $server = $defaultviservers.Name
-            foreach ($server in $defaultviservers) {
-                Disconnect-VIServer -Server $server -Confirm:$False
-            }
-        }
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        # Retrieve VMware Aria Suite Lifecycle VM Name
-        $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
-        if ($vrslcmDetails) {
-            Write-Output "Getting VMware Aria Suite Lifecycle VM Name"
-            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-            $vrslcmVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vrslcmDetails.fqdn } | Select-Object Name
-            $vrslcmVMName = $vrslcmVMName.Name
-            $vmsToBackup = @("$vrslcmVMName")
-            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-        }
-        # Retrieve Workpace ONE Access VM Names
-        $wsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass
-        if ($wsaDetails) {
-            Write-Output "Getting Workspace ONE Access VM Names"
-            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-            Foreach ($wsaFQDN in $wsaDetails.fqdn) {
-                $wsaVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $wsaFQDN } | Select-Object Name
-                $wsaVMName = $wsaVMName.Name
-                $vmsToBackup += , $wsaVMName
-            }
-            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-        }
-        # Retrieve VMware Aria Operations VM Names
-        $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
-        if ($vropsDetails) {
-            Write-Output "Getting Aria Operations VM Names"
-            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-            Foreach ($vropsFQDN in $vropsDetails.fqdn) {
-                $vropsVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vropsFQDN } | Select-Object Name
-                $vropsVMName = $vropsVMName.Name
-                $vmsToBackup += , $vropsVMName
-            }
-            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-        }
-        # Retrieve VMware Aria Automation VM Names
-        $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
-        if ($vraDetails) {
-            Write-Output "Getting VMware Aria Automation VM Names"
-            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-            Foreach ($vraFQDN in $vraDetails.fqdn) {
-                $vraVMName = Get-VM * | Where-Object { $_.Guest.Hostname -eq $vraFQDN } | Select-Object Name
-                $vraVMName = $vraVMName.Name
-                $vmsToBackup += , $vraVMName
-            }
-            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-        }
-        Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-        Foreach ($vm in $vmsToBackup) {
-            $vmToBackup = Get-VM -Name $vm
-            Get-VMvAppConfig -vm $vmToBackup
-        }
-        Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
     } Catch {
         Debug-ExceptionWriter -object $_
     }
