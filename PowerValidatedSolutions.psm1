@@ -9337,35 +9337,25 @@ Function Invoke-DriDeployment {
                         }
 
                         if (!$failureDetected) {
+                            $vcenter = (Get-VCFvCenter -id ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $jsonInput.tanzuSddcDomainName}).vcenters.id)).version
+                            $patternVersion = '^(\d+\.\d+\.\d+)'
+                            $vcenterVersion = ([regex]::Match($vcenter, $patternVersion)).value
+                            if ($vcenterVersion -le "8.0.0") {
+                                [String]$distributionVersion = "v1.23"
+                            } else {
+                                [String]$distributionVersion = "v1.24"
+                            }
+                            $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+                            $yamlTemplate = $pvsModulePath + "\SampleYaml\" + "tanzuClusterTemplate.yaml"
+                            if (Test-Path -Path $yamlTemplate) {
+                                $yaml = Get-Content -Path $yamlTemplate -Raw
+                                $yaml = $yaml -replace '<!! tanzuNamespaceName !!>', $($jsonInput.tanzuNamespaceName)
+                                $yaml = $yaml -replace '<!! vmClass !!>', $($jsonInput.vmClass)
+                                $yaml = $yaml -replace '<!! storagePolicyName !!>', $($jsonInput.storagePolicyName)
+                                $yaml = $yaml -replace '<!! distributionVersion !!>', $distributionVersion
+                            }
                             $yamlFile = ($yamlFile = Split-Path $jsonFile -Parent) + "\" + $($jsonInput.tanzuNamespaceName) + ".yaml"
-                            $content = @"
-apiVersion: run.tanzu.vmware.com/v1alpha1
-kind: TanzuKubernetesCluster
-metadata:
-    name: $($jsonInput.tanzuNamespaceName)
-    namespace: $($jsonInput.tanzuNamespaceName)
-spec:
-    topology:
-        controlPlane:
-            count: 3
-            class: guaranteed-small
-            storageClass: $($jsonInput.storagePolicyName)
-        workers:
-            count: 3
-            class: guaranteed-small
-            storageClass: $($jsonInput.storagePolicyName)
-distribution:
-    version: v1.24
-settings:
-    network:
-        cni:
-            name: antrea
-        services:
-            cidrBlocks: ["198.51.100.0/12"]
-        pods:
-            cidrBlocks: ["192.0.2.0/16"]
-"@
-                            $content | Out-File $yamlFile
+                            $yaml | Out-File $yamlFile
                             Show-PowerValidatedSolutionsOutput -message "Provisioning a Tanzu Kubernetes Cluster for $solutionName"
                             $StatusMsg = Add-TanzuKubernetesCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -yaml $yamlFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -12315,9 +12305,9 @@ Function Undo-TanzuKubernetesCluster {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (Get-WMCluster -cluster $cluster -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
                                     Connect-WMCluster -cluster $cluster -user $user -pass $pass | Out-Null
-                                    if (Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null ) {
+                                    if (Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore) {
                                         Remove-TanzuKubernetesCluster -cluster $tkc -namespace $namespace | Out-Null
-                                        if (!(Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null )) {
+                                        if (!(Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore )) {
                                             Write-Output "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): SUCCESSFUL"
                                         } else {
                                             Write-Error "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): POST_VALIDATION_FAILED"
