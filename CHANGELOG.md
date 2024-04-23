@@ -63,6 +63,7 @@
 - Enhanced `Add-Namespace` cmdlet to handle expected missing object and not throw an error.
 - Enhanced `Backup-VMOvfProperties` cmdlet to check for the existing of each VMware Aria component and skip backing up the OVF settings if not present.
 - Enhanced `Invoke-DriDeployment` cmdlet to auto-generate the YAML file based on vSphere versions.
+- Fixed issue causing Jenkins pipelines to fail.
 
 ## v2.9.0
 

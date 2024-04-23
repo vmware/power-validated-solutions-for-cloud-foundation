@@ -4427,7 +4427,7 @@ Function Backup-VMOvfProperties {
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
-                        
+
                     }
                 }
             }
@@ -52224,7 +52224,7 @@ Function Test-PowerValidatedSolutionsPrereq {
     #>
 
     Try {
-        Clear-Host; Write-Host ""
+        if (!$headlessPassed) { Clear-Host }; Write-Host ""
 
         $modules = @(
             @{ Name = ("VMware.PowerCLI"); MinimumVersion = ("13.2.1") }
@@ -54073,7 +54073,7 @@ Function Start-ValidatedSolutionMenu {
         $menuitem13 = "(CCM) Cross Cloud Mobility"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54116,59 +54116,59 @@ Function Start-ValidatedSolutionMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-AriaSuiteLifecycleMenu
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-WorkspaceOneAccessMenu
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-IamMenu
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-DriMenu
                 }
                 5 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-IlaMenu
                 }
                 6 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-IomMenu
                 }
                 7 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-InvMenu
                 }
                 8 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-PcaMenu
                 }
                 9 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-PdrMenu
                 }
                 10 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-HrmMenu
                 }
                 11 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CbwMenu
                 }
                 12 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CbrMenu
                 }
                 13 {
-                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CcmMenu
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54190,7 +54190,7 @@ Function Start-AriaSuiteLifecycleMenu {
         $menuitem02 = "End-to-End Deployment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54218,17 +54218,17 @@ Function Start-AriaSuiteLifecycleMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-VrslcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-VrslcmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54250,7 +54250,7 @@ Function Start-WorkspaceOneAccessMenu {
         $menuitem03 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54279,12 +54279,12 @@ Function Start-WorkspaceOneAccessMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-GlobalWsaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Show-PowerValidatedSolutionsOutput -Type QUESTION -Message "Do you wish to deploy a Single Node Workspace ONE Access to conserve resources? (Y/N): " -skipnewline
                     $singleWSA = Read-Host
                     $singleWSA = $singleWSA -replace "`t|`n|`r", ""
@@ -54296,12 +54296,12 @@ Function Start-WorkspaceOneAccessMenu {
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoGlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54339,7 +54339,7 @@ Function Start-IamMenu {
         }
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54383,47 +54383,47 @@ Function Start-IamMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IamJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-IamPrerequisite -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
                 10 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem010" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem010" -Foregroundcolor Cyan; Write-Host ''
                     Export-IamJsonSpec -workbook $recoveryWorkbook -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }
                 11 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem11" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem11" -Foregroundcolor Cyan; Write-Host ''
                     Test-IamPrerequisite -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }
                 12 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem12" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem12" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
                 13 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem13" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem13" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54448,7 +54448,7 @@ Function Start-DriMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54480,27 +54480,27 @@ Function Start-DriMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-DriJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-DriPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -kubectlPath "C:\Kubectl\bin\"
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -kubectlPath "C:\Kubectl\bin\"
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54525,7 +54525,7 @@ Function Start-IlaMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54557,27 +54557,27 @@ Function Start-IlaMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IlaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-IlaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IlaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIlaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54602,7 +54602,7 @@ Function Start-IomMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54634,27 +54634,27 @@ Function Start-IomMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-IomJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-IomPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IomDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIomDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54676,7 +54676,7 @@ Function Start-InvMenu {
         $menuitem03 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54705,22 +54705,22 @@ Function Start-InvMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-InvJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-InvDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoInvDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54745,7 +54745,7 @@ Function Start-PcaMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54777,27 +54777,27 @@ Function Start-PcaMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-PcaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-PcaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-PcaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPcaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54822,7 +54822,7 @@ Function Start-PdrMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54854,7 +54854,7 @@ Function Start-PdrMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     if ($recoveryWorkbook) {
                         Export-PdrJsonSpec -protectedWorkbook $protectedWorkbook -recoveryWorkbook $recoveryWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     } else {
@@ -54863,22 +54863,22 @@ Function Start-PdrMenu {
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-PdrPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54903,7 +54903,7 @@ Function Start-HrmMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -54935,27 +54935,27 @@ Function Start-HrmMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-HrmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-HrmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-HrmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoHrmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -54980,7 +54980,7 @@ Function Start-CbwMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -55012,27 +55012,27 @@ Function Start-CbwMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CbwJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-CbwPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -55057,7 +55057,7 @@ Function Start-CbrMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -55090,27 +55090,27 @@ Function Start-CbrMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CbrJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-CbrPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
@@ -55135,7 +55135,7 @@ Function Start-CcmMenu {
         $menuitem04 = "Remove from Environment"
 
         Do {
-            Clear-Host
+            if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
                 Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
             } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
@@ -55167,27 +55167,27 @@ Function Start-CcmMenu {
             if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
             Switch ($menuInput) {
                 1 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-CcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 2 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-CcmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 3 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-CcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 4 {
-                    Clear-Host; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
-                    Clear-Host
+                    if (!$headlessPassed) { Clear-Host }
                     Break
                 }
             }
