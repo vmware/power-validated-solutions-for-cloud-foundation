@@ -61,6 +61,7 @@
 - Enhanced `Invoke-GenerateChainPem` cmdlet for error handling and message output.
 - Enhanced `Enable-Registry` cmdlet to handle clean exit of function when running vSphere 8.0.
 - Enhanced `Add-Namespace` cmdlet to handle expected missing object and not throw an error.
+- Enhanced `Backup-VMOvfProperties` cmdlet to check for the existing of each VMware Aria component and skip backing up the OVF settings if not present.
 
 ## v2.9.0
 
