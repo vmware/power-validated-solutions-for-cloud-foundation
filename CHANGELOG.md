@@ -44,12 +44,17 @@
 - Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
 - Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
 - Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
+- Added `Install-TanzuSignedCertificate` cmdlet to request and install a signed certificate for the Tanzu Supervisor Cluster.
+- Added `Invoke-GeneratePKCS12` cmdlet to generate a PKCS12 file (.pfx) to support certificate replacement of vSphere Replication and Site Recovery Manager.
+- Added `Request-VamiPKCS12Certificate` cmdlet to generate Private Key (.key), Signed Certificate (.crt) and PKCS12 file (.pfx) files for vSphere Replication and Site Recovery Manager.
+- Added `Test-SrmSdkAuthentication` cmdlet to verify authentication using the PowerCLI Sdk module for Site Recovery Manager.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
 - Fixed `Invoke-IomDeployment` cmdlet where the wrong service account was being assigned a vCenter Server global permission.
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet to handle single and multiple nodes when using `Add-ClusterGroup` with Workspace ONE Access.
 - Fixed `Set-vCenterPermission` cmdlet to better handle expected errors.
+- Fixed `Remove-VrmsReplication` cmdlet where it was calling an incorrect name for `Get-VrmsReplication`.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
@@ -63,7 +68,8 @@
 - Enhanced `Add-Namespace` cmdlet to handle expected missing object and not throw an error.
 - Enhanced `Backup-VMOvfProperties` cmdlet to check for the existing of each VMware Aria component and skip backing up the OVF settings if not present.
 - Enhanced `Invoke-DriDeployment` cmdlet to auto-generate the YAML file based on vSphere versions.
-- Fixed issue causing Jenkins pipelines to fail.
+- Enhanced `Undo-RecoveryPlan` cmdlet to consume the Site Recovery Manager PowerCLI cmdlets and improve error handling and message output.
+- Enhanced `Undo-ProtectionGroup` cmdlet to consume the Site Recovery Manager PowerCLI cmdlets and improve error handling and message output.
 
 ## v2.9.0
 

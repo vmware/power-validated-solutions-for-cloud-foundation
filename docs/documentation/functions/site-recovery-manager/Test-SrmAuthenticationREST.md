@@ -7,8 +7,7 @@
 ## Syntax
 
 ```powershell
-Test-SrmAuthenticationREST [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
- [[-remotePass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-SrmAuthenticationREST [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>] [[-remotePass] <String>] [-ProgressAction <ActionPreference> [<CommonParameters>]
 ```
 
 ## Description
@@ -126,15 +125,3 @@ Accept wildcard characters: False
 ### CommonParameters
 
 This cmdlet supports the common parameters: `-Debug`, `-ErrorAction`, `-ErrorVariable`, `-InformationAction`, `-InformationVariable`, `-OutVariable`, `-OutBuffer`, `-PipelineVariable`, `-Verbose`, `-WarningAction`, and `-WarningVariable`. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
-
-## INPUTS
-
-### None
-
-## OUTPUTS
-
-### System.Object
-
-## NOTES
-
-## RELATED LINKS

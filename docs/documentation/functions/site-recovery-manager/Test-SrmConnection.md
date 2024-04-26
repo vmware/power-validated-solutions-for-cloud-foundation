@@ -13,8 +13,7 @@ Test-SrmConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Action
 ## Description
 
 The `Test-SrmConnection` cmdlet checks the network connectivity to a Site Recovery Manager instance.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 
@@ -27,14 +26,6 @@ Test-SrmConnection -server sfo-srm01.sfo.rainpole.io
 This example checks network connectivity with a Site Recovery Manager instance on default port, 443 (HTTPS).
 
 ### Example 2
-
-```powershell
-Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 443
-```
-
-This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
-
-### Example 3
 
 ```powershell
 Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 22
@@ -96,4 +87,4 @@ Accept wildcard characters: False
 
 ### Common Parameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: `-Debug`, `-ErrorAction`, `-ErrorVariable`, `-InformationAction`, `-InformationVariable`, `-OutVariable`, `-OutBuffer`, `-PipelineVariable`, `-Verbose`, `-WarningAction`, and `-WarningVariable`. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
