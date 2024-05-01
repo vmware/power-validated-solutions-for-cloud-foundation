@@ -11,6 +11,7 @@ Select an option for the solution.
     | Function                                                                                                | Type                  |
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Test-PdrPrerequisite`](Test-PdrPrerequisite.md)                                                       | Prerequisites         |
+    | [`Request-VamiPKCS12Certificate`](./../../vsphere-replication/Request-VamiPKCS12Certificate.md)         | Prerequisites         |
     | [`Export-PdrJsonSpec`](Export-PdrJsonSpec.md)                                                           | End-to-End Deployment |
     | [`Invoke-PdrDeployment`](Invoke-PdrDeployment.md)                                                       | End-to-End Deployment |
     | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                                       | Procedure             |

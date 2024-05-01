@@ -975,7 +975,7 @@ Function Install-WorkspaceOne {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $wsaHostname = $wsaFqdn.Split(".")[0]
                             if (Get-VM -Name $wsaHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
-                                Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already exists: SKIPPED"
+                                Write-Warning "Deploying a Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already exists: SKIPPED"
                             } else {
                                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
@@ -2510,7 +2510,6 @@ Function Export-PdrJsonSpec {
                     'vrmsSearchDomain'         = $pnpProtectedWorkbook.Workbook.Names["child_dns_zone"].Value
                     'vrmsRootPassword'         = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_root_password"].Value
                     'vrmsAdminPassword'        = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_admin_password"].Value
-                    'vrmsCertificateFile'      = ($pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value + ".4.p12")
                     'vrmsCertificatePassword'  = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_p12_password"].Value
                     'vrmsSiteName'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_site_name"].Value
                     'vrmsAdminEmail'           = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
@@ -2533,7 +2532,6 @@ Function Export-PdrJsonSpec {
                     'srmAdminPassword'         = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_admin_password"].Value
                     'srmDbPassword'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_database_password"].Value
                     'srmDeploymentOption'      = "standard"
-                    'srmCertificateFile'       = ($pnpProtectedWorkbook.Workbook.Names["mgmt_srm_hostname"].Value + ".4.p12")
                     'srmCertificatePassword'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_p12_password"].Value
                     'srmSiteName'              = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_site_name"].Value
                     'srmAdminEmail'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_admin_email"].Value
@@ -2559,7 +2557,6 @@ Function Export-PdrJsonSpec {
                     'vrmsSearchDomain'         = $pnpRecoveryWorkbook.Workbook.Names["child_dns_zone"].Value
                     'vrmsRootPassword'         = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_root_password"].Value
                     'vrmsAdminPassword'        = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_admin_password"].Value
-                    'vrmsCertificateFile'      = ($pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value + ".4.p12")
                     'vrmsCertificatePassword'  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_p12_password"].Value
                     'vrmsSiteName'             = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_site_name"].Value
                     'vrmsAdminEmail'           = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
@@ -2582,7 +2579,6 @@ Function Export-PdrJsonSpec {
                     'srmAdminPassword'         = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_admin_password"].Value
                     'srmDbPassword'            = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_database_password"].Value
                     'srmDeploymentOption'      = "standard"
-                    'srmCertificateFile'       = ($pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_hostname"].Value + ".4.p12")
                     'srmCertificatePassword'   = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_p12_password"].Value
                     'srmSiteName'              = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_site_name"].Value
                     'srmAdminEmail'            = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_admin_email"].Value
@@ -2800,336 +2796,359 @@ Function Invoke-PdrDeployment {
                             if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
                                 if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
                                     if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
-                                        $sites = $jsonInput.protected; $sites += $jsonInput.recovery
-                                        $failureDetected = $false
+                                        if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass) {
+                                            if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                                                if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
+                                                if (Get-VCFvRA) { $ariaAutomationPresent = $true } else { $ariaAutomationPresent = $false }
+                                                $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
+                                                $wsaVmNames = @()
+                                                foreach ($productVM in $productVMs) {
+                                                    $wsaVmNames += $productVM.vmName
+                                                }
+                                                $sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                                                $failureDetected = $false
 
-                                        Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder and Moving the VMware Aria Suite Lifecycle Virtual Machine in the Protected VMware Cloud Foundation Instance"
-                                        $StatusMsg = Add-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmfolderLifecycle -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        $StatusMsg = Move-VMtoFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -vmList $jsonInput.vmListLifecycle -folder $jsonInput.vmfolderLifecycle -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder and Moving the VMware Aria Suite Lifecycle Virtual Machine in the Protected VMware Cloud Foundation Instance"
+                                                    $StatusMsg = Add-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmfolderLifecycle -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    $StatusMsg = Move-VMtoFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -vmList $jsonInput.vmListLifecycle -folder $jsonInput.vmfolderLifecycle -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
 
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine Folders for SDDC Management Components in the Recovery VMware Cloud Foundation Instance"
-                                            $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
-                                            foreach ($vmFolder in $allVmFolders) {
-                                                $StatusMsg = Add-VMFolder -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -folderName $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder and Moving the Workspace ONE Access Virtual Machine in the Protected VMware Cloud Foundation Instance"
+                                                    $StatusMsg = Add-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmFolderWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    $StatusMsg = Move-VMtoFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -vmList ($wsaVmNames -Join (',')) -folder $jsonInput.vmFolderWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine Folders for SDDC Management Components in the Recovery VMware Cloud Foundation Instance"
+                                                    $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
+                                                    foreach ($vmFolder in $allVmFolders) {
+                                                        $StatusMsg = Add-VMFolder -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -folderName $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                # if (!$failureDetected) {
+                                                #     Show-PowerValidatedSolutionsOutput -message "Preparing Load Balancing Services for the VMware Aria Suite Components and the Clustered Workspace ONE Access Instance in the Recovery VMware Cloud Foundation Instance"
+                                                #     $StatusMsg = Copy-vRealizeLoadBalancer -sddcManagerAFQDN $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPassword $jsonInput.protected.sddcManagerPass -sddcManagerBFQDN $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPassword $jsonInput.recovery.sddcManagerPass -serviceInterfaceIP $jsonInput.serviceInterfaceIP -wsaCertName $jsonInput.certificateNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                                # }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Suite Lifecycle Appliance for $solutionName"
+                                                    $StatusMsg = Set-vRSLCMDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the VMware Aria Suite Lifecycle Appliance for $solutionName"
+                                                    $StatusMsg = Add-vRSLCMNtpServer -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -ntpServer $jsonInput.recovery.ntp -ntpServerDesc $jsonInput.recovery.ntpDescription -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the Clustered Workspace ONE Access Nodes for $solutionName"
+                                                    Show-PowerValidatedSolutionsOutput -message "Please be patient this process may takes some time to complete"
+                                                    $StatusMsg = Set-WorkspaceOneDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the Clustered Workspace ONE Access Nodes for $solutionName"
+                                                    $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -ntpServer $jsonInput.recovery.ntp -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if ($ariaOperationsPresent) {
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Operations Analytics Cluster Nodes for $solutionName"
+                                                        $StatusMsg = Set-vROPSDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -environmentName $jsonInput.environmentName -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the VMware Aria Operations Analytics Cluster Nodes for $solutionName"
+                                                        $StatusMsg = Add-vROPSNtpServer -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -environmentName $jsonInput.environmentName -ntpServer $jsonInput.recovery.ntp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if ($ariaAutomationPresent) {
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Automation Nodes for $solutionName"
+                                                        $StatusMsg = Set-vRADnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -environmentName $jsonInput.environmentName -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on VMware Aria Automation for $solutionName"
+                                                        $StatusMsg = Set-vRANtpConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -environmentName $jsonInput.environmentName -ntpServers $jsonInput.recovery.ntp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder for vSphere Replication for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderVrms -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Deploying vSphere Replication for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Deploying vSphere Replication Appliance ($($site.vrmsFqdn)), please be paitent..."
+                                                        $StatusMsg = Install-vSphereReplicationManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsFqdn $site.vrmsFqdn -vrmsIpAddress $site.vrmsIpAddress -vrmsGateway $site.vrmsGateway -vrmsNetPrefix $site.vrmsNetPrefix -vrmsNetworkSearchPath $site.vrmsSearchDomain -vrmsFolder $site.vmFolderVrms -vrmsVaRootPassword $site.vrmsRootPassword -vrmsVaAdminPassword $site.vrmsAdminPassword -vrmsOvfPath $vrmsOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying vSphere Replication Appliance ($($site.vrmsFqdn)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of vSphere Replication for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Install-VamiCertificate -server $site.vrmsFqdn -user admin -pass $site.vrmsAdminPassword -certFile ($certificates + $site.vrmsFqdn + ".pfx") -certPassword $site.vrmsCertificatePassword -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder for Site Recovery Manager for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderSrm -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    foreach ($site in $sites) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Deploying Site Recovery Manager Appliance ($($site.srmFqdn)), please be paitent..."
+                                                        $StatusMsg = Install-SiteRecoveryManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmFqdn $site.srmFqdn -srmIpAddress $site.srmIpAddress -srmGateway $site.srmGateway -srmNetPrefix $site.srmNetPrefix -srmNetworkSearchPath $site.srmSearchDomain -srmFolder $site.vmFolderSrm -srmVaRootPassword $site.srmRootPassword -srmVaAdminPassword $site.srmAdminPassword -srmDbPassword $site.srmDbPassword -deploymentOption $site.srmDeploymentOption -srmOvfPath $srmOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Site Recovery Manager Appliance ($($site.srmFqdn)): SUCCESSFUL" $StatusMsg } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of Site Recovery Manager for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Install-VamiCertificate -server $site.srmFqdn -user admin -pass $site.srmAdminPassword -certFile ($certificates + $site.srmFqdn + ".pfx") -certPassword $site.srmCertificatePassword -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Registering vSphere Replication with vCenter Single Sign-On for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.vrmsFqdn -vamiAdminPassword $site.vrmsAdminPassword -siteName $site.vrmsSiteName -adminEmail $site.vrmsAdminEmail -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Port Group for vSphere Replication Traffic for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-VdsPortGroup -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -vlan $site.replicationVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Adding a Network Adapter and Configure Static Routes for vSphere Replication for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-VrmsNetworkAdapter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsFqdn $site.vrmsFqdn -vrmsRootPass $site.vrmsRootPassword -vrmsAdminPass $site.vrmsAdminPassword -vrmsIpAddress $site.vrmsIpAddress -replicationSubnet $site.replicationSubnet -replicationIpAddress $site.replicationIpAddress -replicationGateway $site.replicationGateway -replicationPortgroup $site.replicationPortgroup -replicationRemoteNetwork $site.remoteReplicationNetwork -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-EsxiVrmsVMkernelPort -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -netmask $site.replicationNetmask -ipAddresses $site.replicationIpAddresses -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring ESXi Host Static Routes for vSphere Replication for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -gateway $site.vrmsGateway -subnet $site.remoteReplicationNetwork -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Registering Site Recovery Manager with vCenter Single Sign-On for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -siteName $site.srmSiteName -adminEmail $site.srmAdminEmail -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Assigning Licenses to Site Recovery Manager for $solutionName"
+                                                    foreach ($site in $sites) {
+                                                        $StatusMsg = Add-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Protected Site Configuration Tasks for $solutionName"
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
+                                                    $StatusMsg = New-SRMSitePair -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Folder Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                                    foreach ($vmFolder in $allVmFolders) {
+                                                        $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type folder -protected $vmFolder -recovery $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Network Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                                    $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "network" -protected $jsonInput.protected.networkSegment -recovery $jsonInput.recovery.networkSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Cluster Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                                    $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "resource" -protected $jsonInput.protected.cluster -recovery $jsonInput.recovery.cluster -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                
+                                                $vmNames = @()
+                                                $vmNames += $wsaVmNames
+                                                $vmNames += $($jsonInput.vmNameLifecycle)
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
+                                                    $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
+                                                    $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupWsa -vmName $vmNames -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
+                                                    $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -pgName $jsonInput.protectionGroupWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
+                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameLifecycle -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName $wsaVmNames -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Cross-Instance Workspace ONE Access Load Balancer Availability" -calloutContent "Verify the Load Balancer for the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Run VMware Aria Suite Lifecycle Power On Workflow for the Cross-Instance Workspace ONE Access" -calloutContent "To complete the bring-up sequence of the Cross-Insrance Workspace ONE Access, follow the process outlined in the Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if ($ariaOperationsPresent) {
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Operations Analytics Cluster"
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Operations Analytics Cluster"
+                                                        $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Operations Analytics Cluster"
+                                                        $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupOperations -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Operations Analytics Cluster"
+                                                        $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -pgName $jsonInput.protectionGroupOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Operations Analytics Cluster"
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeB -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeC -priority "P3" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Operations Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Operations is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Manually Power Off all running Cloud Proxy Appliances" -calloutContent "Manually Power Off all running Cloud Proxy appliances. In case of planned migration, the appliances will already be powered down." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Monitor the Status of the VMware Aria Operations Primary Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Monitor the status of the VMware Aria Operations Replica Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Monitor the status of the VMware Aria Operations Data Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Power On the VMware Aria Operations Cloud Proxies" -calloutContent "Power on all available VMware Aria Operations Cloud Proxies" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if ($ariaAutomationPresent) {
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Automation"
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Automation"
+                                                        $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Automation"
+                                                        $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupAutomation -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Automation"
+                                                        $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -pgName $jsonInput.protectionGroupAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Automation"
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameAutomationNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Automation Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Automation is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                                }
                                             }
-                                        }
-
-                                        # if (!$failureDetected) {
-                                        #     Show-PowerValidatedSolutionsOutput -message "Preparing Load Balancing Services for the VMware Aria Suite Components and the Clustered Workspace ONE Access Instance in the Recovery VMware Cloud Foundation Instance"
-                                        #     $StatusMsg = Copy-vRealizeLoadBalancer -sddcManagerAFQDN $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPassword $jsonInput.protected.sddcManagerPass -sddcManagerBFQDN $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPassword $jsonInput.recovery.sddcManagerPass -serviceInterfaceIP $jsonInput.serviceInterfaceIP -wsaCertName $jsonInput.certificateNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        # }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Suite Lifecycle Appliance for $solutionName"
-                                            $StatusMsg = Set-vRSLCMDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the VMware Aria Suite Lifecycle Appliance for $solutionName"
-                                            $StatusMsg = Add-vRSLCMNtpServer -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -ntpServer $jsonInput.recovery.ntp -ntpServerDesc $jsonInput.recovery.ntpDescription -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the Clustered Workspace ONE Access Nodes for $solutionName"
-                                            Show-PowerValidatedSolutionsOutput -message "Please be patient this process may takes some time to complete"
-                                            $StatusMsg = Set-WorkspaceOneDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the Clustered Workspace ONE Access Nodes for $solutionName"
-                                            $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -ntpServer $jsonInput.recovery.ntp -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (Get-VCFvROPS) {
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Operations Analytics Cluster Nodes for $solutionName"
-                                                $StatusMsg = Set-vROPSDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -environmentName $jsonInput.environmentName -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on the VMware Aria Operations Analytics Cluster Nodes for $solutionName"
-                                                $StatusMsg = Add-vROPSNtpServer -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -environmentName $jsonInput.environmentName -ntpServer $jsonInput.recovery.ntp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (Get-VCFvRA) {
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the VMware Aria Automation Nodes for $solutionName"
-                                                $StatusMsg = Set-vRADnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -environmentName $jsonInput.environmentName -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Reconfiguring NTP on VMware Aria Automation for $solutionName"
-                                                $StatusMsg = Set-vRANtpConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -environmentName $jsonInput.environmentName -ntpServers $jsonInput.recovery.ntp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder for vSphere Replication for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderVrms -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Deploying vSphere Replication for $solutionName"
-                                            foreach ($site in $sites) {
-                                                Show-PowerValidatedSolutionsOutput -message "Deploying vSphere Replication Appliance ($($site.vrmsFqdn)), please be paitent..."
-                                                $StatusMsg = Install-vSphereReplicationManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsFqdn $site.vrmsFqdn -vrmsIpAddress $site.vrmsIpAddress -vrmsGateway $site.vrmsGateway -vrmsNetPrefix $site.vrmsNetPrefix -vrmsNetworkSearchPath $site.vrmsSearchDomain -vrmsFolder $site.vmFolderVrms -vrmsVaRootPassword $site.vrmsRootPassword -vrmsVaAdminPassword $site.vrmsAdminPassword -vrmsOvfPath $vrmsOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying vSphere Replication Appliance ($($site.vrmsFqdn)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
-                                            }
-                                        }
-
-                                        # if (!$failureDetected) {
-                                        #     Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of vSphere Replication for $solutionName"
-                                        #     foreach ($site in $sites) {
-                                        #         $StatusMsg = Install-VamiCertificate -server $site.vrmsFqdn -user admin -pass $site.vrmsAdminPassword -certFile ($certificates + $site.vrmsCertificateFile) -certPassword $site.vrmsCertificatePassword -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        #         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        #     }
-                                        # }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine Folder for Site Recovery Manager for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderSrm -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            foreach ($site in $sites) {
-                                                Show-PowerValidatedSolutionsOutput -message "Deploying Site Recovery Manager Appliance ($($site.srmFqdn)), please be paitent..."
-                                                $StatusMsg = Install-SiteRecoveryManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmFqdn $site.srmFqdn -srmIpAddress $site.srmIpAddress -srmGateway $site.srmGateway -srmNetPrefix $site.srmNetPrefix -srmNetworkSearchPath $site.srmSearchDomain -srmFolder $site.vmFolderSrm -srmVaRootPassword $site.srmRootPassword -srmVaAdminPassword $site.srmAdminPassword -srmDbPassword $site.srmDbPassword -deploymentOption $site.srmDeploymentOption -srmOvfPath $srmOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Site Recovery Manager Appliance ($($site.srmFqdn)): SUCCESSFUL" $StatusMsg } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg }
-                                            }
-                                        }
-
-                                        # if (!$failureDetected) {
-                                        #     Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of Site Recovery Manager for $solutionName"
-                                        #     foreach ($site in $sites) {
-                                        #         $StatusMsg = Install-VamiCertificate -server $site.srmFqdn -user admin -pass $site.srmAdminPassword -certFile ($certificates + $site.srmCertificateFile) -certPassword $site.srmCertificatePassword -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        #         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                        #     }
-                                        # }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Registering vSphere Replication with vCenter Single Sign-On for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.vrmsFqdn -vamiAdminPassword $site.vrmsAdminPassword -siteName $site.vrmsSiteName -adminEmail $site.vrmsAdminEmail -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a Port Group for vSphere Replication Traffic for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-VdsPortGroup -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -vlan $site.replicationVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding a Network Adapter and Configure Static Routes for vSphere Replication for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-VrmsNetworkAdapter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsFqdn $site.vrmsFqdn -vrmsRootPass $site.vrmsRootPassword -vrmsAdminPass $site.vrmsAdminPassword -vrmsIpAddress $site.vrmsIpAddress -replicationSubnet $site.replicationSubnet -replicationIpAddress $site.replicationIpAddress -replicationGateway $site.replicationGateway -replicationPortgroup $site.replicationPortgroup -replicationRemoteNetwork $site.remoteReplicationNetwork -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-EsxiVrmsVMkernelPort -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -netmask $site.replicationNetmask -ipAddresses $site.replicationIpAddresses -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring ESXi Host Static Routes for vSphere Replication for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -gateway $site.vrmsGateway -subnet $site.remoteReplicationNetwork -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Registering Site Recovery Manager with vCenter Single Sign-On for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -siteName $site.srmSiteName -adminEmail $site.srmAdminEmail -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Assigning Licenses to Site Recovery Manager for $solutionName"
-                                            foreach ($site in $sites) {
-                                                $StatusMsg = Add-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Protected Site Configuration Tasks for $solutionName"
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
-                                            $StatusMsg = New-SRMSitePair -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Folder Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                                            foreach ($vmFolder in $allVmFolders) {
-                                                $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type folder -protected $vmFolder -recovery $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Network Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                                            $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "network" -protected $jsonInput.protected.networkSegment -recovery $jsonInput.recovery.networkSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Cluster Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                                            $StatusMsg = Add-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "resource" -protected $jsonInput.protected.cluster -recovery $jsonInput.recovery.cluster -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                            $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameLifecycle)", "$($jsonInput.vmNameWsaNodeA)", "$($jsonInput.vmNameWsaNodeB)", "$($jsonInput.vmNameWsaNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                            $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupWsa -vmName @("$($jsonInput.vmNameLifecycle)", "$($jsonInput.vmNameWsaNodeA)", "$($jsonInput.vmNameWsaNodeB)", "$($jsonInput.vmNameWsaNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                            $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -pgName $jsonInput.protectionGroupWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                            $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameLifecycle -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                            $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName @("$($jsonInput.vmNameWsaNodeA)", "$($jsonInput.vmNameWsaNodeB)", "$($jsonInput.vmNameWsaNodeC)") -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                            $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Cross-Instance Workspace ONE Access Load Balancer Availability" -calloutContent "Verify the Load Balancer for the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                            $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Run VMware Aria Suite Lifecycle Power On Workflow for the Cross-Instance Workspace ONE Access" -calloutContent "To complete the bring-up sequence of the Cross-Insrance Workspace ONE Access, follow the process outlined in the Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (Get-VCFvROPS) {
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Operations Analytics Cluster"
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Operations Analytics Cluster"
-                                                $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Operations Analytics Cluster"
-                                                $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupOperations -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Operations Analytics Cluster"
-                                                $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -pgName $jsonInput.protectionGroupOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Operations Analytics Cluster"
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeB -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeC -priority "P3" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Operations Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Operations is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Manually Power Off all running Cloud Proxy Appliances" -calloutContent "Manually Power Off all running Cloud Proxy appliances. In case of planned migration, the appliances will already be powered down." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Monitor the Status of the VMware Aria Operations Primary Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Monitor the status of the VMware Aria Operations Replica Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Monitor the status of the VMware Aria Operations Data Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Power On the VMware Aria Operations Cloud Proxies" -calloutContent "Power on all available VMware Aria Operations Cloud Proxies" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (Get-VCFvRA) {
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Automation"
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Automation"
-                                                $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Automation"
-                                                $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupAutomation -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Automation"
-                                                $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -pgName $jsonInput.protectionGroupAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Automation"
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameAutomationNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Automation Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Automation is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                                                $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
                                         }
                                     }
                                 }
@@ -3182,216 +3201,198 @@ Function Invoke-UndoPdrDeployment {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn ) {
                 if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
-                    $sites = $jsonInput.protected; $sites += $jsonInput.recovery
-                    $failureDetected = $false
+                    if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass) {
+                        if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                            $sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                            $failureDetected = $false
+                            $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
+                            $wsaVmNames = @()
+                            foreach ($productVM in $productVMs) {
+                                $wsaVmNames += $productVM.vmName
+                            }
 
-                    if ((Test-EndpointConnection -Server $jsonInput.protected.srmFqdn -Port 443) -and (Test-EndpointConnection -Server $jsonInput.recovery.srmFqdn -Port 443)) {
-                        Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing Site Recovery Manager for $solutionName"
-                        if (Get-VCFvRA) {
-                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Removing Replication, Protection Group and Recovery Plan for VMware Automation"
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Recovery Plan for VMware Aria Automation"
-                                $StatusMsg = Undo-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            if ((Test-SrmConnection -server $jsonInput.protected.srmFqdn) -and (Test-SrmConnection -server $jsonInput.recovery.srmFqdn)) {
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing All Recovery Plans from Site Recovery Manager"
+                                    $recoveryPlans = @($jsonInput.recoveryPlanAutomation,$jsonInput.recoveryPlanOperations,$jsonInput.recoveryPlanWsa)
+                                    foreach ($recoveryPlan in $recoveryPlans) {
+                                        $StatusMsg = Undo-RecoveryPlan -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -sddcDomain $jsonInput.protected.mgmtSddcDomainName -rpName $recoveryPlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing All Protection Groups from Site Recovery Manager"
+                                    $protectionGroups = @($jsonInput.protectionGroupAutomation,$jsonInput.protectionGroupOperations,$jsonInput.protectionGroupWsa)
+                                    foreach ($protectionGroup in $protectionGroups) {
+                                        $StatusMsg = Undo-ProtectionGroup -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -sddcDomain $jsonInput.protected.mgmtSddcDomainName -pgName $protectionGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Automation"
+                                    $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Operations Analytics Cluster"
+                                    $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Suite Lifecycle and Workspace ONE Access"
+                                    $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $wsaVmNames -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Cluster Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                    $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "resource" -protected $jsonInput.protected.cluster -recovery $jsonInput.recovery.cluster -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Network Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                    $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "network" -protected $jsonInput.protected.networkSegment -recovery $jsonInput.recovery.networkSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Folder Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
+                                    foreach ($vmFolder in $allVmFolders) {
+                                        $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type folder -protected $vmFolder -recovery $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing Site Recovery Manager for $solutionName"
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
+                                    $StatusMsg = Undo-SRMSitePair -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing License for Site Recovery Manager for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Un-Registering Site Recovery Manager from vCenter Single Sign-On for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Site Recovery Manager Appliance for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-SiteRecoveryManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmHostname $site.srmVmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folder for Site Recovery Manager for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderSrm -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+                            } else {
+                                Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Site Recovery Manager No Longer Present in Environment: SKIPPED"
                             }
 
                             if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Protection Group for VMware Aria Automation"
-                                $StatusMsg = Undo-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                Show-PowerValidatedSolutionsOutput -message "Removing ESXi Host Static Routes for vSphere Replication for $solutionName"
+                                foreach ($site in $sites) {
+                                    $StatusMsg = Undo-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -network $site.remoteReplicationNetwork.Split('/')[-0] -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
                             }
 
                             if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Replication for VMware Aria Automation"
-                                $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (Get-VCFvROPS) {
-                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Removing Replication, Protection Group and Recovery Plan for VMware Aria Operations Analytics Cluster"
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Recovery Plan for VMware Aria Operations Analytics Cluster"
-                                $StatusMsg = Undo-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Protection Group for VMware Aria Operations Analytics Cluster"
-                                $StatusMsg = Undo-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Replication for VMware Aria Operations Analytics Cluster"
-                                $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (Get-VCFWsa) {
-                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Removing Replication, Protection Group and Recovery Plan for VMware Aria Suite Lifecycle and Workspace ONE Access"
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Recovery Plan for VMware Aria Suite Lifecycle and Workspace ONE Access"
-                                $StatusMsg = Undo-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Protection Group for VMware Aria Suite Lifecycle and Workspace ONE Access"
-                                $StatusMsg = Undo-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Replication for VMware Aria Suite Lifecycle and Workspace ONE Access"
-                                $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameLifecycle)", "$($jsonInput.vmNameWsaNodeA)", "$($jsonInput.vmNameWsaNodeB)", "$($jsonInput.vmNameWsaNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Cluster Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                            $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "resource" -protected $jsonInput.protected.cluster -recovery $jsonInput.recovery.cluster -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            Show-PowerValidatedSolutionsOutput -message "Removing Network Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                            $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type "network" -protected $jsonInput.protected.networkSegment -recovery $jsonInput.recovery.networkSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
-                            Show-PowerValidatedSolutionsOutput -message "Removing Folder Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
-                            foreach ($vmFolder in $allVmFolders) {
-                                $StatusMsg = Undo-SrmMapping -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -type folder -protected $vmFolder -recovery $vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing Site Recovery Manager for $solutionName"
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
-                            $StatusMsg = Undo-SRMSitePair -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing License for Site Recovery Manager for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Un-Registering Site Recovery Manager from vCenter Single Sign-On for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Site Recovery Manager Appliance for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-SiteRecoveryManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmHostname $site.srmVmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folder for Site Recovery Manager for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderSrm -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "Site Recovery Manager No Longer Present in Environment: SKIPPED"
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Removing ESXi Host Static Routes for vSphere Replication for $solutionName"
-                        foreach ($site in $sites) {
-                            $StatusMsg = Undo-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -network $site.remoteReplicationNetwork.Split('/')[-0] -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                        }
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Removing VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic for $solutionName"
-                        foreach ($site in $sites) {
-                            if (Test-VCFAuthentication -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass) {
-                                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName)) {
-                                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                            if ((Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object { ($_.Name -eq $site.replicationPortgroup) }).VDSwitch.Name) {
-                                                $StatusMsg = Undo-EsxiVrmsVMkernelPort -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            } else {
-                                                Show-PowerValidatedSolutionsOutput -Type WARNING -message "Removing VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic, already removed: SKIPPED"
+                                Show-PowerValidatedSolutionsOutput -message "Removing VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic for $solutionName"
+                                foreach ($site in $sites) {
+                                    if (Test-VCFAuthentication -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass) {
+                                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName)) {
+                                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                                    if ((Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object { ($_.Name -eq $site.replicationPortgroup) }).VDSwitch.Name) {
+                                                        $StatusMsg = Undo-EsxiVrmsVMkernelPort -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    } else {
+                                                        Show-PowerValidatedSolutionsOutput -Type WARNING -message "Removing VMkernel Adapter on the ESXi Hosts for vSphere Replication Traffic, already removed: SKIPPED"
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    if ((Test-EndpointConnection -Server $jsonInput.protected.vrmsFqdn -Port 443) -and (Test-EndpointConnection -Server $jsonInput.recovery.vrmsFqdn -Port 443)) {
-                        Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing vSphere Replication for $solutionName"
+                            if ((Test-EndpointConnection -Server $jsonInput.protected.vrmsFqdn -Port 443) -and (Test-EndpointConnection -Server $jsonInput.recovery.vrmsFqdn -Port 443)) {
+                                Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing vSphere Replication for $solutionName"
 
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Un-Registering vSphere Replication with vCenter Single Sign-On for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.vrmsFqdn -vamiAdminPassword $site.vrmsAdminPassword -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Un-Registering vSphere Replication with vCenter Single Sign-On for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.vrmsFqdn -vamiAdminPassword $site.vrmsAdminPassword -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing vSphere Replication Appliance for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-vSphereReplicationManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsHostname $site.vrmsVmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folder for vSphere Replication for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderVrms -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Port Group for vSphere Replication Traffic for $solutionName"
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Undo-VdsPortGroup -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+                            } else {
+                                Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "vSphere Replication No Longer Present in Environment: SKIPPED"
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folders for SDDC Management Components in the Recovery VMware Cloud Foundation Instance"
+                                $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
+                                foreach ($vmFolder in $allVmFolders) {
+                                    $StatusMsg = Undo-VMFolder -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -folderName $vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Relocating and Deleting Virtual Machine Folder for VMware Aria Suite Lifecycle Virtual Machine in the Protected VMware Cloud Foundation Instance"
+                                $StatusMsg = Move-VMtoFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -vmList $jsonInput.vmListLifecycle -folder "Discovered virtual machine" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                $StatusMsg = Undo-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmFolderLifecycle -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
-                        }
 
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing vSphere Replication Appliance for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-vSphereReplicationManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsHostname $site.vrmsVmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                             }
                         }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folder for vSphere Replication for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-VMFolder -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -folderName $site.vmFolderVrms -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Port Group for vSphere Replication Traffic for $solutionName"
-                            foreach ($site in $sites) {
-                                $StatusMsg = Undo-VdsPortGroup -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            }
-                        }
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -Type ADVISORY -message "vSphere Replication No Longer Present in Environment: SKIPPED"
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Folders for SDDC Management Components in the Recovery VMware Cloud Foundation Instance"
-                        $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
-                        foreach ($vmFolder in $allVmFolders) {
-                            $StatusMsg = Undo-VMFolder -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -folderName $vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                        }
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Relocating and Deleting Virtual Machine Folder for VMware Aria Suite Lifecycle Virtual Machine in the Protected VMware Cloud Foundation Instance"
-                        $StatusMsg = Move-VMtoFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -vmList $jsonInput.vmListLifecycle -folder "Discovered virtual machine" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                        $StatusMsg = Undo-VMFolder -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -domain $jsonInput.protected.mgmtSddcDomainName -folderName $jsonInput.vmFolderLifecycle -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
                     }
                 }
             }
@@ -3510,7 +3511,7 @@ Function Install-SiteRecoveryManager {
                             $srmHostname = $srmFqdn.Split(".")[0]
                             $srmDomain = $srmFQDN.Substring($srmFQDN.IndexOf(".") + 1)
                             if (Get-VM -Name $srmHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
-                                Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname), already exists: SKIPPED"
+                                Write-Warning "Deploying a Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname), already exists: SKIPPED"
                             } else {
                                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
                                 $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
@@ -3549,7 +3550,7 @@ Function Install-SiteRecoveryManager {
                                     Do {
                                         $vamiStatus = Test-SrmVamiAuthentication -server $srmFqdn -user admin -pass $srmVaAdminPassword -ErrorAction SilentlyContinue
                                     } Until (($vamiStatus -eq $true))
-                                    Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
+                                    Write-Output "Deploying a Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
@@ -3737,10 +3738,8 @@ Function Install-vSphereReplicationManager {
                             $vrmsHostname = $vrmsFqdn.Split(".")[0]
                             $vrmsDomain = $vrmsFQDN.Substring($vrmsFQDN.IndexOf(".") + 1)
                             if (Get-VM -Name $vrmsHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
-                                Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname), already exists: SKIPPED"
+                                Write-Warning "Deploying a Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname), already exists: SKIPPED"
                             } else {
-                                # $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
-                                # $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
                                 $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
                                 $datacenter = (Get-Datacenter -Cluster $cluster).Name
@@ -3775,7 +3774,7 @@ Function Install-vSphereReplicationManager {
                                         Write-Error "Failed to get a Response from vSphere Replication Instance ($vrmsFQDN): POST_VALIDATION_FAILURE"
                                     } Finally {
                                         $timer.Stop()  ## Stop the timer
-                                        Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
+                                        Write-Output "Deploying a Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
                                     }
                                 }
                             }
@@ -4112,22 +4111,104 @@ Function Undo-DRSolutionTovCenter {
 }
 Export-ModuleMember -Function Undo-DRSolutionTovCenter
 
+Function Request-VamiPKCS12Certificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate in PKCS12 (.pfx) format for the VAMI Interface
+
+        .DESCRIPTION
+        The Request-VamiPKCS12Certificate cmdlet requests a signed certificate in PKCS12 (.pfx) format for the VAMI
+        Interface from a Microsoft Certificate Authority using the details from the a JSON specification file.
+
+        .EXAMPLE
+        Request-VamiPKCS12Certificate -jsonFile .\pdrDeploySpec.json -certificates .\certificates\ -solution VRMS
+        This example requests a signed certificate in PKCS12 (.pfx) format for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Request-VamiPKCS12Certificate -jsonFile .\pdrDeploySpec.json -certificates .\certificates\ -solution SRM
+        This example requests a signed certificate in PKCS12 (.pfx) format for a Site Recovery Manager.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The folder containing the certificates.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
+    )
+
+    Try {
+        
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                foreach ($site in $sites) {
+                    if ($solution -eq "VRMS") { 
+                        $certificatePassword = $site.vrmsCertificatePassword
+                        $hostname = $site.vrmsFqdn
+                    } elseif ($solution -eq "SRM") {
+                        $certificatePassword = $site.srmCertificatePassword
+                        $hostname = $site.srmFqdn
+                    }
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Signed Certificate in PKCS12 (.pfx) format for $hostname"
+                    $failureDetected = $false
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $hostname"
+                        $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $hostname -subjectAlternativeNames "$hostname" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $hostname"
+                        $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $hostname + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -message "Attempting to Generate PKCS12 (.pfx) file for $productName"
+                        $StatusMsg = Invoke-GeneratePKCS12 -certificatePath $certificates -privateKeyFile "$hostname.key" -certificateFile "$hostname.crt" -certificatePassword $certificatePassword -caChainFile "$($jsonInput.mscaComputerName)-rootCa.pem" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Generation of Signed Certificate in PKCS12 (.pfx) format for $hostname"
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-VamiPKCS12Certificate
+
 Function Install-VamiCertificate {
     <#
 		.SYNOPSIS
-        Install a new certificate for a VAMI interface.
+        Install a new certificate for a VMware Application Management Interface (VAMI).
 
         .DESCRIPTION
-        The Install-VamiCertificate cmdlet allows you to replace the certificate of a VAMI interface. Supports:
+        The Install-VamiCertificate cmdlet allows you to replace the certificate of a VMware Application Management
+        Interface (VAMI). Supports:
         - vSphere Replication appliance
         - Site Recovery Manager appliance
 
         .EXAMPLE
-        Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution VRMS
-        This example replaces the certificate for the VAMI interface of the vSphere Replication
+        Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile .\certificates\sfo-m01-vrms01.sfo.rainpole.io.pfx -certPassword VMw@re1! -solution VRMS
+        This example replaces the certificate for the VAMI interface of the vSphere Replication.
 
         .EXAMPLE
-        Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution SRM
+        Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile .\certificates\sfo-m01-vrms01.sfo.rainpole.io.pfx -certPassword VMw@re1! -solution SRM
         This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance.
 
         .PARAMETER server
@@ -4140,10 +4221,10 @@ Function Install-VamiCertificate {
         The admin password of the vSphere Replication or Site Recovery Manager Virtual Appliance.
 
         .PARAMETER certFile
-        The path to the certificate file (.p12).
+        The path to the certificate file (.pfx).
 
         .PARAMETER certPassword
-        The password of the certificate file (.p12).
+        The password of the certificate file (.pfx).
 
         .PARAMETER solution
         The solution to register with the vCenter Server.
@@ -4160,28 +4241,46 @@ Function Install-VamiCertificate {
 
     Try {
         if (!$PsBoundParameters.ContainsKey("certFile")) {
-            $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType "p12"
+            $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.pfx)" -fileType "pfx"
         } elseif ($PsBoundParameters.ContainsKey("certFile")) {
             if (Test-Path -Path $certFile) {
                 if ($solution -eq "VRMS") {
                     if (Test-VrmsVamiConnection -server $server) {
                         if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
-                            Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                            Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                            $currentVrmsCertificate = Get-VrmsVamiCertificate
+                            if (($currentVrmsCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
+                                Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                                $updatedVrmsCertificate = Get-VrmsVamiCertificate
+                                if (-Not ($updatedVrmsCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) { 
+                                    Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)), already installed: SKIPPED"
+                            }
                         }
-
                     }
                 } elseif ($solution -eq "SRM") {
                     if (Test-SrmVamiConnection -server $server) {
                         if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
-                            Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                            Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                            $currentSrmCertificate = Get-SrmVamiCertificate
+                            if (($currentSrmCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
+                                Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                                $updatedSrmCertificate = Get-SrmVamiCertificate
+                                if (-Not ($updatedSrmCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) { 
+                                    Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)), already installed: SKIPPED"
+                            }
                         }
-
                     }
                 }
             } else {
-                Write-Error "Certificate (.p12) ($((Get-ChildItem $certfile).Name)) File Not Found"
+                Write-Error "Certificate (.pfx) ($((Get-ChildItem $certfile).Name)) File Not Found"
             }
         }
     } Catch {
@@ -6430,880 +6529,6 @@ Function Undo-vRANtpConfig {
 }
 Export-ModuleMember -Function Undo-vRANtpConfig
 
-Function Add-SrmMapping {
-    <#
-		.SYNOPSIS
-        Create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-        instances in Site Recovery Manager.
-
-        .DESCRIPTION
-        The Add-SrmMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the
-        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
-        -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Create a mapping between objects in the protected and failover instances in Site Recovery Manager as
-        defined by the -type, -protected, and -recovery parameters.
-
-        .EXAMPLE
-        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
-        This example creates a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
-
-        .EXAMPLE
-        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
-        This example creates a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
-
-        .EXAMPLE
-        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
-        This example creates a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
-
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager. managing the protected site.
-
-        .PARAMETER sddcManagerAUser
-        The username of the SDDC Manager instance managing the protected site.
-
-        .PARAMETER sddcManagerAPass
-        The password of the SDDC Manager instance managing the protected site.
-
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager. managing the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The username of the SDDC Manager instance managing the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password of the SDDC Manager instance managing the recovery site.
-
-        .PARAMETER type
-        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
-
-        .PARAMETER protected
-        The name of the object to be mapped in the protected site.
-
-        .PARAMETER recovery
-        The name of the object to be mapped in the recovery site.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateSet("Folder", "Network", "Resource")] [String]$type,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protected,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$recovery
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                                                $Global:DefaultSrmServers = $null
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
-                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
-                                                        $siteASrmServer = $Global:DefaultSrmServers | Where-Object { $_.Name -match $srmAFqdn }
-                                                        if ($type -eq "Folder") {
-                                                            Try {
-                                                                $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Network") {
-                                                            Try {
-                                                                $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Resource") {
-                                                            Try {
-                                                                $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }
-                                                                if ($protectedCluster) {
-                                                                    $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                } else {
-                                                                    $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                }
-                                                                $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }
-                                                                if ($recoveryCluster) {
-                                                                    $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                } else {
-                                                                    $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                        }
-                                                        if ($existingSiteAMappings) {
-                                                            $forwardMappingExists = $null
-                                                            foreach ($existingSiteAMapping in $existingSiteAMappings) {
-                                                                if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
-                                                                    $forwardMappingExists = $true
-                                                                }
-                                                            }
-                                                        }
-                                                        if (!$forwardMappingExists) {
-                                                            if ($type -eq "Folder") {
-                                                                Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddFolderMapping($protectedMoRef, $recoveryMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            } elseif ($type -eq "Network") {
-                                                                Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddNetworkMapping($protectedMoRef, $recoveryMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } elseif ($type -eq "Resource") {
-                                                                Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($protectedMoRef, $recoveryMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                            }
-                                                            $forwardMappingValidated = $null
-                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
-                                                                if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
-                                                                    $forwardMappingValidated = $true
-                                                                }
-                                                            }
-                                                            if ($forwardMappingValidated -eq $true) {
-                                                                Write-Output "Create $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Create $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
-                                                                        'Add-SrmMapping',
-                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                        } else {
-                                                            Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) already exists: SKIPPED"
-                                                        }
-                                                        Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
-                                                    }
-                                                    if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
-                                                        $siteBSrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmBFqdn }
-                                                        if ($type -eq "Folder") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Network") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Resource") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                        if ($existingSiteBMappings) {
-                                                            $reverseMappingExists = $null
-                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
-                                                                if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
-                                                                    $reverseMappingExists = $true
-                                                                }
-                                                            }
-                                                        }
-                                                        if (!$reverseMappingExists) {
-                                                            if ($type -eq "Folder") {
-                                                                Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddFolderMapping($recoveryMoRef, $protectedMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            } elseif ($type -eq "Network") {
-                                                                Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddNetworkMapping($recoveryMoRef, $protectedMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } elseif ($type -eq "Resource") {
-                                                                Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($recoveryMoRef, $protectedMoRef)
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                            }
-                                                            $reverseMappingValidated = $null
-                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
-                                                                if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
-                                                                    $reverseMappingValidated = $true
-                                                                }
-                                                            }
-                                                            if ($reverseMappingValidated -eq $true) {
-                                                                Write-Output "Create $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Create $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
-                                                                        'Add-SrmMapping',
-                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                        } else {
-                                                            Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) already exists: SKIPPED"
-                                                        }
-                                                        Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Add-SrmMapping
-
-Function Undo-SrmMapping {
-    <#
-		.SYNOPSIS
-        Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-        instances in Site Recovery Manager.
-
-        .DESCRIPTION
-        The Undo-SrmMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the
-        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
-        -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes a mapping between objects in the protected and failover instances in Site Recovery Manager as
-        defined by the -type, -protected, and -recovery parameters.
-
-        .EXAMPLE
-        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
-        This example removes a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
-
-        .EXAMPLE
-        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
-        This example removes a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
-
-        .EXAMPLE
-        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
-        This example removes a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
-
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager. managing the protected site.
-
-        .PARAMETER sddcManagerAUser
-        The user name of the SDDC Manager instance managing the protected site.
-
-        .PARAMETER sddcManagerAPass
-        The password of the SDDC Manager instance managing the protected site.
-
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager. managing the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The user name of the SDDC Manager instance managing the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password of the SDDC Manager instance managing the recovery site.
-
-        .PARAMETER type
-        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
-
-        .PARAMETER protected
-        The name of the object to be mapped in the protected site.
-
-        .PARAMETER recovery
-        The name of the object to be mapped in the recovery site.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateSet("Folder", "Network", "Resource")] [String]$type,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protected,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$recovery
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                                                $global:DefaultSrmServers = $null
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
-                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
-                                                        if (Get-SrmSitePairing) {
-                                                            $siteASrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmAFqdn }
-                                                            if ($type -eq "Folder") {
-                                                                Try {
-                                                                    $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                    $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            } elseif ($type -eq "Network") {
-                                                                Try {
-                                                                    $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                    $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            } elseif ($type -eq "Resource") {
-                                                                Try {
-                                                                    $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }
-                                                                    if ($protectedCluster) {
-                                                                        $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                    } else {
-                                                                        $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
-                                                                    }
-                                                                    $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }
-                                                                    if ($recoveryCluster) {
-                                                                        $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                    } else {
-                                                                        $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
-                                                                    }
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                            }
-                                                            if ($existingSiteAMappings) {
-                                                                $forwardMappingExists = $null
-                                                                Foreach ($existingSiteAMapping in $existingSiteAMappings) {
-                                                                    if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
-                                                                        $forwardMappingExists = $true
-                                                                    }
-                                                                }
-                                                            }
-                                                            if ($forwardMappingExists -eq $true) {
-                                                                if ($type -eq "Folder") {
-                                                                    Try {
-                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                                } elseif ($type -eq "Network") {
-                                                                    Try {
-                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                                } elseif ($type -eq "Resource") {
-                                                                    Try {
-                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                                }
-                                                                $forwardMappingValidated = $null
-                                                                Foreach ($validateSiteAMapping in $validateSiteAMappings) {
-                                                                    if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
-                                                                        $forwardMappingValidated = $true
-                                                                    }
-                                                                }
-                                                                if (!$forwardMappingValidated) {
-                                                                    Write-Output "Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
-                                                                            'Add-SrmMapping',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } else {
-                                                                Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPED"
-                                                            }
-                                                            Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
-                                                        }
-                                                        if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
-                                                            $siteBSrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmBFqdn }
-                                                            if ($type -eq "Folder") {
-                                                                Try {
-                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            } elseif ($type -eq "Network") {
-                                                                Try {
-                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            } elseif ($type -eq "Resource") {
-                                                                Try {
-                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            }
-                                                            if ($existingSiteBMappings) {
-                                                                $reverseMappingExists = $null
-                                                                Foreach ($existingSiteBMapping in $existingSiteBMappings) {
-                                                                    if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
-                                                                        $reverseMappingExists = $true
-                                                                    }
-                                                                }
-                                                            }
-                                                            if ($reverseMappingExists -eq $true) {
-                                                                if ($type -eq "Folder") {
-                                                                    Try {
-                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                                } elseif ($type -eq "Network") {
-                                                                    Try {
-                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                                } elseif ($type -eq "Resource") {
-                                                                    Try {
-                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                                }
-                                                                $reverseMappingValidated = $null
-                                                                Foreach ($validateSiteBMapping in $validateSiteBMappings) {
-                                                                    if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
-                                                                        $reverseMappingValidated = $true
-                                                                    }
-                                                                }
-                                                                if (!$reverseMappingValidated) {
-                                                                    Write-Output "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
-                                                                            'Add-SrmMapping',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } else {
-                                                                Write-Warning "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPED"
-                                                            }
-                                                        } else {
-                                                            Write-Warning "No Site Pairing Found: SKIPPED"
-                                                        }
-                                                        Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-SrmMapping
-
-Function New-SrmSitePair {
-    <#
-		.SYNOPSIS
-        Create a site pair between vSphere Replication and Site Recovery Manager instances.
-
-        .DESCRIPTION
-        The New-SrmSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
-        SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser,
-        -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Creates a site pair between the vSphere Replication instances
-        - Creates a site pair between the Site Recovery Manager instances
-
-        .EXAMPLE
-        New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
-        This example creates a site pair between vSphere Replication and Site Recovery Manager instances.
-
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager in the protected site.
-
-        .PARAMETER sddcManagerAUser
-        The user name of the SDDC Manager instance in the protected site.
-
-        .PARAMETER sddcManagerAPass
-        The password of the SDDC Manager instance in the protected site.
-
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The user name of the SDDC Manager instance in the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password of the SDDC Manager instance in the recovery site.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
-                                                                    $vCenterB = $Global:DefaultVIServers | Where-Object { $_.Name -eq $siteBvCenterDetails.fqdn }
-                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                    $vrmsBConnection = Connect-VrServer -Server $vrmsBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
-                                                                    $srmBConnection = Connect-SrmSdkServer -Server $srmBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
-                                                                    # Pairing of vSphere Replication
-                                                                    $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
-                                                                    $existingPairing = $false
-                                                                    foreach ($pairing in $pairings) {
-                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                            $existingPairing = $true
-                                                                            Write-Warning "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already exists: SKIPPED"
-                                                                        }
-                                                                    }
-                                                                    if ($existingPairing -eq $false) {
-                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
-                                                                        if ($vCenterBThumbprint) {
-                                                                            $PairingSpecPairPscInfo = Initialize-VrPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
-                                                                            $PairingSpec = Initialize-VrPairingSpec -PairPscInfo $PairingSpecPairPscInfo -PairVcId $vCenterB.InstanceUuid
-                                                                            $pairingTask = Invoke-VrPairVr -pairingSpec $pairingSpec -Server $vrmsAConnection
-                                                                            Do {
-                                                                                Start-Sleep 10
-                                                                                $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
-                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
-                                                                            $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
-                                                                            foreach ($pairing in $pairings) {
-                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                                    $existingPairing = $true
-                                                                                }
-                                                                            }
-                                                                            if ($existingPairing -eq $true) {
-                                                                                Write-Output "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
-                                                                            } else {
-                                                                                Write-Error "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
-                                                                            }
-
-                                                                        } else {
-                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                                                        }
-                                                                    }
-                                                                    # Pairing of Site Recovery Manager
-                                                                    $pairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
-                                                                    $existingPairing = $false
-                                                                    foreach ($pairing in $pairings) {
-                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                            $existingPairing = $true
-                                                                            Write-Warning "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
-                                                                        }
-                                                                    }
-                                                                    if ($existingPairing -eq $false) {
-                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
-                                                                        if ($vCenterBThumbprint) {
-                                                                            $pairingSpecPairPscInfo = Initialize-SrmPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
-                                                                            $pairingSpec = Initialize-SrmPairingSpec -PairPscInfo $pairingSpecPairPscInfo -PairVcGuid $vcenterB.InstanceUuid -PairSrmThumbprint (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server | Where-Object { $_.Url -match $srmBConnection.Name }).ServerThumbprint -PairSrmUrl $srmBConnection.Name
-                                                                            $pairingTask = Invoke-SrmCreatePairing -PairingSpec $pairingSpec -Server $srmAConnection
-                                                                            Do {
-                                                                                Start-Sleep 10
-                                                                                $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
-                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
-                                                                            Disconnect-SrmSdkServer -Server *
-                                                                            $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                            $pairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object { $_.Name -eq $srmAFqdn })).List
-                                                                            foreach ($pairing in $pairings) {
-                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                                    $existingPairing = $true
-                                                                                }
-                                                                            }
-                                                                            if ($existingPairing -eq $true) {
-                                                                                Write-Output "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
-                                                                            } else {
-                                                                                Write-Error "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
-                                                                            }
-                                                                        } else {
-                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                            }
-                                                        } else {
-                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                        }
-                                                    } else {
-                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                    }
-                                                } else {
-                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                }
-                                            }
-                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
-                                            Disconnect-SrmSdkServer -Server *
-                                            Disconnect-VrServer -Server *
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function New-SrmSitePair
-
-Function Undo-SrmSitePair {
-    <#
-		.SYNOPSIS
-        Removes an existing site pair between Site Recovery Manager instances.
-
-        .DESCRIPTION
-        The Undo-SrmSitePair cmdlet cmdlet removes an existing site pair between vSphere Replication and Site Recovery
-        Manager instances. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
-        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes a site pair between the vSphere Replication instances
-        - Removes a site pair between the Site Recovery Manager instances
-
-        .EXAMPLE
-        Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
-        This example removes a site pair between vSphere Replication and Site Recovery Manager instances.
-
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager in the protected site.
-
-        .PARAMETER sddcManagerAUser
-        The user name of the SDDC Manager instance in the protected site.
-
-        .PARAMETER sddcManagerAPass
-        The password of the SDDC Manager instance in the protected site.
-
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The user name of the SDDC Manager instance in the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password of the SDDC Manager instance in the recovery site.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
-                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
-                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                    $existingPairing = $null
-                                                                    # Delete Pairing of vSphere Replication
-                                                                    $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
-                                                                    foreach ($pairing in $vrmsPairings) {
-                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                            $existingPairing = $true
-                                                                            $pairingId = $pairing.pairingId
-                                                                        }
-                                                                    }
-                                                                    if ($existingPairing -eq $true) {
-                                                                        $pairingTask = Invoke-VrDeleteVrPairing -PairingId $pairingId -Server $vrmsAConnection
-                                                                        Do {
-                                                                            Start-Sleep 10
-                                                                            $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
-                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
-                                                                        Disconnect-VrServer -Server *
-                                                                        $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                        $existingPairing = $null
-                                                                        $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
-                                                                        foreach ($pairing in $vrmsPairings) {
-                                                                            if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
-                                                                                $existingPairing = $false
-                                                                            }
-                                                                        }
-                                                                        if ($existingPairing -eq $false) {
-                                                                            Write-Output "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
-                                                                        } else {
-                                                                            Write-Error "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
-                                                                        }
-                                                                    } else {
-                                                                        Write-Warning "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already removed: SKIPPED"
-                                                                    }
-                                                                    # Pairing of Site Recovery Manager
-                                                                    $existingPairing = $null
-                                                                    $srmPairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
-                                                                    if ($srmPairings.Count -gt 0) {
-                                                                        foreach ($pairing in $srmPairings) {
-                                                                            if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
-                                                                                $existingPairing = $true
-                                                                                # Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
-                                                                            }
-                                                                        }
-                                                                    } elseif ($pairsrmPairingsings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
-                                                                        $existingPairing = $false
-                                                                        Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already removed: SKIPPED"
-                                                                    }
-                                                                    if ($existingPairing -eq $true) {
-                                                                        $pairingTask = Invoke-SrmDeletePairing -Server $srmAConnection -pairingId ((Invoke-SrmGetPairings -Server $srmAConnection).List.PairingId.Guid)
-                                                                        Do {
-                                                                            Start-Sleep 10
-                                                                            $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
-                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
-                                                                        Disconnect-SrmSdkServer -Server *
-                                                                        $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
-                                                                        $srmPairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object { $_.Name -eq $srmAFqdn })).List
-                                                                        if ($srmPairings.Count -gt 0) {
-                                                                            foreach ($pairing in $srmPairings) {
-                                                                                if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
-                                                                                    $existingPairing = $false
-                                                                                }
-                                                                            }
-                                                                        } elseif ($srmPairings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
-                                                                            $existingPairing = $false
-                                                                        }
-                                                                        if ($existingPairing -eq $false) {
-                                                                            Write-Output "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
-                                                                        } else {
-                                                                            Write-Error "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                            }
-                                                        } else {
-                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                        }
-                                                    } else {
-                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                    }
-                                                } else {
-                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
-                                                }
-                                            }
-                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
-                                            Disconnect-SrmSdkServer -Server *
-                                            Disconnect-VrServer -Server *
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-SrmSitePair
-
 Function Add-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
@@ -7798,7 +7023,7 @@ Function Undo-SrmLicenseKey {
                                         $output = Invoke-VMScript -VM ($vcfVcenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vcfVcenterDetails.RootPass -Server $vcfVcenterDetails.fqdn
                                         $srmUuid = ($srmPartialUuid + "-" + $output.ScriptOutput).Trim()
                                         if (!($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -or ($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq "00000-00000-00000-00000-00000") {
-                                            Write-Warning "Removing License key ($srmLicenseKey) for Site Recovery Manager instance ($srmFqdn), already removed: SKIPPED"
+                                            Write-Warning "Removing License key ($srmLicenseKey) for Site Recovery Manager instance ($srmFqdn), does not exist: SKIPPED"
                                         } else {
                                             $licenseAssignmentManager.RemoveAssignedLicense($srmUuid) | Out-Null
                                             $licenseAssignmentManager.UpdateViewData() | Out-Null
@@ -7808,7 +7033,7 @@ Function Undo-SrmLicenseKey {
                                                 Write-Error "Removing License key ($srmLicenseKey) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
                                             }
                                             if (!($licenseManager.Licenses | Where-Object { $_.LicenseKey -eq $srmLicenseKey })) {
-                                                Write-Warning "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)), already removed: SKIPPED"
+                                                Write-Warning "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                             } else {
                                                 $licenseManager.RemoveLicense($srmLicenseKey) | Out-Null
                                                 $licenseManager.UpdateViewData()
@@ -7833,6 +7058,879 @@ Function Undo-SrmLicenseKey {
     }
 }
 Export-ModuleMember -Function Undo-SrmLicenseKey
+
+Function New-SrmSitePair {
+    <#
+		.SYNOPSIS
+        Create a site pair between vSphere Replication and Site Recovery Manager instances.
+
+        .DESCRIPTION
+        The New-SrmSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
+        SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser,
+        -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates a site pair between the vSphere Replication instances
+        - Creates a site pair between the Site Recovery Manager instances
+
+        .EXAMPLE
+        New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        This example creates a site pair between vSphere Replication and Site Recovery Manager instances.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager in the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager in the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance in the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance in the recovery site.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
+                                                                    $vCenterB = $Global:DefaultVIServers | Where-Object { $_.Name -eq $siteBvCenterDetails.fqdn }
+                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $vrmsBConnection = Connect-VrServer -Server $vrmsBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                    $srmBConnection = Connect-SrmSdkServer -Server $srmBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                    # Pairing of vSphere Replication
+                                                                    $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                    $existingPairing = $false
+                                                                    foreach ($pairing in $pairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            Write-Warning "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $false) {
+                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
+                                                                        if ($vCenterBThumbprint) {
+                                                                            $PairingSpecPairPscInfo = Initialize-VrPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                            $PairingSpec = Initialize-VrPairingSpec -PairPscInfo $PairingSpecPairPscInfo -PairVcId $vCenterB.InstanceUuid
+                                                                            $pairingTask = Invoke-VrPairVr -pairingSpec $pairingSpec -Server $vrmsAConnection
+                                                                            Do {
+                                                                                Start-Sleep 10
+                                                                                $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
+                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                            $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                            foreach ($pairing in $pairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $true
+                                                                                }
+                                                                            }
+                                                                            if ($existingPairing -eq $true) {
+                                                                                Write-Output "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                            } else {
+                                                                                Write-Error "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                            }
+                                                                        } else {
+                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
+                                                                    # Pairing of Site Recovery Manager
+                                                                    $pairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
+                                                                    $existingPairing = $false
+                                                                    foreach ($pairing in $pairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            Write-Warning "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $false) {
+                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
+                                                                        if ($vCenterBThumbprint) {
+                                                                            $pairingSpecPairPscInfo = Initialize-SrmPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                            $pairingSpec = Initialize-SrmPairingSpec -PairPscInfo $pairingSpecPairPscInfo -PairVcGuid $vcenterB.InstanceUuid -PairSrmThumbprint (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server | Where-Object { $_.Url -match $srmBConnection.Name }).ServerThumbprint -PairSrmUrl $srmBConnection.Name
+                                                                            $pairingTask = Invoke-SrmCreatePairing -PairingSpec $pairingSpec -Server $srmAConnection
+                                                                            Do {
+                                                                                Start-Sleep 10
+                                                                                $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
+                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                            Disconnect-SrmSdkServer -Server *
+                                                                            $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                            $pairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object { $_.Name -eq $srmAFqdn })).List
+                                                                            foreach ($pairing in $pairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $true
+                                                                                }
+                                                                            }
+                                                                            if ($existingPairing -eq $true) {
+                                                                                Write-Output "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                            } else {
+                                                                                Write-Error "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                            }
+                                                                        } else {
+                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                            }
+                                                        } else {
+                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                        }
+                                                    } else {
+                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                    }
+                                                } else {
+                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                }
+                                            }
+                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
+                                            Disconnect-SrmSdkServer -Server *
+                                            Disconnect-VrServer -Server *
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-SrmSitePair
+
+Function Undo-SrmSitePair {
+    <#
+		.SYNOPSIS
+        Removes an existing site pair between Site Recovery Manager instances.
+
+        .DESCRIPTION
+        The Undo-SrmSitePair cmdlet cmdlet removes an existing site pair between vSphere Replication and Site Recovery
+        Manager instances. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
+        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes a site pair between the vSphere Replication instances
+        - Removes a site pair between the Site Recovery Manager instances
+
+        .EXAMPLE
+        Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        This example removes a site pair between vSphere Replication and Site Recovery Manager instances.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager in the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager in the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance in the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance in the recovery site.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
+                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
+                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $existingPairing = $null
+                                                                    # Delete Pairing of vSphere Replication
+                                                                    $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                    foreach ($pairing in $vrmsPairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            $pairingId = $pairing.pairingId
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $true) {
+                                                                        $pairingTask = Invoke-VrDeleteVrPairing -PairingId $pairingId -Server $vrmsAConnection
+                                                                        Do {
+                                                                            Start-Sleep 10
+                                                                            $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
+                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                        Disconnect-VrServer -Server *
+                                                                        $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                        $existingPairing = $null
+                                                                        $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                        foreach ($pairing in $vrmsPairings) {
+                                                                            if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                                $existingPairing = $false
+                                                                            }
+                                                                        }
+                                                                        if ($existingPairing -eq $false) {
+                                                                            Write-Output "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                        } else {
+                                                                            Write-Error "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                        }
+                                                                    } else {
+                                                                        Write-Warning "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already removed: SKIPPED"
+                                                                    }
+                                                                    # Pairing of Site Recovery Manager
+                                                                    $existingPairing = $null
+                                                                    $srmPairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
+                                                                    if ($srmPairings.Count -gt 0) {
+                                                                        foreach ($pairing in $srmPairings) {
+                                                                            if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                $existingPairing = $true
+                                                                                # Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                            }
+                                                                        }
+                                                                    } elseif ($pairsrmPairingsings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                        $existingPairing = $false
+                                                                        Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already removed: SKIPPED"
+                                                                    }
+                                                                    if ($existingPairing -eq $true) {
+                                                                        $pairingTask = Invoke-SrmDeletePairing -Server $srmAConnection -pairingId ((Invoke-SrmGetPairings -Server $srmAConnection).List.PairingId.Guid)
+                                                                        Do {
+                                                                            Start-Sleep 10
+                                                                            $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
+                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                        Disconnect-SrmSdkServer -Server *
+                                                                        $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                        $srmPairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object { $_.Name -eq $srmAFqdn })).List
+                                                                        if ($srmPairings.Count -gt 0) {
+                                                                            foreach ($pairing in $srmPairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $false
+                                                                                }
+                                                                            }
+                                                                        } elseif ($srmPairings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $false
+                                                                        }
+                                                                        if ($existingPairing -eq $false) {
+                                                                            Write-Output "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                        } else {
+                                                                            Write-Error "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                            }
+                                                        } else {
+                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                        }
+                                                    } else {
+                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                    }
+                                                } else {
+                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                }
+                                            }
+                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
+                                            Disconnect-SrmSdkServer -Server *
+                                            Disconnect-VrServer -Server *
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SrmSitePair
+
+Function Add-SrmMapping {
+    <#
+		.SYNOPSIS
+        Create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+        instances in Site Recovery Manager.
+
+        .DESCRIPTION
+        The Add-SrmMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the
+        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Create a mapping between objects in the protected and failover instances in Site Recovery Manager as
+        defined by the -type, -protected, and -recovery parameters.
+
+        .EXAMPLE
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
+        This example creates a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
+
+        .EXAMPLE
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
+        This example creates a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
+
+        .EXAMPLE
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
+        This example creates a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. managing the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The username of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. managing the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The username of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER type
+        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
+
+        .PARAMETER protected
+        The name of the object to be mapped in the protected site.
+
+        .PARAMETER recovery
+        The name of the object to be mapped in the recovery site.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateSet("Folder", "Network", "Resource")] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protected,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$recovery
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                                                $Global:DefaultSrmServers = $null
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
+                                                        $siteASrmServer = $Global:DefaultSrmServers | Where-Object { $_.Name -match $srmAFqdn }
+                                                        if ($type -eq "Folder") {
+                                                            Try {
+                                                                $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
+                                                                $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
+                                                                $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }
+                                                                if ($protectedCluster) {
+                                                                    $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
+                                                                } else {
+                                                                    $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                }
+                                                                $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }
+                                                                if ($recoveryCluster) {
+                                                                    $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
+                                                                } else {
+                                                                    $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                        }
+                                                        if ($existingSiteAMappings) {
+                                                            $forwardMappingExists = $null
+                                                            foreach ($existingSiteAMapping in $existingSiteAMappings) {
+                                                                if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
+                                                                    $forwardMappingExists = $true
+                                                                }
+                                                            }
+                                                        }
+                                                        if (!$forwardMappingExists) {
+                                                            if ($type -eq "Folder") {
+                                                                Try {
+                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddFolderMapping($protectedMoRef, $recoveryMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
+                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddNetworkMapping($protectedMoRef, $recoveryMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
+                                                                    $SiteASrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($protectedMoRef, $recoveryMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                            }
+                                                            $forwardMappingValidated = $null
+                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                                if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
+                                                                    $forwardMappingValidated = $true
+                                                                }
+                                                            }
+                                                            if ($forwardMappingValidated -eq $true) {
+                                                                Write-Output "Creating $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
+                                                            } else {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Creating $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
+                                                                        'Add-SrmMapping',
+                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                        } else {
+                                                            Write-Warning "Creating $type mapping between protected $type ($protected) and recovery $type ($recovery), already exists: SKIPPED"
+                                                        }
+                                                        Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
+                                                    }
+                                                    if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
+                                                        $siteBSrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmBFqdn }
+                                                        if ($type -eq "Folder") {
+                                                            Try {
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                        if ($existingSiteBMappings) {
+                                                            $reverseMappingExists = $null
+                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                                if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
+                                                                    $reverseMappingExists = $true
+                                                                }
+                                                            }
+                                                        }
+                                                        if (!$reverseMappingExists) {
+                                                            if ($type -eq "Folder") {
+                                                                Try {
+                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddFolderMapping($recoveryMoRef, $protectedMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
+                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddNetworkMapping($recoveryMoRef, $protectedMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
+                                                                    $SiteBSrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($recoveryMoRef, $protectedMoRef)
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                            }
+                                                            $reverseMappingValidated = $null
+                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                                if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
+                                                                    $reverseMappingValidated = $true
+                                                                }
+                                                            }
+                                                            if ($reverseMappingValidated -eq $true) {
+                                                                Write-Output "Creating $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
+                                                            } else {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Creating $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
+                                                                        'Add-SrmMapping',
+                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                        } else {
+                                                            Write-Warning "Creating $type mapping between recovery $type ($recovery) and protected $type ($protected), already exists: SKIPPED"
+                                                        }
+                                                        Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-SrmMapping
+
+Function Undo-SrmMapping {
+    <#
+		.SYNOPSIS
+        Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+        instances in Site Recovery Manager.
+
+        .DESCRIPTION
+        The Undo-SrmMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the
+        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes a mapping between objects in the protected and failover instances in Site Recovery Manager as
+        defined by the -type, -protected, and -recovery parameters.
+
+        .EXAMPLE
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
+        This example removes a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
+
+        .EXAMPLE
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
+        This example removes a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
+
+        .EXAMPLE
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
+        This example removes a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. managing the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. managing the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER type
+        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
+
+        .PARAMETER protected
+        The name of the object to be mapped in the protected site.
+
+        .PARAMETER recovery
+        The name of the object to be mapped in the recovery site.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateSet("Folder", "Network", "Resource")] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protected,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$recovery
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                                                $global:DefaultSrmServers = $null
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
+                                                        if (Get-SrmSitePairing) {
+                                                            $siteASrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmAFqdn }
+                                                            if ($type -eq "Folder") {
+                                                                Try {
+                                                                    $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                    $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
+                                                                    $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                    $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
+                                                                    $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }
+                                                                    if ($protectedCluster) {
+                                                                        $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
+                                                                    } else {
+                                                                        $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object { $_.Uid -match $siteAvCenterDetails.fqdn }).id
+                                                                    }
+                                                                    $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }
+                                                                    if ($recoveryCluster) {
+                                                                        $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
+                                                                    } else {
+                                                                        $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object { $_.Uid -match $siteBvCenterDetails.fqdn }).id
+                                                                    }
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                            }
+                                                            if ($existingSiteAMappings) {
+                                                                $forwardMappingExists = $null
+                                                                Foreach ($existingSiteAMapping in $existingSiteAMappings) {
+                                                                    if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
+                                                                        $forwardMappingExists = $true
+                                                                    }
+                                                                }
+                                                            }
+                                                            if ($forwardMappingExists -eq $true) {
+                                                                if ($type -eq "Folder") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } elseif ($type -eq "Network") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } elseif ($type -eq "Resource") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                }
+                                                                $forwardMappingValidated = $null
+                                                                Foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                                    if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
+                                                                        $forwardMappingValidated = $true
+                                                                    }
+                                                                }
+                                                                if (!$forwardMappingValidated) {
+                                                                    Write-Output "Removing $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
+                                                                            'Add-SrmMapping',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                Write-Warning "Removing $type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPED"
+                                                            }
+                                                            Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
+                                                        }
+                                                        if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
+                                                            $siteBSrmServer = $global:DefaultSrmServers | Where-Object { $_.Name -match $srmBFqdn }
+                                                            if ($type -eq "Folder") {
+                                                                Try {
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                            if ($existingSiteBMappings) {
+                                                                $reverseMappingExists = $null
+                                                                Foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                                    if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
+                                                                        $reverseMappingExists = $true
+                                                                    }
+                                                                }
+                                                            }
+                                                            if ($reverseMappingExists -eq $true) {
+                                                                if ($type -eq "Folder") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } elseif ($type -eq "Network") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } elseif ($type -eq "Resource") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                }
+                                                                $reverseMappingValidated = $null
+                                                                Foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                                    if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
+                                                                        $reverseMappingValidated = $true
+                                                                    }
+                                                                }
+                                                                if (!$reverseMappingValidated) {
+                                                                    Write-Output "Removing $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
+                                                                            'Add-SrmMapping',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                Write-Warning "Removing $type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPED"
+                                                            }
+                                                        } else {
+                                                            Write-Warning "No Site Pairing Found: SKIPPED"
+                                                        }
+                                                        Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SrmMapping
 
 Function Add-vSphereReplication {
     <#
@@ -8244,113 +8342,75 @@ Export-ModuleMember -Function Add-ProtectionGroup
 Function Undo-ProtectionGroup {
     <#
 		.SYNOPSIS
-        Removes a Site Recovery Manager protection group.
+        Removes a Site Recovery Manager protection group
 
-        .DESCRIPTION
-        The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager protection group. The cmdlet
-        connects to SDDC Manager instances in both the protected and recovery sites:
+        .Undo-ProtectionGroup
+        The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager protection group. The cmdlet connects to the
+        protected SDDC Manager instance:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Removes a Site Recovery Manager protection group.
+        - Removes a Site Recovery Manager recovery plan.
 
         .EXAMPLE
-        Undo-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01-pg
-        This example removes protection group xint-vrops01-pg from Site Recovery Manager in the protected instance.
+        Undo-ProtectionGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -pgName "vRSLCM & Clustered WSA PG"
+        This example removes protection group "vRSLCM & Clustered WSA PG" from Site Recovery Manager.
 
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager in the protected site.
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
 
-        .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager in the protected site.
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
 
-        .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager in the protected site.
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
 
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager in the recovery site.
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
 
         .PARAMETER pgName
-        The name of the new protection group.
+        The name of the protection group to be removed.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pgName
     )
-
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $vrmsAFqdn)) {
-                                                    if ((Test-SrmConnection -server $srmBFqdn) -and (Test-SrmConnection -server $vrmsBFqdn)) {
-                                                        $srmAuth = Test-SrmAuthenticationREST -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        if (($srmAuth.srmAuthentication -eq $true) -and ($srmAuth.srmRemoteAuthentication -eq $true) -and ($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
-                                                            $protectionGroup = Get-SrmProtectionGroup -pgName $pgName
-                                                            $skip = $false
-                                                            if (!$protectionGroup) {
-                                                                Write-Warning "Protection Group ($pgName) not found: SKIPPED"
-                                                                $skip = $true
-                                                                break
-                                                            }
-                                                            if ($skip -eq $false) {
-                                                                $removeProtectionGroup = Remove-SrmProtectionGroup -pgName $pgName
-                                                                if ($removeProtectionGroup -match "Protection Group $pgName was not found") {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Remove Protection Group ($pgName): POST_VALIDATION_FAILED"),
-                                                                            'Undo-ProtectionGroup',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                } else {
-                                                                    Write-Output "Remove Protection Group ($pgName): SUCCESSFUL"
-                                                                }
-                                                            }
-                                                        } else {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"),
-                                                                    'Undo-ProtectionGroup',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vCenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (Test-VsphereConnection -server $($vCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vCenterDetails.fqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
+                            if ($srmFqdn = (((Get-View -server $vCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                if ($srmConnection = Connect-SrmSdkServer -Server $srmFqdn -User $vCenterDetails.ssoAdmin -Password $vCenterDetails.ssoAdminPass) {
+                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmConnection).list.PairingId.Guid) {
+                                        if ($protectionGroupId = (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmConnection -FilterProperty Name -Filter $pgName).List.Id) {
+                                            Invoke-SrmDeleteGroup -pairingId $pairingId -groupId $protectionGroupId -Server $srmConnection | Out-Null
+                                            Start-Sleep 2
+                                            if (-Not (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmConnection -FilterProperty Name -Filter $pgName).List) {
+                                                Write-Output "Removing Protection Group ($pgName) from Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing Protection Group ($pgName) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
                                             }
+                                        } else {
+                                            Write-Warning "Removing Protection Group ($pgName) from Site Recovery Manager instance ($srmFqdn), does not exist: SKIPPED"
                                         }
-                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    } else {
+                                        Write-Error "Unable to find a Site Pair in Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                     }
+                                } else {
+                                    Write-Error "Unable to authentication to Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                 }
+                            } else {
+                                Write-Error "No Site Recovery Manager instance registered with vCenter Server $($vCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                             }
                         }
+                        Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
+                        Disconnect-SrmSdkServer -Server *
                     }
                 }
             }
@@ -8358,7 +8418,6 @@ Function Undo-ProtectionGroup {
     } Catch {
         Debug-ExceptionWriter -object $_
     }
-
 }
 Export-ModuleMember -Function Undo-ProtectionGroup
 
@@ -8435,48 +8494,22 @@ Function Add-RecoveryPlan {
                                                         $srmAuth = Test-SrmAuthenticationREST -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
                                                         $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
                                                         if (($srmAuth.srmAuthentication -eq $true) -and ($srmAuth.srmRemoteAuthentication -eq $true) -and ($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
-                                                            $getPg = Get-SrmProtectionGroup -pgName $pgName
-                                                            if (!$getPg) {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Protection Group $pgName does not exist: PRE_VALIDATION_FAILED"),
-                                                                        'Add-RecoveryPlan',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                            $srmRecoveryPlan = Get-SrmRecoveryPlan -rpName $rpName
-                                                            $skip = $false
-                                                            if ($srmRecoveryPlan) {
-                                                                Write-Warning "Adding Recovery Plan ($rpName); already exists: SKIPPED"
-                                                                $skip = $true
-                                                                break
-                                                            }
-                                                            if ($skip -eq $false) {
-                                                                $newRecoveryPlan = Add-SrmRecoveryPlan -rpName $rpName -pgName $pgName
-                                                                if (!$newRecoveryPlan) {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Adding Recovery Plan ($rpName): POST_VALIDATION_FAILED"),
-                                                                            'Add-RecoveryPlan',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
+                                                            if (Get-SrmProtectionGroup -pgName $pgName) {
+                                                                if (-Not (Get-SrmRecoveryPlan -rpName $rpName)) {
+                                                                    Add-SrmRecoveryPlan -rpName $rpName -pgName $pgName | Out-Null
+                                                                    if (Get-SrmRecoveryPlan -rpName $rpName) {
+                                                                        Write-Output "Adding Recovery Plan ($rpName): SUCCESSFUL"
+                                                                    } else {
+                                                                        Write-Error "Adding Recovery Plan ($rpName): POST_VALIDATION_FAILED"
+                                                                    }
                                                                 } else {
-                                                                    Write-Output "Adding Recovery Plan ($rpName): SUCCESSFUL"
+                                                                    Write-Warning "Adding Recovery Plan ($rpName), already exists: SKIPPED"
                                                                 }
+                                                            } else {
+                                                                Write-Error "Unable to find Protection Group ($pgName): PRE_VALIDATION_FAILED"
                                                             }
                                                         } else {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"),
-                                                                    'Add-RecoveryPlan',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
+                                                            Write-Error "Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"
                                                         }
                                                     }
                                                 }
@@ -8609,9 +8642,9 @@ Function Set-RecoveryPlan {
                                                             foreach ($vm in $vmName) {
                                                                 $setPriority = Set-SrmRecoveryPlanVMPriority -rpName $rpName -vmName $vm -priority $priority
                                                                 if (!$setPriority) {
-                                                                    Write-Error "Setting the restart priority for virtual machine $vm in recovery plan $rpName failed: POST_VALIDATION_FAILED"
+                                                                    Write-Error "Setting Restart Priority ($priority) for Virtual Machine ($vm) in Recovery Plan ($rpName): POST_VALIDATION_FAILED"
                                                                 } else {
-                                                                    Write-Output "Set the restart priority for virtual machine $vm in recovery plan $rpName to $priority : SUCCESSFUL"
+                                                                    Write-Output "Setting Restart Priority ($priority) for Virtual Machine ($vm) in Recovery Plan ($rpName): SUCCESSFUL"
                                                                 }
                                                             }
                                                         }
@@ -8634,9 +8667,9 @@ Function Set-RecoveryPlan {
                                                                 $newCallout = Add-SrmRecoveryPlanCalloutStep -rpName $rpName -calloutType $calloutType -calloutName $calloutName -content $calloutContent -position $findPosition
                                                             }
                                                             if (!$newCallout) {
-                                                                Write-Error "Add new callout step in recovery plan $rpName failed: POST_VALIDATION_FAILED"
+                                                                Write-Error "Adding Callout Step to Recovery Plan ($rpName): POST_VALIDATION_FAILED"
                                                             } else {
-                                                                Write-Output "Add new callout step in recovery plan $rpName : SUCCESSFUL"
+                                                                Write-Output "Adding Callout Step to Recovery Plan (($rpName): SUCCESSFUL"
                                                             }
                                                         }
                                                     }
@@ -8664,110 +8697,72 @@ Function Undo-RecoveryPlan {
         Removes a Site Recovery Manager recovery plan.
 
         .DESCRIPTION
-        The Undo-RecoveryPlan cmdlet adds a Site Recovery Manager recovery plan. The cmdlet
-        connects to SDDC Manager instances in both the protected and recovery sites:
+        The Undo-RecoveryPlan cmdlet removes a Site Recovery Manager recovery plan. The cmdlet connects to the protected SDDC
+        Manager instance:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
         - Removes a Site Recovery Manager recovery plan.
 
         .EXAMPLE
-        Undo-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp
-        This example removes recovery plan xint-vrops01-rp from Site Recovery Manager.
+        Undo-RecoveryPlan -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -rpName "vRSLCM & Clustered WSA RP"
+        This example removes recovery plan "vRSLCM & Clustered WSA RP" from Site Recovery Manager.
 
-        .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager in the protected site.
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
 
-        .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager in the protected site.
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
 
-        .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager in the protected site.
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
 
-        .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager in the recovery site.
-
-        .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager in the recovery site.
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
 
         .PARAMETER rpName
         The name of the recovery plan to be removed.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName
     )
-
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
-                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $vrmsAFqdn)) {
-                                                    if ((Test-SrmConnection -server $srmBFqdn) -and (Test-SrmConnection -server $vrmsBFqdn)) {
-                                                        $srmAuth = Test-SrmAuthenticationREST -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        if (($srmAuth.srmAuthentication -eq $true) -and ($srmAuth.srmRemoteAuthentication -eq $true) -and ($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
-                                                            $srmRecoveryPlan = Get-SrmRecoveryPlan -rpName $rpName
-                                                            $skip = $false
-                                                            if (!$srmRecoveryPlan) {
-                                                                Write-Warning "Recovery Plan $rpName not found: SKIPPED"
-                                                                $skip = $true
-                                                                break
-                                                            }
-                                                            if ($skip -eq $false) {
-                                                                $newRecoveryPlan = Remove-SrmRecoveryPlan -rpName $rpName
-                                                                if (!$newRecoveryPlan) {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Remove Recovery Plan ($rpName): POST_VALIDATION_FAILED"),
-                                                                            'Add-RecoveryPlan',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                } else {
-                                                                    Write-Output "Remove Recovery Plan ($rpName): SUCCESSFUL"
-                                                                }
-                                                            }
-                                                        } else {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"),
-                                                                    'Add-RecoveryPlan',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vCenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (Test-VsphereConnection -server $($vCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vCenterDetails.fqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
+                            if ($srmFqdn = (((Get-View -server $vCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+                                if ($srmConnection = Connect-SrmSdkServer -Server $srmFqdn -User $vCenterDetails.ssoAdmin -Password $vCenterDetails.ssoAdminPass) {
+                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmConnection).list.PairingId.Guid) {
+                                        if ($planId = (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmConnection -Filter $rpName).List.Id) {
+                                            Invoke-SrmDeleteRecoveryPlan -pairingId $pairingId -planId $planId -Server $srmConnection | Out-Null
+                                            Start-Sleep 2
+                                            if (-Not (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmConnection -Filter $rpName).List) {
+                                                Write-Output "Removing Recovery Plan ($rpName) from Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing Recovery Plan ($rpName) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
                                             }
+                                        } else {
+                                            Write-Warning "Removing Recovery Plan ($rpName) from Site Recovery Manager instance ($srmFqdn), does not exist: SKIPPED"
                                         }
-                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    } else {
+                                        Write-Error "Unable to find a Site Pair in Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                     }
+                                } else {
+                                    Write-Error "Unable to authentication to Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                 }
+                                Disconnect-SrmSdkServer -Server *
+                            } else {
+                                Write-Error "No Site Recovery Manager instance registered with vCenter Server $($vCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                             }
                         }
+                        Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -9257,21 +9252,23 @@ Function Invoke-DriDeployment {
                         if (!$failureDetected) {
                             # Signed Certificate Replacement Procedures - Requires System Executing the Script to be Joined to the Certificate Authority Domain
                             Show-PowerValidatedSolutionsOutput -message "Replacing the Supervisor Kubernetes API Endpoint Certificate for $solutionName"
-                            if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
-                                Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
-                                $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            $StatusMsg = Install-TanzuSignedCertificate -jsonFile $jsonFile -certificates $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            # if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
+                            #     Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
+                            #     $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
-                                Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
-                                $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            #     Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
+                            #     $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
-                                Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
-                                $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            } else {
-                                Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
-                            }
+                            #     Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
+                            #     $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            # } else {
+                            #     Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
+                            # }
                         }
 
                         if (!$failureDetected) {
@@ -11168,7 +11165,7 @@ Function New-SupervisorClusterCSR {
         - Requests the certificate signing request file
 
         .EXAMPLE
-        New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -commonName sfo-m01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
+        New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -commonName sfo-w01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
         This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
 
         .PARAMETER server
@@ -11332,7 +11329,7 @@ Function Request-SignedCertificate {
             }
             # Validate if output file exisits
             if ((Test-Path -Path $certificateFile -ErrorAction SilentlyContinue)) {
-                Write-Error "Certificate file ($certificateFile) already exists: PRE_VALIDATION_FAILED"
+                Write-Error "Certificate file ($certificateFile), already exists: PRE_VALIDATION_FAILED"
                 $preValidation = $false
             }
             # Validate if can get Win32_ComputerSystem
@@ -11377,6 +11374,52 @@ Function Request-SignedCertificate {
     }
 }
 Export-ModuleMember -Function Request-SignedCertificate
+
+Function Install-TanzuSignedCertificate {
+    <#
+        .SYNOPSIS
+        Install a Microsoft Certificate Authority Signed Certificate for the Tanzu Supervisor Cluster
+
+        .DESCRIPTION
+        The Install-TanzuSignedCertificate cmdlet requests a signed certificate for the Tanzu Supervisor Cluster
+        from a Microsoft Certificate Authority using the details from the Developer Ready Infrastructure JSON
+        specification file.
+
+        .EXAMPLE
+        Install-TanzuSignedCertificate -jsonFile .\driDeploySpec.json -certificates .\certificates\
+        This example requests and installs a signed certificate for the Tanzu Supervisor Cluster
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the folder where to store the certificate files.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -commonName ($jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn) -organization $jsonInput.organization -organizationalUnit $jsonInput.organizationalUnit -country $jsonInput.country -stateOrProvince $jsonInput.stateOrProvince -locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -keySize $jsonInput.keysize -filePath ($certificates + $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn + ".csr")
+                Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate
+                Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -FilePath ($certificates + $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn + ".crt")
+            } else {
+                Write-Error "Certificate Folder ($certificates): Not Found"
+            }
+        } else {
+            Write-Error "JSON Specification file for Developer Ready Infrastructure ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-TanzuSignedCertificate
 
 Function Install-SupervisorClusterCertificate {
     <#
@@ -12557,6 +12600,8 @@ Function Request-vRLIMscaSignedCertificate {
         .PARAMETER jsonFile
         The path to the JSON specification file.
 
+        .PARAMETER certificates
+        The folder containing the certificates.
     #>
 
     Param (
@@ -12597,7 +12642,7 @@ Function Request-vRLIMscaSignedCertificate {
                 }
 
             } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
             }
         } else {
             Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
@@ -49889,7 +49934,7 @@ Function Set-VrmsVamiCertificate {
         $body | Add-Member -notepropertyname 'pkcs12_format' -notepropertyvalue $pkcs12Object
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
-        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body -SkipCertificateCheck
         Set-VrmsApplianceState -action restart | Out-Null
     } Catch {
         Write-Error $_.Exception.Message
@@ -50105,10 +50150,10 @@ Function Get-VrmsReplication {
         Retrieves a list of replications from a vSphere Replication instance.
 
         .DESCRIPTION
-        The Get-VrmsReplications cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
+        The Get-VrmsReplication cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
 
         .EXAMPLE
-        Get-VrmsReplications
+        Get-VrmsReplication
         This example retrieves a list of all replications from the vSphere Replication server REST API
 
         .PARAMETER name
@@ -50225,7 +50270,7 @@ Function Remove-VrmsReplication {
     Try {
         $sitePair = Get-VrmsSitePairing
         $pairingId = $sitePair.pairing_id
-        $vmReplicationId = (Get-VrmsReplications -vmName $vmName | Where-Object { $_.name -eq $vmName }).id
+        $vmReplicationId = (Get-VrmsReplication -vmName $vmName | Where-Object { $_.name -eq $vmName }).id
         $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairingId/replications/$vmReplicationId/actions/unconfigure?retain_replica_disks=false"
         $return = Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeaderREST
         $return
@@ -51636,18 +51681,20 @@ Function Invoke-GeneratePrivateKeyAndCsr {
                                 Remove-Item $cfgFilePath
                                 Remove-Item $orginalKeyFilePath
                                 if ((Test-Path -Path $keyFilePath) -and (Test-Path -Path $csrFilePath)) {
-                                    Write-Output "Creation of Private Key (.key) file named ($($commonName + ".key")) and Certificate Signing Request (.csr) file named ($($commonName + ".csr")): SUCCESSFUL"
+                                    Write-Output "Creation of Private Key (.key) file named ($($commonName + ".key")) File: SUCCESSFUL"
+                                    Write-Output "Creation of Certificate Signing Request (.csr) file named ($($commonName + ".csr")) File: SUCCESSFUL"
                                 } else {
-                                    Write-Error "Creation of Private Key (.key) file named ($($commonName + ".key")) and Certificate Signing Request (.csr) file named ($($commonName + ".csr")) Files: POST_VALIDATION_FAILED"
+                                    Write-Error "Creation of Private Key (.key) file named ($($commonName + ".key")) File: POST_VALIDATION_FAILED"
+                                    Write-Error "Creation of Certificate Signing Request (.csr) file named ($($commonName + ".csr")) File: POST_VALIDATION_FAILED"
                                 }
                             } else {
                                 Write-Error "Certificate expiration days ($expireDays) is less than 2 days, use value greater than 1 day: : PRE_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Warning "Creation of Vertificate Signing Request (.csr) file named ($($commonName + ".csr")) already exists: SKIPPED"
+                            Write-Warning "Creation of Vertificate Signing Request (.csr) file named ($($commonName + ".csr")), already exists: SKIPPED"
                         }
                     } else {
-                        Write-Warning "Creation of Private Key (.key) file name ($($commonName + ".key")) already exists: SKIPPED"
+                        Write-Warning "Creation of Private Key (.key) file name ($($commonName + ".key")), already exists: SKIPPED"
                     }
                 } else {
                     Write-Error "OpenSSL Version is less than 3.0: PRE_VALIDATION_FAILED"
@@ -51836,7 +51883,7 @@ Function Invoke-RequestSignedCertificate {
                                         $rootCaFilename = "$caFqdn-rootCA.pem"
                                         $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
                                         if (Test-Path -Path $rootCaFilePath) {
-                                            Write-Warning "$rootCaFilePath file exists. Please remove or rename the existing file: SKIPPED"
+                                            Write-Warning "$rootCaFilePath file exists: SKIPPED"
                                         }
                                     }
 
@@ -51979,6 +52026,92 @@ Function Invoke-GenerateChainPem {
     }
 }
 Export-ModuleMember -Function Invoke-GenerateChainPem
+
+Function Invoke-GeneratePKCS12 {
+    <#
+        .SYNOPSIS
+        Generate a PKCS12 (.pfx) file using OpenSSL.
+
+        .DESCRIPTION
+        The Invoke-GeneratePKCS12 cmdlet generates a PKCS12 (.pfx) file using OpenSSL with the supplied Private Key (.key), Signed Certificate (.crt) files.
+
+        .EXAMPLE
+        Invoke-GeneratePKCS12 -certificatePath ".\certificates\" -privateKeyFile "sfo-m01-vrms01.sfo.rainpole.io.key" -certificateFile "sfo-m01-vrms01.sfo.rainpole.io.crt" -certificatePassword VMw@re1! -caChainFile "rpl-ad01.rainpole.io-rootCA.pem"
+        This example will generate a PFX file for sfo-m01-vrms01.sfo.rainpole.io including the Root Certificate Authority.
+
+        .EXAMPLE
+        Invoke-GeneratePKCS12 -certificatePath ".\certificates\" -privateKeyFile "sfo-m01-vrms01.sfo.rainpole.io.key" -certificateFile "sfo-m01-vrms01.sfo.rainpole.io.crt" -certificatePassword VMw@re1!
+        This example will generate a PFX file for sfo-m01-vrms01.sfo.rainpole.io wihtou the Root Certificate Authority.
+
+        .PARAMETER certificatePath
+        The directory path to store the PKCS12 (.pfx) file and retrieve the Private Key (.key), Signed Certifciate (.crt) and Certificate Authority Chain (.pem) files from.
+
+        .PARAMETER privateKeyFile
+        The private key (.key) file.
+
+        .PARAMETER certificateFile
+        The certificate file (.crt) file.
+
+        .PARAMETER caChainfile
+        The certificate authority chain (.pem) file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificatePath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$privateKeyFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificatePassword,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$caChainFile
+    )
+
+    $processRequest = $true
+
+    Try {
+        if (Test-Path -Path $certificatePath) {
+            if ([Bool] (Get-Command -ErrorAction Ignore -Type Application openssl)) {
+                $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
+                if ($opensslVersion -gt "3.0.0") {
+                    if ($PsBoundParameters.ContainsKey("caChainFile")) {
+                        if (Test-Path -Path ($certificatePath + $caChainFile)) {
+                            $processRequest = $true
+                        } else {
+                            Write-Error "Certificate Authority Chain (.pem) file name ($caChainFile) Not Found: PRE_VALIDATION_FAILED"
+                            $processRequest = $false
+                        }
+                    }
+                    if ($processRequest) {
+                        if (Test-Path -Path ($certificatePath + $privateKeyFile)) {
+                            $pfxFileName = (Split-Path -Path ($certificatePath + $privateKeyFile) -LeafBase) + ".pfx"
+                            if (Test-Path -Path ($certificatePath + $certificateFile)) {
+                                if (-Not (Test-Path -Path ($($certificatePath + $pfxFileName)))) {
+                                    if ($PsBoundParameters.ContainsKey("caChainFile")) {
+                                        openssl pkcs12 -export -inkey ($certificatePath + $privateKeyFile) -in ($certificatePath + $certificateFile) -certfile ($certificatePath + $caChainFile) -out ($certificatePath + $pfxFileName) -passout pass:$certificatePassword
+                                    } else {
+                                        openssl pkcs12 -export -inkey ($certificatePath + $privateKeyFile) -in ($certificatePath + $certificateFile) -out ($certificatePath + $pfxFileName) -passout pass:$certificatePassword
+                                    }
+                                    if (Test-Path -Path ($certificatePath + $pfxFileName)) {
+                                        Write-Output "Creation of PKCS12 (.pfx) file named ($pfxFileName): SUCCESSFUL"
+                                    } else {
+                                        Write-Output "Creation of PKCS12 (.pfx) file named ($pfxFileName): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Creation of PKCS12 (.pfx) file named ($pfxFileName), already exists: SKIPPED"
+                                }
+                            } else {
+                                Write-Error "Certificate (.key) file name ($certificateFile) Not Found: PRE_VALIDATION_FAILED"
+                            }
+                        } else {
+                            Write-Error "Private Key (.key) file name ($privateKeyFile) Not Found: PRE_VALIDATION_FAILED"
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-GeneratePKCS12
 
 #EndRegion  End of Certificate Generation Functions                         ######
 ###################################################################################
@@ -53210,48 +53343,6 @@ Function Test-SrmVamiAuthentication {
 }
 Export-ModuleMember -Function Test-SrmVamiAuthentication
 
-Function Test-SrmSdkConnection {
-    <#
-        .SYNOPSIS
-        Check network connectivity to a Site Recovery Manager instance.
-
-        .DESCRIPTION
-        Checks the network connectivity to a Site Recovery Manager instance.
-        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
-
-        .EXAMPLE
-        Test-SrmSdkConnection -server sfo-m01-srm01.sfo.rainpole.io -port 443
-        This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
-
-        .EXAMPLE
-        Test-VsphereConnection -server sfo-m01-srm01.sfo.rainpole.io -port 22
-        This example checks network connectivity with a Site Recovery Manager instance on port 22 (SSH).
-
-        .PARAMETER server
-        The fully qualified domain name (FQDN) or IP address of the Site Recovery Manager instance.
-
-        .PARAMETER port
-        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
-    )
-
-    Try {
-        if ($status = Test-EndpointConnection -server $server -port $port ) {
-            Return $status
-        } else {
-            Write-Error "Unable to communicate with Site Recovery Manager instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
-            Return $status
-        }
-    } Catch {
-        $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Test-VsphereConnection
-
 Function Test-SrmConnection {
     <#
         .SYNOPSIS
@@ -53264,10 +53355,6 @@ Function Test-SrmConnection {
         .EXAMPLE
         Test-SrmConnection -server sfo-srm01.sfo.rainpole.io
         This example checks network connectivity with a Site Recovery Manager instance on default port, 443 (HTTPS).
-
-        .EXAMPLE
-        Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 443
-        This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
 
         .EXAMPLE
         Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 22
@@ -53352,6 +53439,68 @@ Function Test-SrmAuthentication {
     }
 }
 Export-ModuleMember -Function Test-SrmAuthentication
+
+Function Test-SrmSdkAuthentication {
+    <#
+        .SYNOPSIS
+        Check authentication to a Site Recovery Manager instance.
+
+        .DESCRIPTION
+        Checks the authentication to a Site Recovery Manager instance using the PowerCLI cmdlet Connect-SrmSdkServer.
+
+        .EXAMPLE
+        Test-SrmSdkAuthentication -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example checks authentication with a Site Recovery Manager instance.
+
+        .EXAMPLE
+        Test-SrmSdkAuthentication -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -remoteUser administrator@vsphere.local -remotePass VMw@re1!
+        This example checks authentication with a Site Recovery Manager instance and a remote Site Recovery Manager instance. 
+
+        .PARAMETER server
+        The fully qualified domain name of the Site Recovery Manager instance.
+
+        .PARAMETER user
+        The username to authenticate to the Site Recovery Manager instance.
+
+        .PARAMETER pass
+        The password to authenticate to the Site Recovery Manager instance.
+
+        .PARAMETER remoteUser
+        The username to authenticate to the remote Site Recovery Manager instance.
+
+        .PARAMETER remotePass
+        The password to authenticate to the remote Site Recovery Manager instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remotePass
+    )
+
+    Try {
+        Remove-Variable -Name srmSdkConnection -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+        if ($remoteUser -and $remotePass) {
+            $Global:srmSdkConnection = Connect-SrmSdkServer -Server $server -User $user -Password $pass -RemoteUser $remoteUser -RemotePassword $remotePass
+        } else {
+            $Global:srmSdkConnection = Connect-SrmSdkServer -Server $server -User $user -Password $pass
+        }
+        if ($srmSdkConnection.Name -eq $server) {
+            $srmSdkAuthentication = $True
+            Return $srmSdkAuthentication
+        } else {
+            Write-Error "Unable to authenticate to Site Recovery Manager ($server), check credentials: PRE_VALIDATION_FAILED"
+            $srmSdkAuthentication = $False
+            Return $srmSdkAuthentication
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Test-SrmSdkAuthentication
 
 Function Test-SrmAuthenticationREST {
     Param (
@@ -54816,10 +54965,11 @@ Function Start-PdrMenu {
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Generate Signed Certificate from Microsoft Certifiate Authority"
 
         $headingItem02 = "Implementation"
-        $menuitem03 = "End-to-End Deployment"
-        $menuitem04 = "Remove from Environment"
+        $menuitem05 = "End-to-End Deployment"
+        $menuitem06 = "Remove from Environment"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -54843,10 +54993,11 @@ Function Start-PdrMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
-            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54869,11 +55020,17 @@ Function Start-PdrMenu {
                 }
                 3 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-VamiPKCS12Certificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -solution VRMS
+                    Request-VamiPKCS12Certificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -solution SRM
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
                     waitKey
                 }
-                4 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                6 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }

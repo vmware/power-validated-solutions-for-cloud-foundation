@@ -499,6 +499,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Watch-vRSLCMRequest.md
     - Certificates:
       - documentation/functions/certificates/Invoke-GenerateChainPem.md
+      - documentation/functions/certificates/Invoke-GeneratePKCS12.md
       - documentation/functions/certificates/Invoke-GeneratePrivateKeyAndCsr.md
       - documentation/functions/certificates/Invoke-RequestSignedCertificate.md
       - documentation/functions/certificates/Request-SignedCertificate.md
@@ -641,12 +642,14 @@ nav:
       - documentation/functions/site-recovery-manager/Get-SrmTask.md
       - documentation/functions/site-recovery-manager/Get-SrmVamiCertificate.md
       - documentation/functions/site-recovery-manager/Install-SiteRecoveryManager.md
+      - documentation/functions/site-recovery-manager/Install-VamiCertificate.md
       - documentation/functions/site-recovery-manager/New-SrmSitePair.md
       - documentation/functions/site-recovery-manager/Remove-SrmConfiguration.md
       - documentation/functions/site-recovery-manager/Remove-SrmProtectionGroup.md
       - documentation/functions/site-recovery-manager/Remove-SrmRecoveryPlan.md
       - documentation/functions/site-recovery-manager/Request-SrmToken.md
       - documentation/functions/site-recovery-manager/Request-SrmTokenREST.md
+      - documentation/functions/site-recovery-manager/Request-VamiPKCS12Certificate.md
       - documentation/functions/site-recovery-manager/Set-RecoveryPlan.md
       - documentation/functions/site-recovery-manager/Set-SrmApplianceState.md
       - documentation/functions/site-recovery-manager/Set-SrmConfiguration.md
@@ -658,6 +661,7 @@ nav:
       - documentation/functions/site-recovery-manager/Test-SrmAuthentication.md
       - documentation/functions/site-recovery-manager/Test-SrmAuthenticationREST.md
       - documentation/functions/site-recovery-manager/Test-SrmConnection.md
+      - documentation/functions/site-recovery-manager/Test-SrmSdkAuthentication.md
       - documentation/functions/site-recovery-manager/Test-SrmVamiAuthentication.md
       - documentation/functions/site-recovery-manager/Test-SrmVamiConnection.md
       - documentation/functions/site-recovery-manager/Undo-ProtectionGroup.md
@@ -776,9 +780,11 @@ nav:
       - documentation/functions/vsphere-replication/Get-VrmsTask.md
       - documentation/functions/vsphere-replication/Get-VrmsVamiCertificate.md
       - documentation/functions/vsphere-replication/Get-VrmsVm.md
+      - documentation/functions/vsphere-replication/Install-VamiCertificate.md
       - documentation/functions/vsphere-replication/Install-vSphereReplicationManager.md
       - documentation/functions/vsphere-replication/Remove-VrmsConfiguration.md
       - documentation/functions/vsphere-replication/Remove-VrmsReplication.md
+      - documentation/functions/vsphere-replication/Request-VamiPKCS12Certificate.md
       - documentation/functions/vsphere-replication/Request-VrmsToken.md
       - documentation/functions/vsphere-replication/Request-VrmsTokenREST.md
       - documentation/functions/vsphere-replication/Set-VrmsApplianceState.md
@@ -816,6 +822,7 @@ nav:
       - documentation/functions/vsphere-tanzu/Get-WMRegistryHealth.md
       - documentation/functions/vsphere-tanzu/Install-SupervisorClusterCertificate.md
       - documentation/functions/vsphere-tanzu/New-SupervisorClusterCSR.md
+      - documentation/functions/vsphere-tanzu/Install-TanzuSignedCertificate.md
       - documentation/functions/vsphere-tanzu/New-TanzuKubernetesCluster.md
       - documentation/functions/vsphere-tanzu/Remove-TanzuKubernetesCluster.md
       - documentation/functions/vsphere-tanzu/Remove-WMRegistry.md
