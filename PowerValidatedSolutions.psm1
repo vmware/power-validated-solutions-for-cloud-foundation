@@ -8385,13 +8385,13 @@ Function Undo-ProtectionGroup {
                 if (($vCenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vCenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vCenterDetails.fqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
-                            if ($srmFqdn = (((Get-View -server $vCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                if ($srmConnection = Connect-SrmSdkServer -Server $srmFqdn -User $vCenterDetails.ssoAdmin -Password $vCenterDetails.ssoAdminPass) {
-                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmConnection).list.PairingId.Guid) {
-                                        if ($protectionGroupId = (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmConnection -FilterProperty Name -Filter $pgName).List.Id) {
-                                            Invoke-SrmDeleteGroup -pairingId $pairingId -groupId $protectionGroupId -Server $srmConnection | Out-Null
+                            if ($srmFqdn = Test-SrmRegistration -server $vCenterDetails.fqdn) {
+                                if (Test-SrmSdkAuthentication -server $srmFqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
+                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmSdkConnection).list.PairingId.Guid) {
+                                        if ($protectionGroupId = (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmSdkConnection -FilterProperty Name -Filter $pgName).List.Id) {
+                                            Invoke-SrmDeleteGroup -pairingId $pairingId -groupId $protectionGroupId -Server $srmSdkConnection | Out-Null
                                             Start-Sleep 2
-                                            if (-Not (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmConnection -FilterProperty Name -Filter $pgName).List) {
+                                            if (-Not (Invoke-SrmGetAllGroups -pairingId $pairingId -Server $srmSdkConnection -FilterProperty Name -Filter $pgName).List) {
                                                 Write-Output "Removing Protection Group ($pgName) from Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Removing Protection Group ($pgName) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
@@ -8405,12 +8405,10 @@ Function Undo-ProtectionGroup {
                                 } else {
                                     Write-Error "Unable to authentication to Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                 }
-                            } else {
-                                Write-Error "No Site Recovery Manager instance registered with vCenter Server $($vCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                Disconnect-SrmSdkServer -Server *
                             }
                         }
                         Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
-                        Disconnect-SrmSdkServer -Server *
                     }
                 }
             }
@@ -8737,13 +8735,13 @@ Function Undo-RecoveryPlan {
                 if (($vCenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vCenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vCenterDetails.fqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
-                            if ($srmFqdn = (((Get-View -server $vCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                if ($srmConnection = Connect-SrmSdkServer -Server $srmFqdn -User $vCenterDetails.ssoAdmin -Password $vCenterDetails.ssoAdminPass) {
-                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmConnection).list.PairingId.Guid) {
-                                        if ($planId = (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmConnection -Filter $rpName).List.Id) {
-                                            Invoke-SrmDeleteRecoveryPlan -pairingId $pairingId -planId $planId -Server $srmConnection | Out-Null
+                            if ($srmFqdn = Test-SrmRegistration -server $vCenterDetails.fqdn) {
+                                if (Test-SrmSdkAuthentication -server $srmFqdn -user $vCenterDetails.ssoAdmin -pass $vCenterDetails.ssoAdminPass) {
+                                    if ($pairingId = (Invoke-SrmGetPairings -Server $srmSdkConnection).list.PairingId.Guid) {
+                                        if ($planId = (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmSdkConnection -Filter $rpName).List.Id) {
+                                            Invoke-SrmDeleteRecoveryPlan -pairingId $pairingId -planId $planId -Server $srmSdkConnection | Out-Null
                                             Start-Sleep 2
-                                            if (-Not (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmConnection -Filter $rpName).List) {
+                                            if (-Not (Invoke-SrmGetAllRecoveryPlans -pairingId $pairingId -Server $srmSdkConnection -Filter $rpName).List) {
                                                 Write-Output "Removing Recovery Plan ($rpName) from Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Removing Recovery Plan ($rpName) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
@@ -8758,8 +8756,6 @@ Function Undo-RecoveryPlan {
                                     Write-Error "Unable to authentication to Site Recovery Manager instance ($srmFqdn): PRE_VALIDATION_FAILURE"
                                 }
                                 Disconnect-SrmSdkServer -Server *
-                            } else {
-                                Write-Error "No Site Recovery Manager instance registered with vCenter Server $($vCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                             }
                         }
                         Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
@@ -50280,6 +50276,18 @@ Function Remove-VrmsReplication {
 }
 Export-ModuleMember -Function Remove-VrmsReplication
 
+Function Test-VrmsRegistration {
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if ($registeredVrmsServer = (((Get-View -server $server ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]) {
+        Return $registeredVrmsServer
+    } else {
+        Write-Error "No vSphere Replication instance registered with vCenter Server ($server): PRE_VALIDATION_FAILURE"
+    }
+}
+
 #EndRegion  End of vSphere Replication Functions                             ######
 ###################################################################################
 
@@ -51537,6 +51545,18 @@ Function Set-SrmRecoveryPlanVMPriority {
     }
 }
 Export-ModuleMember -Function Set-SrmRecoveryPlanVMPriority
+
+Function Test-SrmRegistration {
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if ($registeredSrmServer = (((Get-View -server $server ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
+        Return $registeredSrmServer
+    } else {
+        Write-Error "No Site Recovery Manager instance registered with vCenter Server ($server): PRE_VALIDATION_FAILURE"
+    }
+}
 
 #EndRegion  End of Site Recovery Manager Functions                           ######
 ###################################################################################
@@ -53275,6 +53295,72 @@ Function Test-VrmsVamiAuthentication {
     }
 }
 Export-ModuleMember -Function Test-VrmsVamiAuthentication
+
+Function Test-VrSdkAuthentication {
+    <#
+        .SYNOPSIS
+        Check authentication to a vSphere Replication instance.
+
+        .DESCRIPTION
+        The Test-VrSdkAuthentication cmdlet checks authentication to a vSphere Replication instance using the PowerCLI cmdlet Connect-VrServer.
+
+        .EXAMPLE
+        Test-VrSdkAuthentication -server sfo-m01-vrms01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example checks authentication with a vSphere Replication instance.
+
+        .EXAMPLE
+        Test-VrSdkAuthentication -server sfo-m01-vrms01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -RemoteServer lax0-m01-vrms01.lax.rainpole.io -remoteUser administrator@vsphere.local -remotePass VMw@re1!
+        This example checks authentication with a vSphere Replication instance and a remote vSphere Replication instance. 
+
+        .PARAMETER server
+        The fully qualified domain name of the vSphere Replication instance.
+
+        .PARAMETER user
+        The username to authenticate to the vSphere Replication instance.
+
+        .PARAMETER pass
+        The password to authenticate to the vSphere Replication instance.
+
+        .PARAMETER remoteServer
+        The fully qualified domain name of the remote vSphere Replication instance.
+
+        .PARAMETER remoteUser
+        The username to authenticate to the remote vSphere Replication instance.
+
+        .PARAMETER remotePass
+        The password to authenticate to the remote vSphere Replication instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remoteServer,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remotePass
+    )
+
+    Try {
+        Remove-Variable -Name vrSdkConnection -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+        if ($remoteUser -and $remotePass) {
+            $Global:vrSdkConnection = Connect-VrServer -Server $server -User $user -Password $pass -RemoteServer $remoteServer -RemoteUser $remoteUser -RemotePassword $remotePass
+        } else {
+            $Global:vrSdkConnection = Connect-VrServer -Server $server -User $user -Password $pass
+        }
+        if ($vrSdkConnection.Name -eq $server) {
+            $vrSdkAuthentication = $True
+            Return $vrSdkAuthentication
+        } else {
+            Write-Error "Unable to authenticate to vSphere Replication ($server), check credentials: PRE_VALIDATION_FAILED"
+            $vrSdkAuthentication = $False
+            Return $vrSdkAuthentication
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Test-VrSdkAuthentication
 
 Function Test-SrmVamiConnection {
     <#
