@@ -58,6 +58,8 @@
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet to handle single and multiple nodes when using `Add-ClusterGroup` with Workspace ONE Access.
 - Fixed `Set-vCenterPermission` cmdlet to better handle expected errors.
 - Fixed `Remove-VrmsReplication` cmdlet where it was calling an incorrect name for `Get-VrmsReplication`.
+- Fixed `Add-SrmLicenseKey` cmdlet which was failing due to incorrect placement of `Disconnect-SrmServer` command.
+- Fixed `Undo-SrmLicenseKey` cmdlet which was not issuing a `Disconnect-SrmServer` command.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
