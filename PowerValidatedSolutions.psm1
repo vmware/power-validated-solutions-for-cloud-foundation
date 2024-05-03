@@ -13054,8 +13054,6 @@ Function Export-vRLIJsonSpec {
 
                                             #### Generate the VMware Aria Operations for Logs Properties Section
                                             if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.16.0" }
-                                                if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.16.0" }
                                                 if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.16.0" }
                                                 if ($vcfVersion -eq "5.1.1") { $vrliVersion = "8.16.0" }
                                             } else {
@@ -16886,8 +16884,6 @@ Function Export-vROPsJsonSpec {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
 
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.16.1" }
-                                                        if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.16.1" }
                                                         if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.16.1" }
                                                         if ($vcfVersion -eq "5.1.1") { $vropsVersion = "8.16.1" }
                                                     } else {
@@ -21383,10 +21379,8 @@ Function Export-vRAJsonSpec {
                                                 if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.datacenter }) {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.16.1" }
-                                                        if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.16.1" }
-                                                        if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.16.1" }
-                                                        if ($vcfVersion -eq "5.1.1") { $vraVersion = "8.16.1" }
+                                                        if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.16.2" }
+                                                        if ($vcfVersion -eq "5.1.1") { $vraVersion = "8.16.2" }
                                                     } else {
                                                         $vraVersion = $customVersion
                                                     }
@@ -26578,8 +26572,6 @@ Function Export-WsaJsonSpec {
 
                                                     #### Generate the Workspace ONE Properties Section
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
-                                                        if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
                                                         if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
                                                         if ($vcfVersion -eq "5.1.1") { $wsaVersion = "3.3.7" }
                                                     } else {
