@@ -797,6 +797,7 @@ nav:
       - documentation/functions/vsphere-replication/Test-VrmsAuthenticationREST.md
       - documentation/functions/vsphere-replication/Test-VrmsVamiAuthentication.md
       - documentation/functions/vsphere-replication/Test-VrmsVamiConnection.md
+      - documentation/functions/vsphere-replication/Test-VrSdkAuthentication.md
       - documentation/functions/vsphere-replication/Undo-DRSolutionTovCenter.md
       - documentation/functions/vsphere-replication/Undo-EsxiVrmsStaticRoute.md
       - documentation/functions/vsphere-replication/Undo-EsxiVrmsVMkernelPort.md

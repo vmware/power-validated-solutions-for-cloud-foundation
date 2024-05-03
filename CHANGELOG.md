@@ -48,6 +48,9 @@
 - Added `Invoke-GeneratePKCS12` cmdlet to generate a PKCS12 file (.pfx) to support certificate replacement of vSphere Replication and Site Recovery Manager.
 - Added `Request-VamiPKCS12Certificate` cmdlet to generate Private Key (.key), Signed Certificate (.crt) and PKCS12 file (.pfx) files for vSphere Replication and Site Recovery Manager.
 - Added `Test-SrmSdkAuthentication` cmdlet to verify authentication using the PowerCLI Sdk module for Site Recovery Manager.
+- Added `Test-VrSdkAuthentication` cmdlet to verify authentication using the PowerCLI Sdk module for vSphere Replication.
+- Added `Test-VrmsRegistration` cmdlet as an internal function to check for registration of vSphere Replication in vCenter Server.
+- Added `Test-SrmRegistration` cmdlet as an internal function to check for registration of Site Recovery Manager in vCenter Server.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
