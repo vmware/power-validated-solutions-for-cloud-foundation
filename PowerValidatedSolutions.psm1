@@ -6904,8 +6904,7 @@ Function Add-SrmLicenseKey {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                            if ($srmFqdn = Test-SrmRegistration -server $vcfVcenterDetails.fqdn) {
                                 if (Test-SrmConnection -server $srmFqdn) {
                                     if (Test-SrmAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance
@@ -6938,11 +6937,9 @@ Function Add-SrmLicenseKey {
                                                 }
                                             }
                                         }
+                                        Disconnect-SrmServer -Server $srmFqdn -Force -Confirm:$false
                                     }
-                                    Disconnect-SrmServer -Server $srmFqdn -Force -Confirm:$false
                                 }
-                            } else {
-                                Write-Error "No Site Recovery Manager Appliance Registered with vCenter Server ($($vcfVcenterDetails.fqdn))"
                             }
                         }
                         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
@@ -7003,8 +7000,7 @@ Function Undo-SrmLicenseKey {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]) {
-                                $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcDr" }).Server.Url -Split "//" -Split ":")[2]
+                            if ($srmFqdn = Test-SrmRegistration -server $vcfVcenterDetails.fqdn) {
                                 if (Test-SrmConnection -server $srmFqdn) {
                                     if (Test-SrmAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance
@@ -7037,6 +7033,7 @@ Function Undo-SrmLicenseKey {
                                                 }
                                             }
                                         }
+                                        Disconnect-SrmServer -Server $srmFqdn -Force -Confirm:$false
                                     }
                                 }
                             }
@@ -53549,46 +53546,17 @@ Function Test-SrmAuthentication {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remotePass
     )
 
-    Try {
-        if ($remoteUser -and $remotePass) {
-            Connect-SrmServer -SrmServerAddress $server -user $user -password $pass -remoteUser $remoteUser -remotePassword $remotePass | Out-Null
-        } else {
-            Connect-SrmServer -SrmServerAddress $server -user $user -password $pass | Out-Null
-        }
-    } Catch {
-        if ($_.Exception.Message -eq "Cannot complete login due to an incorrect user name or password.") {
-            $PSCmdlet.ThrowTerminatingError(
-                [System.Management.Automation.ErrorRecord]::new(
-                    ([System.Security.Authentication.InvalidCredentialException]"Unable to authenticate with Site Recovery Manager ($server), check credentials: PRE_VALIDATION_FAILED"),
-                    'Test-SrmAuthentication',
-                    [System.Management.Automation.ErrorCategory]::AuthenticationError,
-                    ""
-                )
-            )
-        } elseif ($_.Exception.Message -eq "Unable to connect to the remote server: One or more errors occurred.") {
-            $PSCmdlet.ThrowTerminatingError(
-                [System.Management.Automation.ErrorRecord]::new(
-                    ([System.Management.Automation.ProviderNotFoundException]"Unable to authenticate with Site Recovery Manager ($server), check server IP address/FQDN: PRE_VALIDATION_FAILED"),
-                    'Test-SrmAuthentication',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    ""
-                )
-            )
-        } elseif ($_.Exception.Message -eq "Unable to connect to the remote server: The connection to the remote server is down.") {
-            $PSCmdlet.ThrowTerminatingError(
-                [System.Management.Automation.ErrorRecord]::new(
-                    ([System.Management.Automation.RemoteException]"Unable to authenticate with the remote Site Recovery Manager instance: PRE_VALIDATION_FAILED"),
-                    'Test-SrmAuthentication',
-                    [System.Management.Automation.ErrorCategory]::ConnectionError,
-                    ""
-                )
-            )
-        }
+    if ($remoteUser -and $remotePass) {
+        Connect-SrmServer -SrmServerAddress $server -user $user -password $pass -remoteUser $remoteUser -remotePassword $remotePass | Out-Null
+    } else {
+        Connect-SrmServer -SrmServerAddress $server -user $user -password $pass | Out-Null
     }
+
     if ($defaultSrmServers) {
         $srmAuthentication = $True
         Return $srmAuthentication
     } else {
+        Write-Error "Unable to authenticate to Site Recovery Manager ($server), check credentials: PRE_VALIDATION_FAILED"
         $srmAuthentication = $False
         Return $srmAuthentication
     }
