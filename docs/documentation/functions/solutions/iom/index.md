@@ -6,7 +6,7 @@
 
     The following are prerequisites for this solution:
 
-    - [VMware Aria Suite Lifecycle](./../lcm.md)
+    - [VMware Aria Suite Lifecycle](./../lcm/index.md)
     - [Workspace ONE Access (Global)](./../wsa.md)
 
 Select an option for the solution.

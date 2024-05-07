@@ -26,6 +26,7 @@
 - Added `Undo-vRLCMSGroupRole` cmdlet to remove group roles in VMWare Aria Suite Lifecycle.
 - Added `Request-AriaNetworksToken` cmdlet to obtain an authorization token from VMware Aria Operations for Networks.
 - Added cmdlets to verify prerequisites before attempting to deploy a Validated Solutions:
+  - Added `Test-VrslcmPrerequisite` cmdlet to verify prerequisites for VMware Aria Suite Lifecycle.
   - Added `Test-IamPrerequisite` cmdlet to verify prerequisites for Identity and Access Management.
   - Added `Test-DriPrerequisite` cmdlet to verify prerequisites for Developer Ready Infrastructure.
   - Added `Test-IlaPrerequisite` cmdlet to verify prerequisites for Intelligent Logging and Analytics.
@@ -35,7 +36,7 @@
   - Added `Test-HrmPrerequisite` cmdlet to verify prerequisites for Health Reporting anf Monitoring.
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
-  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
+  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility. 
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.

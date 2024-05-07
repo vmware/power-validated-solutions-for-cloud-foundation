@@ -24731,9 +24731,6 @@ Function Export-vRSLCMJsonSpec {
                 'sddcManagerPass'         = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 'mgmtSddcDomainName'      = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 'contentLibraryName'      = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
-                'customerConnectAlias'    = ($pnpWorkbook.Workbook.Names["xreg_customer_connect_email"].Value).Split('@')[0]
-                'customerConnectPassword' = $pnpWorkbook.Workbook.Names["xreg_customer_connect_password"].Value
-                'customerConnectUsername' = $pnpWorkbook.Workbook.Names["xreg_customer_connect_email"].Value
                 'aslcmFqdn'               = $pnpWorkbook.Workbook.Names["xreg_vrslcm_fqdn"].Value
                 'aslcmIp'                 = $pnpWorkbook.Workbook.Names["vrs_t1_lb_si_ip"].Value
                 'aslcmAdminPassword'      = $pnpWorkbook.Workbook.Names["vcfadmin_local_password"].Value
@@ -24741,7 +24738,7 @@ Function Export-vRSLCMJsonSpec {
                 'country'                 = $pnpWorkbook.Workbook.Names["ca_country"].Value
                 'email'                   = $pnpWorkbook.Workbook.Names["ca_email_address"].Value
                 'keyAlgorithm'            = $pnpWorkbook.Workbook.Names["ca_algorithm"].Value
-                'keySize'                 = $pnpWorkbook.Workbook.Names["ca_key_size"].Value
+                'keySize'                 = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
                 'locality'                = $pnpWorkbook.Workbook.Names["ca_locality"].Value
                 'organization'            = $pnpWorkbook.Workbook.Names["ca_organization"].Value
                 'organizationUnit'        = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
@@ -24770,6 +24767,54 @@ Function Export-vRSLCMJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-vRSLCMJsonSpec
+
+Function Test-VrslcmPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for VMware Aria Suite Lifecyle
+
+        .DESCRIPTION
+        The Test-VrslcmPrerequisite cmdlet verifies the prerequisites for VMware Aria Suite Lifecyle.
+
+        .EXAMPLE
+        Test-VrslcmPrerequisite -jsonFile .\vrslcmDeploySpec.json
+        This example verifies the prerequisites for VMware Aria Suite Lifecyle.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "VMware Aria Suite Lifecyle"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    Test-PrereqEdgeCluster -workloadDomain $jsonInput.mgmtSddcDomainName # Verify that an NSX Edge Cluster is deployed to Management Domain
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-VrslcmPrerequisite
 
 Function Invoke-vRSLCMDeployment {
     <#
@@ -24800,85 +24845,87 @@ Function Invoke-vRSLCMDeployment {
 
     Try {
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $lcmProductName"
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
-                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    $failureDetected = $false
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
 
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Downloading $lcmProductName Install Bundle in SDDC Manager"
-                        $StatusMsg = Request-vRSLCMBundle -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                    }
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected = $false
+                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                            if ($vcfVersion.$actualVcfVersion) {
+                                $vrslcmVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaSuiteLifecycle"}).Version
+                            }
+                        }
 
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
-                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
-                        $StatusMsg = New-vRSLCMDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                    }
-
-                    if (!$failureDetected) {
-                        Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
-                        $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                    }
-
-                    if (Get-VCFvRSLCM) {
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of the $lcmProductName Instance using SDDC Manager"
-                            $StatusMsg = Install-vRSLCMCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            Show-PowerValidatedSolutionsOutput -message "Downloading $lcmProductName Install Bundle in SDDC Manager"
+                            $StatusMsg = Request-vRSLCMBundle -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Adding the VMware Customer Connect Password to $lcmProductName"
-                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.customerConnectAlias -password $jsonInput.customerConnectPassword -userName $jsonInput.customerConnectUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
+                            $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                            $StatusMsg = New-vRSLCMDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -type INFO -Message "Adding Customer Connect Account to $lcmProductName"
-                            $StatusMsg = Add-vRslcmMyVMwareAccount -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.customerConnectAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                            $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                         }
 
-                        if (((Get-VCFVrslcm).version -Split ('-'))[-0] -lt "8.16.0") {
+                        if (Get-VCFvRSLCM) {
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of the $lcmProductName Instance using SDDC Manager"
+                                $StatusMsg = Install-vRSLCMCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if ($vrslcmVersion -lt "8.16.0") {
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Obtain and Upload $lcmProductName Upgrade ISO to vSphere Content Library"
+                                    $upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).name
+                                    if ($upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).name) {
+                                        Show-PowerValidatedSolutionsOutput -message "Importing $lcmProductName Upgrade ISO into vSphere Content Library"
+                                        $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $upgradeIsoPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$lcmProductName Upgrade ISO ($upgradeIsoPath) File Not Found: PRE_VALIDATION_FAILED"
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Upgrading VMware Aria Suite Lifecycle"
+                                    $upgradeIso = (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).basename
+                                    $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                 $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $jsonInput.psPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Obtain and Upload $lcmProductName Upgrade ISO to vSphere Content Library"
-                                $upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).name
-                                if ($upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).name) {
-                                    Show-PowerValidatedSolutionsOutput -message "Importing $lcmProductName Upgrade ISO into vSphere Content Library"
-                                    $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $upgradeIsoPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                                } else {
-                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$lcmProductName Upgrade ISO ($upgradeIsoPath) File Not Found: PRE_VALIDATION_FAILED"
-                                }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Upgrading VMware Aria Suite Lifecycle"
-                                $upgradeIso = (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).basename
-                                $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                                $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                            }
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -type ERROR -message "Deployment of $lcmProductName Not Found"
                         }
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Deployment of $lcmProductName Not Found"
                     }
                 }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
         }
     } Catch {
         Debug-CatchWriter -object $_
@@ -25283,7 +25330,7 @@ Function Update-vRSLCMPSPack {
                                 $allPsPacks = Get-vRSLCMPSPack
                                 $pspackId = ($allPsPacks | Where-Object { $_.fileName -like "*$psPack" }).pspackId
                                 if ($pspackId) {
-                                    $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid
+                                    $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid[-0]
                                     $request = Start-vRSLCMSnapshot -vcenterFqdn $vcenterDetails.vCenterHost -vcenterName $vcenterDetails.vCenterName -username $vcenterDetails.vcUsername
                                     Start-Sleep 3
                                     Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
@@ -52394,24 +52441,25 @@ Function Test-PowerValidatedSolutionsPrereq {
 
     Try {
         if (!$headlessPassed) { Clear-Host }; Write-Host ""
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
 
-        $modules = @(
-            @{ Name = ("VMware.PowerCLI"); MinimumVersion = ("13.2.1") }
-            @{ Name = ("VMware.vSphere.SsoAdmin"); MinimumVersion = ("1.3.9") }
-            @{ Name = ("ImportExcel"); MinimumVersion = ("7.8.5") }
-            @{ Name = ("PowerVCF"); MinimumVersion = ("2.4.1") }
-        )
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
 
-        foreach ($module in $modules ) {
-            if ((Get-InstalledModule -ErrorAction SilentlyContinue -Name $module.Name).Version -lt $module.MinimumVersion) {
-                $message = "PowerShell Module: $($module.Name) $($module.MinimumVersion) is not installed."
-                Show-PowerValidatedSolutionsOutput -type ERROR -message $message
-                Break
-            } else {
-                $moduleCurrentVersion = (Get-InstalledModule -Name $module.Name).Version
-                $message = "PowerShell Module: $($module.Name) $($moduleCurrentVersion) is installed and supports the minimum required version."
-                Show-PowerValidatedSolutionsOutput -type INFO -message $message
+            foreach ($module in $moduleConfig.supportingModules ) {
+                if ((Get-InstalledModule -ErrorAction SilentlyContinue -Name $module.Name).Version -lt $module.MinimumVersion) {
+                    $message = "PowerShell Module: $($module.Name) $($module.MinimumVersion) is not installed."
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message $message
+                    Break
+                } else {
+                    $moduleCurrentVersion = (Get-InstalledModule -Name $module.Name).Version
+                    $message = "PowerShell Module: $($module.Name) $($moduleCurrentVersion) is installed and supports the minimum required version."
+                    Show-PowerValidatedSolutionsOutput -type INFO -message $message
+                }
             }
+        } else {
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -54449,9 +54497,12 @@ Function Start-AriaSuiteLifecycleMenu {
         $jsonSpecFile = "validatedSolution-vrslcmDeploySpec.json"
         $submenuTitle = ("VMware Aria Suite Lifecycle for VMware Cloud Foundation")
 
-        $headingItem01 = "VMware Aria Suite Lifecycle"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem05 = "End-to-End Deployment"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -54472,9 +54523,12 @@ Function Start-AriaSuiteLifecycleMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54488,6 +54542,11 @@ Function Start-AriaSuiteLifecycleMenu {
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-VrslcmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-VrslcmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }

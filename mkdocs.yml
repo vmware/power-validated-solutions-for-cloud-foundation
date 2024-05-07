@@ -137,7 +137,7 @@ nav:
   - documentation/index.md
   - Solutions:
     - Prerequisites:
-      - documentation/functions/solutions/lcm.md
+      - documentation/functions/solutions/lcm/index.md
       - documentation/functions/solutions/wsa.md
     - On-Premises:
       - Identity and Access Management:
@@ -426,7 +426,6 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMProductNtpServer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Connect-vRSLCMUpgradeIso.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Disconnect-vRSLCMUpgradeIso.md
-      - documentation/functions/aria-suite/aria-suite-lifecycle/Export-vRSLCMJsonSpec.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenterVcenter.md
@@ -454,7 +453,6 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMPSPack.md
-      - documentation/functions/aria-suite/aria-suite-lifecycle/Invoke-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMAdapterOperation.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenterVcenter.md
@@ -894,6 +892,10 @@ nav:
       - documentation/functions/workspace-one-access/Undo-WSADeployment.md
   - Supporting Functions:
     - Deployment:
+      - VMware Aria Suite Lifecycle:
+        - documentation/functions/solutions/lcm/Export-VrslcmJsonSpec.md
+        - documentation/functions/solutions/lcm/Invoke-VrslcmDeployment.md
+        - documentation/functions/solutions/lcm/Test-VrslcmPrerequisite.md
       - Identity and Access Management:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md
