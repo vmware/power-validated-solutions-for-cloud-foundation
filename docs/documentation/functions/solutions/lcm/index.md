@@ -30,7 +30,8 @@ Select an option for the solution Prerequisites.
 
     The following functions can be use to remove the solution prerequisites.
 
-    | Function                                                                                                | Type      |
-    | ------------------------------------------------------------------------------------------------------- | --------- |
-    | [`Undo-vRSLCMMyVMwareAccount`](./../../aria-suite/aria-suite-lifecycle/Undo-vRSLCMMyVMwareAccount.md)   | Procedure |
-    | [`Undo-vRSLCMDeployment`](./../../aria-suite/aria-suite-lifecycle/Undo-vRSLCMDeployment.md)             | Procedure |
+    | Function                                                                                                | Type                  |
+    | ------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Invoke-vRSLCMDeployment`](Invoke-VrslcmDeployment.md)                                                 | End-to-End Deployment |
+    | [`Undo-vRSLCMMyVMwareAccount`](./../../aria-suite/aria-suite-lifecycle/Undo-vRSLCMMyVMwareAccount.md)   | Procedure             |
+    | [`Undo-vRSLCMDeployment`](./../../aria-suite/aria-suite-lifecycle/Undo-vRSLCMDeployment.md)             | Procedure             |

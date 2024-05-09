@@ -451,6 +451,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMServerDetail.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMSshStatus.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMLockerCertificate.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMAdapterOperation.md
@@ -895,6 +896,7 @@ nav:
       - VMware Aria Suite Lifecycle:
         - documentation/functions/solutions/lcm/Export-VrslcmJsonSpec.md
         - documentation/functions/solutions/lcm/Invoke-VrslcmDeployment.md
+        - documentation/functions/solutions/lcm/Invoke-VrslcmUndoDeployment.md
         - documentation/functions/solutions/lcm/Test-VrslcmPrerequisite.md
       - Identity and Access Management:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md

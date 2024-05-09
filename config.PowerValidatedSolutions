@@ -24,6 +24,10 @@
                 "Version": "8.14.0"
             },
             {
+                "AriaComponent": "AriaSuiteLifecyclePsPack",
+                "Version": "PSPACK8"
+            },
+            {
                 "AriaComponent": "AriaOperationsForLogs",
                 "Version": "8.16.0"
             },
@@ -33,7 +37,7 @@
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.16.1"
+                "Version": "8.16.2"
             },
             {
                 "AriaComponent": "WorkspaceONE",
@@ -46,12 +50,16 @@
                 "Version": "8.16.0"
             },
             {
+                "AriaComponent": "AriaSuiteLifecyclePsPack",
+                "Version": "PSPACK2"
+            },
+            {
                 "AriaComponent": "AriaOperationsForLogs",
                 "Version": "8.16.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.16.1"
+                "Version": "8.16.2"
             },
             {
                 "AriaComponent": "AriaAutomation",
