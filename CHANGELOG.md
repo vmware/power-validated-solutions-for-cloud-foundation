@@ -52,6 +52,8 @@
 - Added `Test-VrSdkAuthentication` cmdlet to verify authentication using the PowerCLI Sdk module for vSphere Replication.
 - Added `Test-VrmsRegistration` cmdlet as an internal function to check for registration of vSphere Replication in vCenter Server.
 - Added `Test-SrmRegistration` cmdlet as an internal function to check for registration of Site Recovery Manager in vCenter Server.
+- Added `Import-vRSLCMPSPack` cmdlet to import a Product Support Pack for VMware Suite Lifecycle.
+- Added `Invoke-VrslcmUndoDeployment` cmdlet to remove VMware Suite Lifecycle from the environment.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
@@ -76,6 +78,13 @@
 - Enhanced `Invoke-DriDeployment` cmdlet to auto-generate the YAML file based on vSphere versions.
 - Enhanced `Undo-RecoveryPlan` cmdlet to consume the Site Recovery Manager PowerCLI cmdlets and improve error handling and message output.
 - Enhanced `Undo-ProtectionGroup` cmdlet to consume the Site Recovery Manager PowerCLI cmdlets and improve error handling and message output.
+- Enhanced `Export-WsaJsonSpec` cmdlet to use `config.PowerValidatedSolutions` configuration file for mapping Workspace ONE Access version.
+- Enhanced `Export-vRLIJsonSpec` cmdlet to use `config.PowerValidatedSolutions` configuration file for mapping VMware Aria Operations for Logs version.
+- Enhanced `Export-vROPsJsonSpec` cmdlet to use `config.PowerValidatedSolutions` configuration file for mapping VMware Aria Operations version.
+- Enhanced `Export-vRAJsonSpec` cmdlet to use `config.PowerValidatedSolutions` configuration file for mapping VMware Aria Automation version.
+- Enhanced `Add-ContentLibrary` cmdlet to not exit the workflow when checking for the version of VMware Cloud Foundation.
+- Enhanced `Invoke-vRSLCMDeployment` cmdlet to use the internal `messageHandler` function for better message output handling.
+- Enhanced `Install-vRSLCMCertificate` cmdlet to check the certificate before attempting to install.
 
 ## v2.9.0
 
