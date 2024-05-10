@@ -12762,7 +12762,7 @@ Function Invoke-IlaDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Install Workspace ONE Access Content Pack to $logsProductName"
-                                    waitKey
+                                    procedureWaitKey
                                     # Show-PowerValidatedSolutionsOutput -message "Install Workspace ONE Access Content Pack"
                                     # [String]$jsonInput.gitHubToken = $jsonInput.gitHubToken
                                     # $StatusMsg = Enable-vRLIContentPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -token $jsonInput.gitHubToken -contentPack WSA -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -20749,6 +20749,8 @@ Function Request-vRAMscaSignedCertificate {
         .PARAMETER jsonFile
         The path to the JSON specification file.
 
+        .PARAMETER certificates
+        The path to the store the certificate files.
     #>
 
     Param (
@@ -20789,7 +20791,7 @@ Function Request-vRAMscaSignedCertificate {
                 }
 
             } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
             }
         } else {
             Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
@@ -24914,7 +24916,7 @@ Function Invoke-vRSLCMDeployment {
 
                             if ($vrslcmVersion -lt "8.16.0") {
                                 Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($vrslcmPsPack) to $lcmProductName"
-                                waitKey
+                                procedureWaitKey
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack "$vrslcmPsPack" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -24941,7 +24943,7 @@ Function Invoke-vRSLCMDeployment {
                                     $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upgrade $lcmProductName using ($upgradeIso)"
-                                    waitKey
+                                    procedureWaitKey
                                     # $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -version $upgradeVersion -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     # messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
@@ -24950,13 +24952,13 @@ Function Invoke-vRSLCMDeployment {
                             if (!$failureDetected) {
                                 if ($actualVcfVersion -le "5.1.1") {
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($extraVrslcmPsPack) to $lcmProductName"
-                                    waitKey
+                                    procedureWaitKey
                                     Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $extraVrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 } elseif ($actualVcfVersion -eq "5.1.1") {
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($$vrslcmPsPack) to $lcmProductName"
-                                    waitKey
+                                    procedureWaitKey
                                     Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $vrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -25513,14 +25515,14 @@ Function Request-vRSLCMBundle {
                         Request-VCFBundle -id (Get-VCFBundle | Where-Object { $_.components.toVersion -eq $vrslcmVersion }).id | Out-Null
                         Do { $taskStatus = (Get-VCFBundle | Where-Object { $_.components.toVersion -eq $vrslcmVersion }).downloadStatus } While ($taskStatus -in "In Progress", "IN_PROGRESS", "PENDING")
                         if ((Get-VCFBundle | Where-Object { $_.components.toVersion -eq $vrslcmVersion }).downloadStatus -eq 'SUCCESSFUL') {
-                            Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
+                            Write-Output "Download VMware Aria Suite Lifecycle Bundle ($vrslcmVersion) to SDDC Manager: SUCCESSFUL"
                         } else {
-                            Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: POST_VALIDATION_FAILED"
+                            Write-Error "Download VMware Aria Suite Lifecycle Bundle ($vrslcmVersion) to SDDC Manager: POST_VALIDATION_FAILED"
                         }
                     } elseif ((Get-VCFBundle | Where-Object { $_.components.toVersion -eq $vrslcmVersion }).downloadStatus -eq "FAILED") {
-                        Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: PRE_VALIDATION_FAILED"
+                        Write-Error "Download VMware Aria Suite Lifecycle Bundle ($vrslcmVersion) to SDDC Manager: PRE_VALIDATION_FAILED"
                     } elseif ((Get-VCFBundle | Where-Object { $_.components.toVersion -eq $vrslcmVersion }).downloadStatus -eq "SUCCESSFUL") {
-                        Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager, already downloaded: SKIPPED"
+                        Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($vrslcmVersion) to SDDC Manager, already downloaded: SKIPPED"
                     }
                 } else {
                     Write-Error "Unable to establish the VMware Aria Suite Lifecycle version for the SDDC Manager instance: PRE_VALIDATED_FAILED"
@@ -26373,10 +26375,14 @@ Function Test-GlobalWsaPrerequisite {
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
     )
 
     $solutionName = "Workspace ONE Access"
@@ -26412,6 +26418,75 @@ Function Test-GlobalWsaPrerequisite {
     }
 }
 Export-ModuleMember -Function Test-GlobalWsaPrerequisite
+
+Function Request-WSAMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for Workspace ONE Access
+
+        .DESCRIPTION
+        The Request-WSAMscaSignedCertificate cmdlet requests a signed certificate for Workspace ONE Access from a
+        Microsoft Certificate Authority using the details from the Workspace ONE Access JSON specification file.
+
+        .EXAMPLE
+        Request-WSAMscaSignedCertificate -jsonFile .\wsaDeploySpec.json -certificates .\certificates\
+        This example verifies the prerequisites for Workspace ONE Access.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the store the certificate files.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Workspace ONE Access"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $solutionName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.clusterFqdn -subjectAlternativeNames "$($jsonInput.hostNameNodeA), $($jsonInput.hostNameNodeB), $($jsonInput.hostNameNodeC)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $solutionName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.clusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $solutionName"
+
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.clusterFqdn + ".key") -crtFilePath ($certificates + $jsonInput.clusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-WSAMscaSignedCertificate
 
 Function Invoke-GlobalWsaDeployment {
     <#
@@ -26461,9 +26536,9 @@ Function Invoke-GlobalWsaDeployment {
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of Cross-Instance $wsaProductName"
         if (Test-Path -Path $jsonFile) {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            $wsaPem = $certificates + $jsonInput.certificateAlias + ".2.chain.pem"
+            $wsaPem = $certificates + $jsonInput.clusterFqdn + ".pem"
             if (Test-Path -Path $wsaPem) {
-                $rootPem = $certificates + "Root64.pem"
+                $rootPem = $certificates + $jsonInput.mscaComputerName + "-rootCA.pem"
                 if (Test-Path -Path $rootPem) {
                     if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                         if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
@@ -26542,6 +26617,12 @@ Function Invoke-GlobalWsaDeployment {
                                     }
 
                                     if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
+                                        $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
                                         if ((Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).Count -gt 1) {
                                             Show-PowerValidatedSolutionsOutput -message "Configure an Anti-Affinity Rule and a Virtual Machine Group for a $wsaProductName Instance"
                                             $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -26562,12 +26643,6 @@ Function Invoke-GlobalWsaDeployment {
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Configure NTP on $wsaProductName Virtual Appliances"
                                         $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    }
-
-                                    if (!$failureDetected) {
-                                        Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
-                                        $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     }
 
@@ -33536,7 +33611,7 @@ Function Add-WSALdapDirectory {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         if ($PsBoundParameters.ContainsKey("certificate")) {
             #read certificate file contents as certdata
-            $certdata = (Get-Content ($certificate)) -join "\n"
+            $certdata = (Get-Content ($certificate) | Where-Object { $_ -notmatch "subject=" -and $_ -notmatch "issuer="}) -join "\n"
             $body = '{
                 "useSRV":true,
                 "directoryType":"ACTIVE_DIRECTORY_LDAP",
@@ -52232,9 +52307,9 @@ Function Invoke-GenerateChainPem {
                     }
                     # Combine files
                     if (($PSBoundParameters.ContainsKey('keyFilePath')) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
-                        Get-Content $keyFilePath, $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
+                        Get-Content $crtFilePath, $rootCaFilePath, $keyFilePath | Set-Content $pemFilePath
                     } elseif (($PSBoundParameters.ContainsKey('keyFilePath')) -and (-Not ($PSBoundParameters.ContainsKey('rootCaFilePath')))) {
-                        Get-Content $keyFilePath, $crtFilePath | Set-Content $pemFilePath
+                        Get-Content $crtFilePath, $keyFilePath | Set-Content $pemFilePath
                     } elseif ((-Not ($PSBoundParameters.ContainsKey('keyFilePath'))) -and ($PSBoundParameters.ContainsKey('rootCaFilePath'))) {
                         Get-Content $crtFilePath, $rootCaFilePath | Set-Content $pemFilePath
                     } else {
@@ -54864,6 +54939,7 @@ Function Start-WorkspaceOneAccessMenu {
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Generate Signed Certificate from Microsoft Certifiate Authority"
 
         $headingItem02 = "Implementation"
         $menuitem05 = "End-to-End Deployment"
@@ -54891,6 +54967,7 @@ Function Start-WorkspaceOneAccessMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
@@ -54908,7 +54985,12 @@ Function Start-WorkspaceOneAccessMenu {
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Test-GlobalWsaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
+                    Test-GlobalWsaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                3 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-WSAMscaSignedCertificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
                 5 {
@@ -55367,10 +55449,11 @@ Function Start-PcaMenu {
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Generate Signed Certificate from Microsoft Certifiate Authority"
 
         $headingItem02 = "Implementation"
-        $menuitem03 = "End-to-End Deployment"
-        $menuitem04 = "Remove from Environment"
+        $menuitem05 = "End-to-End Deployment"
+        $menuitem06 = "Remove from Environment"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -55394,10 +55477,11 @@ Function Start-PcaMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
-            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -55416,11 +55500,16 @@ Function Start-PcaMenu {
                 }
                 3 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-vRAMscaSignedCertificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-PcaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
                     waitKey
                 }
-                4 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                6 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPcaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
@@ -55836,6 +55925,15 @@ Function Start-CcmMenu {
 
 Function waitKey {
     Write-Host ''; Write-Host -Object ' Press any key to continue/return to menu...' -ForegroundColor Yellow; Write-Host '';
+    if ($headlessPassed) {
+        $response = if (!$clioptions) { Read-Host } else { "" }
+    } else {
+        $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+    }
+}
+
+Function procedureWaitKey {
+    Write-Host ''; Write-Host -Object ' Press any key to continue' -ForegroundColor Yellow; Write-Host '';
     if ($headlessPassed) {
         $response = if (!$clioptions) { Read-Host } else { "" }
     } else {

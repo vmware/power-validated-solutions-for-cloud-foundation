@@ -45,6 +45,7 @@
 - Added `Request-vRLIMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
 - Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
 - Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
+- Added `Request-WSAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for Workspace ONE Access.
 - Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
 - Added `Install-TanzuSignedCertificate` cmdlet to request and install a signed certificate for the Tanzu Supervisor Cluster.
 - Added `Invoke-GeneratePKCS12` cmdlet to generate a PKCS12 file (.pfx) to support certificate replacement of vSphere Replication and Site Recovery Manager.

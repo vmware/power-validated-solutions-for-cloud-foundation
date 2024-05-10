@@ -866,6 +866,7 @@ nav:
       - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
       - documentation/functions/workspace-one-access/Invoke-WsaDirectorySync.md
       - documentation/functions/workspace-one-access/New-WSADeployment.md
+      - documentation/functions/workspace-one-access/Request-WSAMscaSignedCertificate.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md

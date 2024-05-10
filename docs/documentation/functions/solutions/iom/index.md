@@ -20,7 +20,7 @@ Select an option for the solution.
     | [`Test-IomPrerequisite`](Test-IomPrerequisite.md)                                                                 | Prerequisites         |
     | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Deployment |
     | [`Invoke-IomDeployment`](Invoke-IomDeployment.md)                                                                 | End-to-End Deployment |
-    | [`Request-vRLOPSMscaSignedCertificate`](./../../aria-suite/aria-operations/Request-vROPSMscaSignedCertificate.md) | Procedure             |
+    | [`Request-vROPSMscaSignedCertificate`](./../../aria-suite/aria-operations/Request-vROPSMscaSignedCertificate.md)  | Procedure             |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                           | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                     | Procedure             |
     | [`Add-SddcManagerRole`](./../../sddc-manager/Add-SddcManagerRole.md)                                              | Procedure             |
