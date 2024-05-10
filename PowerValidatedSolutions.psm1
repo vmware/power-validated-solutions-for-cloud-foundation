@@ -24877,7 +24877,7 @@ Function Invoke-vRSLCMDeployment {
                         $failureDetected = $false
                         $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                         foreach ($vcfVersion in $moduleConfig.vcfVersion) {
-                            if ($actualVcfVersion -ne "5.1.1") {
+                            if ($actualVcfVersion -le "5.1.1") {
                                 $extraVrslcmPsPack = ($vcfVersion.'5.1.1' | Where-Object   {$_.AriaComponent -eq "AriaSuiteLifecyclePsPack"}).Version
                             }
                             if ($vcfVersion.$actualVcfVersion) {
@@ -24948,13 +24948,16 @@ Function Invoke-vRSLCMDeployment {
                             }
 
                             if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
-                                if ($actualVcfVersion -ne "5.1.1") {
+                                if ($actualVcfVersion -le "5.1.1") {
+                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($extraVrslcmPsPack) to $lcmProductName"
                                     waitKey
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $extraVrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                } else {
+                                } elseif ($actualVcfVersion -eq "5.1.1") {
+                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($$vrslcmPsPack) to $lcmProductName"
+                                    waitKey
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $vrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
