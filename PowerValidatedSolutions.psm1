@@ -52175,6 +52175,111 @@ Function Invoke-RequestSignedCertificate {
 }
 Export-ModuleMember -Function Invoke-RequestSignedCertificate
 
+Function Get-MscaRootCertificate {
+    <#
+        .SYNOPSIS
+        Get the root certificate from the Microsoft Certificate Authority.
+
+        .DESCRIPTION
+        The Get-MscaRootCertificate cmdlet retrieves the root certificate from the Microsoft Certificate Authority.  It will also retrieve the full root certificate chain from the Microsoft Certificate Authority if the Microsoft Certificate Authority is an intermediate certificate authority.
+
+        .EXAMPLE
+        Get-MscaRootCertificate -caFqdn "rpl-dc01.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format "cer"
+        This example will request the root certificate from the Microsoft Certificate Authority (rpl-dc01.rainpole.io) in base64 encoding with file extention .cer
+
+        .EXAMPLE
+        Get-MscaRootCertificate -caFqdn "sfo-dc01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format "pem" -fullChain
+        This example will request the full root certificate chain from the intermediate Microsoft Certificate Authority (sfo-dc01.sfo.rainpole.io) in base64 encoding with file extention .pem
+
+        .PARAMETER outDirPath
+        The directory path to store the signed certificate file.
+
+        .PARAMETER caFqdn
+        The FQDN of the Microsoft Certificate Authority web enrollment service.
+
+        .PARAMETER username
+        The username to authenticate to the Microsoft Certificate Authority web enrollment service.
+
+        .PARAMETER password
+        The password to authenticate to the Microsoft Certificate Authority web enrollment service.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$caFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [Switch]$fullChain,
+        [Parameter (Mandatory = $true)] [ValidateSet ("cer", "pem")] [String]$format
+    )
+
+    Try {
+        # Validate inputs
+        if (Test-Path -Path $outDirPath) {
+            if ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl)) {
+                $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
+                if ($opensslVersion -ge "3.0.0") {
+                    $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
+                    $domainCreds = New-Object System.Management.Automation.PSCredential ($username, $securePass)
+                    $respond = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certrqxt.asp" -Credential $domainCreds -Method Get -SkipCertificateCheck
+                    if ($respond.StatusCode -match "200") {
+                        #create temporary file
+                        $createRandomCounter = 0
+                        for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
+                            $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
+                            $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$caFqdn-$randomString.p7b"
+                            if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
+                                Write-Output "1" | Set-Content $rootCaFilePathTemp
+                                if (Test-Path -Path $rootCaFilePathTemp) {
+                                    Remove-Item $rootCaFilePathTemp
+                                }
+                            } else {
+                                if ($createRandomCounter -gt 6) {
+                                    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                                }
+                            }
+                        }
+                        if ($fullChain) {
+                            $rootCaFilename = "$caFqdn-chainCA." + $format
+                        } else {
+                            $rootCaFilename = "$caFqdn-rootCA." + $format
+                        }
+                        $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
+                        if (Test-Path -Path $rootCaFilePath) {
+                            Write-Error "$rootCaFilePath file exists. Please remove or rename the existing file ($rootFilename): PRE_VALIDATION_FAILED" -ErrorAction Stop
+                        }
+
+                        # Request root certificate
+                        Try {
+                            if ($fullChain) {
+                                $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.p7b?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePathTemp -SkipCertificateCheck
+                                openssl pkcs7 -inform PEM -outform PEM -in $rootCaFilePathTemp -print_certs > $rootCaFilePath
+                                Remove-Item $rootCaFilePathTemp
+                            } else {
+                                $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.cer?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePath -SkipCertificateCheck
+                            }
+                        } Catch {
+                            Debug-ExceptionWriter -object $_
+                        }
+                    } else {
+                        Write-Error "Unable to connect to the Microsoft Certificate Authority Server ($caFqdn): PRE_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Error "OpenSSL Version is less than 3.0: PRE_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
+            }
+        } else {
+            Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-MscaRootCertificate
+
 Function Invoke-GenerateChainPem {
     <#
         .SYNOPSIS

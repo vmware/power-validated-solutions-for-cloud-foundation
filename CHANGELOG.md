@@ -37,7 +37,7 @@
   - Added `Test-HrmPrerequisite` cmdlet to verify prerequisites for Health Reporting anf Monitoring.
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
-  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility. 
+  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.
@@ -86,6 +86,7 @@
 - Enhanced `Add-ContentLibrary` cmdlet to not exit the workflow when checking for the version of VMware Cloud Foundation.
 - Enhanced `Invoke-vRSLCMDeployment` cmdlet to use the internal `messageHandler` function for better message output handling.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to check the certificate before attempting to install.
+- Added `Get-MscaRootCertificate` cmdlet to retrieve the root or the full chain certificate from the Microsoft Certificate Authority.
 
 ## v2.9.0
 
