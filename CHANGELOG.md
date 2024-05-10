@@ -27,6 +27,7 @@
 - Added `Request-AriaNetworksToken` cmdlet to obtain an authorization token from VMware Aria Operations for Networks.
 - Added cmdlets to verify prerequisites before attempting to deploy a Validated Solutions:
   - Added `Test-VrslcmPrerequisite` cmdlet to verify prerequisites for VMware Aria Suite Lifecycle.
+  - Added `Test-GlobalWsaPrerequisite` cmdlet to verify prerequisites for Workspace ONE Access.
   - Added `Test-IamPrerequisite` cmdlet to verify prerequisites for Identity and Access Management.
   - Added `Test-DriPrerequisite` cmdlet to verify prerequisites for Developer Ready Infrastructure.
   - Added `Test-IlaPrerequisite` cmdlet to verify prerequisites for Intelligent Logging and Analytics.

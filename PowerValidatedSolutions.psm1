@@ -180,7 +180,7 @@ Function Test-IamPrerequisite {
                     }
                     # Verify that the required security groups are created in Active Directory
                     $adGroups = $jsonInput.nsxAdGroups; $allGroups += @($jsonInput.vcenterAdminGroup, $jsonInput.vcenterReadOnlyGroup, $jsonInput.ssoAdminGroup, $jsonInput.vcfAdminGroup, $jsonInput.vcfOperatorGroup, $jsonInput.vcfViewerGroup)
-                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $adGroups
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $adGroups -domain $jsonInput.domainFqdn
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
@@ -9059,7 +9059,7 @@ Function Test-DriPrerequisite {
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     # Verify that the required security groups are created in Active Directory
                     $adGroups = @($jsonInput.namespaceEditUserGroup, $jsonInput.namespaceViewUserGroup)
-                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $adGroups
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $adGroups -domain $jsonInput.domainFqdn
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
@@ -12515,7 +12515,7 @@ Function Test-IlaPrerequisite {
                     Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Logs" # Verify a license key is present
                     Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
-                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
@@ -16226,7 +16226,7 @@ Function Test-IomPrerequisite {
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
@@ -20717,7 +20717,7 @@ Function Test-PcaPrerequisite {
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
-                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $jsonInput.adGroups # Verify that the required security groups are created in Active Directory
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
                     Test-PrereqOpenSsl # Verify that OpenSSL is installed
@@ -24791,14 +24791,14 @@ Export-ModuleMember -Function Export-vRSLCMJsonSpec
 Function Test-VrslcmPrerequisite {
     <#
         .SYNOPSIS
-        Verify the prerequisites for VMware Aria Suite Lifecyle
+        Verify the prerequisites for VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Test-VrslcmPrerequisite cmdlet verifies the prerequisites for VMware Aria Suite Lifecyle.
+        The Test-VrslcmPrerequisite cmdlet verifies the prerequisites for VMware Aria Suite Lifecycle.
 
         .EXAMPLE
         Test-VrslcmPrerequisite -jsonFile .\vrslcmDeploySpec.json
-        This example verifies the prerequisites for VMware Aria Suite Lifecyle.
+        This example verifies the prerequisites for VMware Aria Suite Lifecycle.
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
@@ -24809,7 +24809,7 @@ Function Test-VrslcmPrerequisite {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
 
-    $solutionName = "VMware Aria Suite Lifecyle"
+    $solutionName = "VMware Aria Suite Lifecycle"
 
     Try {
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
@@ -24949,15 +24949,15 @@ Function Invoke-vRSLCMDeployment {
 
                             if (!$failureDetected) {
                                 if ($actualVcfVersion -le "5.1.1") {
-                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($extraVrslcmPsPack) to $lcmProductName"
                                     waitKey
+                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $extraVrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 } elseif ($actualVcfVersion -eq "5.1.1") {
-                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upload ($$vrslcmPsPack) to $lcmProductName"
                                     waitKey
+                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                     $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $vrslcmPsPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
@@ -26301,6 +26301,7 @@ Function Export-GlobalWsaJsonSpec {
                 'domainBindDn'                = $pnpWorkbook.Workbook.Names["child_ad_bind_dn"].Value
                 'domainBindUser'              = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
                 'domainBindPass'              = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+                'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'baseGroupDn'                 = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
                 'baseUserDn'                  = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
                 'adGroups'                    = "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
@@ -26322,6 +26323,18 @@ Function Export-GlobalWsaJsonSpec {
                 'hostNameNodeC'               = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
                 'ipNodeC'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
                 'wsaNodeSize'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value
+                'organization'                = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationalUnit'          = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'country'                     = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'stateOrProvince'             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'locality'                    = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'adminEmailAddress'           = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+                'KeySize'                     = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
+                'mscaComputerName'            = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                'mscaName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+                'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+                'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -26345,6 +26358,60 @@ Function Export-GlobalWsaJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-GlobalWsaJsonSpec
+
+Function Test-GlobalWsaPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Global Workspace ONE Access
+
+        .DESCRIPTION
+        The Test-GlobalWsaPrerequisite cmdlet verifies the prerequisites for Global Workspace ONE Access.
+
+        .EXAMPLE
+        Test-GlobalWsaPrerequisite -jsonFile .\wsaDeploySpec.json
+        This example verifies the prerequisites for Global Workspace ONE Access.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Workspace ONE Access"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                    Test-PrereqBinary -searchCriteria "identity-manager" # Verify that the required binaries are available
+                    Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
+                    Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-GlobalWsaPrerequisite
 
 Function Invoke-GlobalWsaDeployment {
     <#
@@ -54320,7 +54387,7 @@ Function Test-PrereqBinary {
         if ((Get-ChildItem $binaries | Where-Object { $_.name -match $searchCriteria }).name) {
             Show-PowerValidatedSolutionsOutput -message "Verify that the required binaries for Host Virtual Machine are available ($(((Get-ChildItem $binaries | Where-Object { $_.name -match $searchCriteria }).name))): SUCCESSFUL"
         } else {
-            Show-PowerValidatedSolutionsOutput -Type Error -message "Verify that the required binaries for Host Virtual Machine are available: PRE_VALIDATION_FAILED"
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required binaries for Host Virtual Machine are available: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -54435,18 +54502,24 @@ Function Test-PrereqAdGroup {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$adGroups
     )
 
     Try {
-        Foreach ($securityGroup in $adGroups) {
-            $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-            $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
-            if ((Get-ADGroup -Server $server -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
-                Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
-            } else {
-                Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+        if ((Test-ADAuthentication -user $user -pass $password -server $server -domain $domain)[-1] -match "AD Authentication Successful") {
+            Foreach ($securityGroup in $adGroups) {
+                    $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+                    $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
+                    if ((Get-ADGroup -Server $server -Credential $creds -Filter { SamAccountName -eq $securityGroup })) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that the required security groups are created in Active Directory ($securityGroup): SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required security groups are created in Active Directory ($securityGroup): PRE_VALIDATION_FAILED"
+                    }
+                }
             }
+        else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the required service account is created in Active Directory ($user): PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -54788,10 +54861,13 @@ Function Start-WorkspaceOneAccessMenu {
         $jsonSpecFile = "validatedSolution-wsaDeploySpec.json"
         $submenuTitle = ("Cross-Instance Workspace ONE Access for VMware Cloud Foundation")
 
-        $headingItem01 = "Cross-Instance Workspace ONE Access"
+        $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
-        $menuitem02 = "End-to-End Deployment"
-        $menuitem03 = "Remove from Environment"
+        $menuitem02 = "Verify Prerequisites"
+
+        $headingItem02 = "Implementation"
+        $menuitem05 = "End-to-End Deployment"
+        $menuitem06 = "Remove from Environment"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -54812,10 +54888,13 @@ Function Start-WorkspaceOneAccessMenu {
                 Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
             }
 
-            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -54829,6 +54908,11 @@ Function Start-WorkspaceOneAccessMenu {
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-GlobalWsaPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
                     Show-PowerValidatedSolutionsOutput -Type QUESTION -Message "Do you wish to deploy a Single Node Workspace ONE Access to conserve resources? (Y/N): " -skipnewline
                     $singleWSA = Read-Host
                     $singleWSA = $singleWSA -replace "`t|`n|`r", ""
@@ -54839,8 +54923,8 @@ Function Start-WorkspaceOneAccessMenu {
                     }
                     waitKey
                 }
-                3 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                6 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoGlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
