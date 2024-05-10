@@ -1,28 +1,28 @@
-# Test-VrslcmPrerequisite
+# Test-GlobalWsaPrerequisite
 
-## Synopsis
+## SYNOPSIS
 
-Verify the prerequisites for VMware Aria Suite Lifecycle.
+Verify the prerequisites for Global Workspace ONE Access.
 
 ## Syntax
 
 ```powershell
-Test-VrslcmPrerequisite [-jsonFile] <String> [<CommonParameters>]
+Test-GlobalWsaPrerequisite [-jsonFile] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-VrslcmPrerequisite` cmdlet verifies the prerequisites for VMware Aria Suite Lifecycle.
+The `Test-GlobalWsaPrerequisite` cmdlet verifies the prerequisites for Global Workspace ONE Access.
 
 ## Examples
 
 ### Example 1
 
-```powershell
-Test-VrslcmPrerequisite -jsonFile .\vrslcmDeploySpec.json
+```pwoershell
+Test-GlobalWsaPrerequisite -jsonFile .\wsaDeploySpec.json
 ```
 
-This example verifies the prerequisites for VMware Aria Suite Lifecycle.
+This example verifies the prerequisites for Global Workspace ONE Access.
 
 ## Parameters
 

@@ -138,7 +138,7 @@ nav:
   - Solutions:
     - Prerequisites:
       - documentation/functions/solutions/lcm/index.md
-      - documentation/functions/solutions/wsa.md
+      - documentation/functions/solutions/wsa/index.md
     - On-Premises:
       - Identity and Access Management:
         - documentation/functions/solutions/iam/index.md
@@ -843,7 +843,6 @@ nav:
       - documentation/functions/workspace-one-access/Add-WSAConnector.md
       - documentation/functions/workspace-one-access/Add-WSALdapDirectory.md
       - documentation/functions/workspace-one-access/Add-WSARoleAssociation.md
-      - documentation/functions/workspace-one-access/Export-GlobalWsaJsonSpec.md
       - documentation/functions/workspace-one-access/Export-WsaJsonSpec.md
       - documentation/functions/workspace-one-access/Get-WsaAccountLockout.md
       - documentation/functions/workspace-one-access/Get-WSAActiveDirectoryGroupDetail.md
@@ -865,8 +864,6 @@ nav:
       - documentation/functions/workspace-one-access/Initialize-WorkspaceOne.md
       - documentation/functions/workspace-one-access/Install-WorkspaceOne.md
       - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
-      - documentation/functions/workspace-one-access/Invoke-GlobalWsaDeployment.md
-      - documentation/functions/workspace-one-access/Invoke-UndoGlobalWsaDeployment.md
       - documentation/functions/workspace-one-access/Invoke-WsaDirectorySync.md
       - documentation/functions/workspace-one-access/New-WSADeployment.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
@@ -898,6 +895,11 @@ nav:
         - documentation/functions/solutions/lcm/Invoke-VrslcmDeployment.md
         - documentation/functions/solutions/lcm/Invoke-VrslcmUndoDeployment.md
         - documentation/functions/solutions/lcm/Test-VrslcmPrerequisite.md
+      - Workspace ONE Access:
+        - documentation/functions/solutions/wsa/Export-GlobalWsaJsonSpec.md
+        - documentation/functions/solutions/wsa/Invoke-GlobalWsaDeployment.md
+        - documentation/functions/solutions/wsa/Invoke-UndoGlobalWsaDeployment.md
+        - documentation/functions/solutions/wsa/Test-GlobalWsaPrerequisite.md
       - Identity and Access Management:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md
