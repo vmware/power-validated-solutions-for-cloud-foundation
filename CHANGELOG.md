@@ -37,7 +37,7 @@
   - Added `Test-HrmPrerequisite` cmdlet to verify prerequisites for Health Reporting anf Monitoring.
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
-  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility. 
+  - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.
@@ -56,6 +56,8 @@
 - Added `Test-SrmRegistration` cmdlet as an internal function to check for registration of Site Recovery Manager in vCenter Server.
 - Added `Import-vRSLCMPSPack` cmdlet to import a Product Support Pack for VMware Suite Lifecycle.
 - Added `Invoke-VrslcmUndoDeployment` cmdlet to remove VMware Suite Lifecycle from the environment.
+- Added `Get-MscaRootCertificate` cmdlet to retrieve the root or the full chain certificate from the Microsoft Certificate Authority.
+- Added `Request-IamMscaSignedCertificate` cmdlet to retrieve the root certificate of the Microsoft Certificate Authority for Identity and Access Management.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.

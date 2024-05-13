@@ -22,7 +22,7 @@ The `Request-WSAMscaSignedCertificate` cmdlet requests a signed certificate for 
 Request-WSAMscaSignedCertificate -jsonFile .\wsaDeploySpec.json -certificates .\certificates\
 ```
 
-This example verifies the prerequisites for Workspace ONE Access.
+This example request a signed certificate for Workspace ONE Access.
 
 ## Paramters
 

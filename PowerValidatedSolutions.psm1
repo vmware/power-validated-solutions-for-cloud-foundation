@@ -196,6 +196,63 @@ Function Test-IamPrerequisite {
 }
 Export-ModuleMember -Function Test-IamPrerequisite
 
+Function Request-IamMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request Microsoft Certificate Authority Root Certificate
+
+        .DESCRIPTION
+        The Request-IamMscaSignedCertificate cmdlet requests the Microsoft Certificate Authority Root Certificate using
+        the details from the Identity and Access Management JSON specification file.
+
+        .EXAMPLE
+        Request-IamMscaSignedCertificate -jsonFile .\iamDeploySpec.json -certificates .\certificates\
+        This example requests the Microsoft Certificate Authority Root Certificate.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the store the certificate files.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Identity and Access Management"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Root Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Root Signed Certificate (.cer) file for $solutionName"
+                    $StatusMsg = Get-MscaRootCertificate -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -outDirPath $certificates -format cer -fullchain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Root Signed Certificate for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-IamMscaSignedCertificate
+
 Function Invoke-IamDeployment {
     <#
         .SYNOPSIS
@@ -227,7 +284,7 @@ Function Invoke-IamDeployment {
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
         if (Test-Path -Path $jsonFile) {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            $rootCertificate = $certificates + "Root64.cer"
+            $rootCertificate = $certificates + $jsonInput.mscaComputerName + "-chainCA.cer"
             if (Test-Path -Path $rootCertificate) {
                 if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
                     if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
@@ -26430,7 +26487,7 @@ Function Request-WSAMscaSignedCertificate {
 
         .EXAMPLE
         Request-WSAMscaSignedCertificate -jsonFile .\wsaDeploySpec.json -certificates .\certificates\
-        This example verifies the prerequisites for Workspace ONE Access.
+        This example request a signed certificate for Workspace ONE Access.
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
@@ -52223,7 +52280,7 @@ Function Invoke-RequestSignedCertificate {
                                     if (Test-Path -Path $crtFilePath) {
                                         Write-Output "Creation of Certificate (.crt) file named ($crtFileName): SUCCESSFUL"
                                     } else {
-                                        Write-Errort "Creation of Certificate (.crt) file named ($crtFileName): POST_VALIDATION_FAILED"
+                                        Write-Error "Creation of Certificate (.crt) file named ($crtFileName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Write-Error "Microsoft Certificate Authority Certificate Template ($certificateTemplate) not found: PRE_VALIDATION_FAILED"
@@ -52249,6 +52306,123 @@ Function Invoke-RequestSignedCertificate {
     }
 }
 Export-ModuleMember -Function Invoke-RequestSignedCertificate
+
+Function Get-MscaRootCertificate {
+    <#
+        .SYNOPSIS
+        Get the root certificate from the Microsoft Certificate Authority.
+
+        .DESCRIPTION
+        The Get-MscaRootCertificate cmdlet retrieves the root certificate from the Microsoft Certificate Authority.  It will also retrieve the full root certificate chain from the Microsoft Certificate Authority if the Microsoft Certificate Authority is an intermediate certificate authority.
+
+        .EXAMPLE
+        Get-MscaRootCertificate -caFqdn "rpl-dc01.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format cer
+        This example will request the root certificate from the Microsoft Certificate Authority (rpl-dc01.rainpole.io) in base64 encoding with file extention .cer
+
+        .EXAMPLE
+        Get-MscaRootCertificate -caFqdn "sfo-dc01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format pem -fullChain
+        This example will request the full root certificate chain from the intermediate Microsoft Certificate Authority (sfo-dc01.sfo.rainpole.io) in base64 encoding with file extention .pem
+
+        .PARAMETER outDirPath
+        The directory path to store the signed certificate file.
+
+        .PARAMETER caFqdn
+        The FQDN of the Microsoft Certificate Authority web enrollment service.
+
+        .PARAMETER username
+        The username to authenticate to the Microsoft Certificate Authority web enrollment service.
+
+        .PARAMETER password
+        The password to authenticate to the Microsoft Certificate Authority web enrollment service.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outDirPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$caFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [Switch]$fullChain,
+        [Parameter (Mandatory = $true)] [ValidateSet ("cer", "pem")] [String]$format
+    )
+
+    Try {
+        # Validate inputs
+        if (Test-Path -Path $outDirPath) {
+            if ([bool] (Get-Command -ErrorAction Ignore -Type Application openssl)) {
+                $opensslVersion = openssl version | ForEach-Object { ($_ -split ' ')[1] }
+                if ($opensslVersion -ge "3.0.0") {
+                    $securePass = ConvertTo-SecureString -String $password -AsPlainText -Force
+                    $domainCreds = New-Object System.Management.Automation.PSCredential ($username, $securePass)
+                    $respond = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certrqxt.asp" -Credential $domainCreds -Method Get -SkipCertificateCheck
+                    if ($respond.StatusCode -match "200") {
+                        #create temporary file
+                        $createRandomCounter = 0
+                        for ($createRandomCounter = 0; $createRandomCounter -lt 8; $createRandomCounter++) {
+                            $randomString = -join (((48..57) + (65..90) + (97..122)) * 80 | Get-Random -Count 6 | % { [char]$_ })
+                            $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$caFqdn-$randomString.p7b"
+                            if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
+                                Write-Output "1" | Set-Content $rootCaFilePathTemp
+                                if (Test-Path -Path $rootCaFilePathTemp) {
+                                    Remove-Item $rootCaFilePathTemp
+                                }
+                            } else {
+                                if ($createRandomCounter -gt 6) {
+                                    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                                }
+                            }
+                        }
+                        if ($fullChain) {
+                            $rootCaFilename = "$caFqdn-chainCA." + $format
+                        } else {
+                            $rootCaFilename = "$caFqdn-rootCA." + $format
+                        }
+                        $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
+                        if (-Not (Test-Path -Path $rootCaFilePath)) {
+                            # Request root certificate
+                            Try {
+                                if ($fullChain) {
+                                    $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.p7b?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePathTemp -SkipCertificateCheck
+                                    openssl pkcs7 -inform PEM -outform PEM -in $rootCaFilePathTemp -print_certs > $rootCaFilePath
+                                    (Get-Content ($rootCaFilePath) | Where-Object { $_ -notmatch "subject=" -and $_ -notmatch "issuer="}) | Set-Content $rootCaFilePath
+                                    Remove-Item $rootCaFilePathTemp
+                                    if (Test-Path -Path $rootCaFilePath) {
+                                        Write-Output "Creation of Certificate (.crt) file named ($rootCaFilename): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Creation of Certificate (.crt) file named ($rootCaFilename): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    $null = Invoke-WebRequest -Uri "https://$caFqdn/certsrv/certnew.cer?ReqID=CACert&Enc=b64" -Credential $domainCreds -OutFile $rootCaFilePath -SkipCertificateCheck
+                                    (Get-Content ($rootCaFilePath) | Where-Object { $_ -notmatch "subject=" -and $_ -notmatch "issuer="}) | Set-Content $rootCaFilePath
+                                    if (Test-Path -Path $rootCaFilePath) {
+                                        Write-Output "Creation of Certificate (.crt) file named ($rootCaFilename): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Creation of Certificate (.crt) file named ($rootCaFilename): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                            } Catch {
+                                Debug-ExceptionWriter -object $_
+                            }
+                        } else {
+                            Write-Warning "Creation of Certificate (.crt) file named ($rootCaFilename), already exists: SKIPPED"
+                        }
+                    } else {
+                        Write-Error "Unable to connect to the Microsoft Certificate Authority Server ($caFqdn): PRE_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Error "OpenSSL Version is less than 3.0: PRE_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Error "OpenSSL Not Found. Please verify OpenSSL is installed: PRE_VALIDATION_FAILED"
+            }
+        } else {
+            Write-Error "Certificate output directory ($outDirPath) does not exist: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-MscaRootCertificate
 
 Function Invoke-GenerateChainPem {
     <#
@@ -55032,10 +55206,11 @@ Function Start-IamMenu {
         $headingItem02 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($protectedJsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Request Microsoft Certifiate Authority Root Certificate"
 
         $headingItem03 = "Implementation"
-        $menuitem03 = "End-to-End Deployment"
-        $menuitem04 = "Remove from Environment"
+        $menuitem05 = "End-to-End Deployment"
+        $menuitem06 = "Remove from Environment"
 
         if ($recoveryWorkbook) {
             $headingItem06 = "Recovery Instance"
@@ -55044,8 +55219,8 @@ Function Start-IamMenu {
             $menuitem11 = "Verify Prerequisites"
 
             $headingItem08 = "Implementation"
-            $menuitem12 = "End-to-End Deployment"
-            $menuitem13 = "Remove from Environment"
+            $menuitem15 = "End-to-End Deployment"
+            $menuitem16 = "Remove from Environment"
         }
 
         Do {
@@ -55071,10 +55246,11 @@ Function Start-IamMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
-            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             if ($recoveryWorkbook) {
                 Write-Host ""; Write-Host -Object " $headingItem06" -ForegroundColor Cyan
@@ -55083,8 +55259,8 @@ Function Start-IamMenu {
                 Write-Host -Object " 11. $menuItem11" -ForegroundColor White
 
                 Write-Host ""; Write-Host -Object " $headingItem08" -ForegroundColor Yellow
-                Write-Host -Object " 12. $menuItem11" -ForegroundColor White
-                Write-Host -Object " 13. $menuItem12" -ForegroundColor White
+                Write-Host -Object " 15. $menuItem15" -ForegroundColor White
+                Write-Host -Object " 16. $menuItem16" -ForegroundColor White
             }
 
             Write-Host -Object ''
@@ -55104,11 +55280,16 @@ Function Start-IamMenu {
                 }
                 3 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-IamMscaSignedCertificate -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
-                4 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem04" -Foregroundcolor Cyan; Write-Host ''
+                6 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
@@ -55122,13 +55303,13 @@ Function Start-IamMenu {
                     Test-IamPrerequisite -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }
-                12 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem12" -Foregroundcolor Cyan; Write-Host ''
+                15 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem15" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-IamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
-                13 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem13" -Foregroundcolor Cyan; Write-Host ''
+                16 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem16" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }

@@ -497,6 +497,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Watch-vRSLCMRequest.md
     - Certificates:
+      - documentation/functions/certificates/Get-MscaRootCertificate.md
       - documentation/functions/certificates/Invoke-GenerateChainPem.md
       - documentation/functions/certificates/Invoke-GeneratePKCS12.md
       - documentation/functions/certificates/Invoke-GeneratePrivateKeyAndCsr.md
