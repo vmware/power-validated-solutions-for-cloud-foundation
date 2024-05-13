@@ -867,7 +867,6 @@ nav:
       - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
       - documentation/functions/workspace-one-access/Invoke-WsaDirectorySync.md
       - documentation/functions/workspace-one-access/New-WSADeployment.md
-      - documentation/functions/workspace-one-access/Request-WSAMscaSignedCertificate.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md
@@ -901,11 +900,13 @@ nav:
         - documentation/functions/solutions/wsa/Export-GlobalWsaJsonSpec.md
         - documentation/functions/solutions/wsa/Invoke-GlobalWsaDeployment.md
         - documentation/functions/solutions/wsa/Invoke-UndoGlobalWsaDeployment.md
+        - documentation/functions/solutions/wsa/Request-WSAMscaSignedCertificate.md
         - documentation/functions/solutions/wsa/Test-GlobalWsaPrerequisite.md
       - Identity and Access Management:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md
         - documentation/functions/solutions/iam/Invoke-UndoIamDeployment.md
+        - documentation/functions/solutions/iam/Request-IamMscaSignedCertificate.md
         - documentation/functions/solutions/iam/Test-IamPrerequisite.md
       - Developer Ready Infrastructure:
         - documentation/functions/solutions/dri/Export-DriJsonSpec.md

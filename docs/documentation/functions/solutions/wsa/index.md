@@ -15,6 +15,7 @@ Select an option for the solution Prerequisites.
     | Function                                                                                                | Type                  |
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Test-GlobalWsaPrerequisite`](Test-GlobalWsaPrerequisite.md)                                           | Prerequisites         |
+    | [`Request-WSAMscaSignedCertificate`](Request-WSAMscaSignedCertificate.md)                               | Prerequisites         |
     | [`Export-GlobalWsaJsonSpec`](Export-GlobalWsaJsonSpec.md)                                               | End-to-End Deployment |
     | [`Invoke-GlobalWsaDeployment`](Invoke-GlobalWsaDeployment.md)                                           | End-to-End Deployment |
     | [`Request-WSAMscaSignedCertificate`](./../../workspace-one-access/Request-WSAMscaSignedCertificate.md)  | End-to-End Deployment |
