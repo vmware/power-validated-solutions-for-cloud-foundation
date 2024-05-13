@@ -11,6 +11,7 @@ Select an option for the solution.
     | Function                                                                          | Type                  |
     | --------------------------------------------------------------------------------- | --------------------- |
     | [`Test-IamPrerequisite`](Test-IamPrerequisite.md)                                 | Prerequisites         |
+    | [`Request-IamMscaSignedCertificate`](Request-IamMscaSignedCertificate.md)         | Prerequisites         |
     | [`Export-IamJsonSpec`](Export-IamJsonSpec.md)                                     | End-to-End Deployment |
     | [`Invoke-IamDeployment`](Invoke-IamDeployment.md)                                 | End-to-End Deployment |
     | [`Add-IdentitySource`](./../../vsphere/Add-IdentitySource.md)                     | Procedure             |

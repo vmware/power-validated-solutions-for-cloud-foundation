@@ -12,13 +12,15 @@ Select an option for the solution Prerequisites.
 
     The following functions can be use to perform the solution prerequisites.
 
-    | Function                                                                                        | Type                  |
-    | ----------------------------------------------------------------------------------------------- | --------------------- |
-    | [`Test-GlobalWsaPrerequisite`](Test-GlobalWsaPrerequisite.md)                                   | Prerequisites         |
-    | [`Export-GlobalWsaJsonSpec`](Export-GlobalWsaJsonSpec.md)                                       | End-to-End Deployment |
-    | [`Invoke-GlobalWsaDeployment`](Invoke-GlobalWsaDeployment.md)                                   | End-to-End Deployment |
-    | [`Export-WsaJsonSpec`](./../../workspace-one-access/Export-WsaJsonSpec.md)                      | Procedure             |
-    | [`New-WSADeployment`](./../../workspace-one-access/New-WSADeployment.md)                        | Procedure             |
+    | Function                                                                                                | Type                  |
+    | ------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-GlobalWsaPrerequisite`](Test-GlobalWsaPrerequisite.md)                                           | Prerequisites         |
+    | [`Request-WSAMscaSignedCertificate`](Request-WSAMscaSignedCertificate.md)                               | Prerequisites         |
+    | [`Export-GlobalWsaJsonSpec`](Export-GlobalWsaJsonSpec.md)                                               | End-to-End Deployment |
+    | [`Invoke-GlobalWsaDeployment`](Invoke-GlobalWsaDeployment.md)                                           | End-to-End Deployment |
+    | [`Request-WSAMscaSignedCertificate`](./../../workspace-one-access/Request-WSAMscaSignedCertificate.md)  | End-to-End Deployment |
+    | [`Export-WsaJsonSpec`](./../../workspace-one-access/Export-WsaJsonSpec.md)                              | Procedure             |
+    | [`New-WSADeployment`](./../../workspace-one-access/New-WSADeployment.md)                                | Procedure             |
 
 === ":material-location-exit: &nbsp; Prerequisites Removal"
 

@@ -45,6 +45,7 @@
 - Added `Request-vRLIMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
 - Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
 - Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
+- Added `Request-WSAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for Workspace ONE Access.
 - Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
 - Added `Install-TanzuSignedCertificate` cmdlet to request and install a signed certificate for the Tanzu Supervisor Cluster.
 - Added `Invoke-GeneratePKCS12` cmdlet to generate a PKCS12 file (.pfx) to support certificate replacement of vSphere Replication and Site Recovery Manager.
@@ -55,6 +56,8 @@
 - Added `Test-SrmRegistration` cmdlet as an internal function to check for registration of Site Recovery Manager in vCenter Server.
 - Added `Import-vRSLCMPSPack` cmdlet to import a Product Support Pack for VMware Suite Lifecycle.
 - Added `Invoke-VrslcmUndoDeployment` cmdlet to remove VMware Suite Lifecycle from the environment.
+- Added `Get-MscaRootCertificate` cmdlet to retrieve the root or the full chain certificate from the Microsoft Certificate Authority.
+- Added `Request-IamMscaSignedCertificate` cmdlet to retrieve the root certificate of the Microsoft Certificate Authority for Identity and Access Management.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.
@@ -86,7 +89,6 @@
 - Enhanced `Add-ContentLibrary` cmdlet to not exit the workflow when checking for the version of VMware Cloud Foundation.
 - Enhanced `Invoke-vRSLCMDeployment` cmdlet to use the internal `messageHandler` function for better message output handling.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to check the certificate before attempting to install.
-- Added `Get-MscaRootCertificate` cmdlet to retrieve the root or the full chain certificate from the Microsoft Certificate Authority.
 
 ## v2.9.0
 

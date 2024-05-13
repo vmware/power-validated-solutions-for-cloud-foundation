@@ -1,30 +1,30 @@
-# Request-vROPSMscaSignedCertificate
+# Request-WSAMscaSignedCertificate
 
 ## Synopsis
 
-Request signed certificate for VMware Aria Operations
+Request signed certificate for Workspace ONE Access.
 
 ## Syntax
 
-```powerShell
-Request-vROPSMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
+```powershell
+Request-WSAMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-vROPSMscaSignedCertificate` cmdlet requests a signed certificate for VMware Aria Operations from a Microsoft Certificate Authority using the details from the Intelligent Operations Management JSON specification file.
+The `Request-WSAMscaSignedCertificate` cmdlet requests a signed certificate for Workspace ONE Access from a Microsoft Certificate Authority using the details from the Workspace ONE Access JSON specification file.
 
 ## Examples
 
 ### Example 1
 
-```powerShell
-Request-vROPSMscaSignedCertificate -jsonFile .\iomDeploySpec.json -certificates .\certificates\
+```powershell
+Request-WSAMscaSignedCertificate -jsonFile .\wsaDeploySpec.json -certificates .\certificates\
 ```
 
-This example verifies the prerequisites for Intelligent Operations Management.
+This example request a signed certificate for Workspace ONE Access.
 
-## Parameters
+## Paramters
 
 ### -jsonFile
 

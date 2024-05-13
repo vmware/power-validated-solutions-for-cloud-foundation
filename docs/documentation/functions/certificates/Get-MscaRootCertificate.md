@@ -22,7 +22,7 @@ The `Get-MscaRootCertificate` cmdlet retrieves the root certificate from the Mic
 Get-MscaRootCertificate -caFqdn "rpl-dc01.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format "cer"
 ```
 
-This example will request the root certificate from the Microsoft Certificate Authority (rpl-dc01.rainpole.io) in base64 encoding with file extention .cer
+This example will request the root certificate from the Microsoft Certificate Authority (rpl-dc01.rainpole.io) in base64 encoding with file a extension of .cer
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example will request the root certificate from the Microsoft Certificate Au
 Get-MscaRootCertificate -caFqdn "sfo-dc01.sfo.rainpole.io" -username "Administrator" -password "VMw@re1!" -outDirPath ".\certificates" -format "pem" -fullChain
 ```
 
-This example will request the full root certificate chain from the intermediate Microsoft Certificate Authority (sfo-dc01.sfo.rainpole.io) in base64 encoding with file extention .pem
+This example will request the full root certificate chain from the intermediate Microsoft Certificate Authority (sfo-dc01.sfo.rainpole.io) in base64 encoding with a file extension of .pem
 
 ## Parameters
 

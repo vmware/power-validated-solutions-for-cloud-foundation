@@ -44,7 +44,7 @@ Accept wildcard characters: False
 
 ### -certificates
 
-{{ Fill certificates Description }}
+The path to the store the certificate files.
 
 ```yaml
 Type: String
