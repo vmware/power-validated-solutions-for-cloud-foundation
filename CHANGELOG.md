@@ -42,9 +42,9 @@
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.
 - Added `Get-AriaNetworksDataSource` cmdlet to get all the data sources in a VMware Aria Operations for Networks deployment.
-- Added `Request-vRLIMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
-- Added `Request-vROPSMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
-- Added `Request-vRAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
+- Added `Request-IlaMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
+- Added `Request-IomMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
+- Added `Request-PcaMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
 - Added `Request-WSAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for Workspace ONE Access.
 - Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
 - Added `Install-TanzuSignedCertificate` cmdlet to request and install a signed certificate for the Tanzu Supervisor Cluster.

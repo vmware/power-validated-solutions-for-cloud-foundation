@@ -1,28 +1,28 @@
-# Request-vROPSMscaSignedCertificate
+# Request-IlaMscaSignedCertificate
 
 ## Synopsis
 
-Request signed certificate for VMware Aria Operations
+Request signed certificate for VMware Aria Operations for Logs
 
 ## Syntax
 
 ```powerShell
-Request-vROPSMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
+Request-IlaMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-vROPSMscaSignedCertificate` cmdlet requests a signed certificate for VMware Aria Operations from a Microsoft Certificate Authority using the details from the Intelligent Operations Management JSON specification file.
+The `Request-IlaMscaSignedCertificate` cmdlet requests a signed certificate for VMware Aria Operations for Logs from a Microsoft Certificate Authority using the details from the Intelligent Logging and Analytics JSON specification file.
 
 ## Examples
 
 ### Example 1
 
 ```powerShell
-Request-vROPSMscaSignedCertificate -jsonFile .\iomDeploySpec.json -certificates .\certificates\
+Request-IlaMscaSignedCertificate -jsonFile .\ilaDeploySpec.json -certificates .\certificates\
 ```
 
-This example verifies the prerequisites for Intelligent Operations Management.
+This example request a signed certificate for VMware Aria Operations for Logs.
 
 ## Parameters
 

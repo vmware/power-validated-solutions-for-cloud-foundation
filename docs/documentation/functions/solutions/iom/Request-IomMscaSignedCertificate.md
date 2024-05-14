@@ -1,30 +1,30 @@
-# Request-vRAMscaSignedCertificate
+# Request-IomMscaSignedCertificate
 
 ## Synopsis
 
-Request signed certificate for VMware Aria Automation
+Request signed certificate for VMware Aria Operations
 
 ## Syntax
 
-```powershell
-Request-vRAMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
+```powerShell
+Request-IomMscaSignedCertificate [-jsonFile] <String> [-certificates] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-vRAMscaSignedCertificate` cmdlet requests a signed certificate for VMware Aria Automation from a Microsoft Certificate Authority using the details from the Private Cloud Automation JSON specification file.
+The `Request-IomMscaSignedCertificate` cmdlet requests a signed certificate for VMware Aria Operations from a Microsoft Certificate Authority using the details from the Intelligent Operations Management JSON specification file.
 
 ## Examples
 
 ### Example 1
 
-```powershell
-Request-vRAMscaSignedCertificate -jsonFile .\pcaDeploySpec.json -certificates .\certificates\
+```powerShell
+Request-IomMscaSignedCertificate -jsonFile .\iomDeploySpec.json -certificates .\certificates\
 ```
 
-This example verifies the prerequisites for Private Cloud Automation.
+This example request a signed certificate for VMware Aria Operations.
 
-## Parameter
+## Parameters
 
 ### -jsonFile
 
