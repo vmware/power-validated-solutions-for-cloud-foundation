@@ -59,11 +59,11 @@
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.16.2"
+                "Version": "8.16.1"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.16.1"
+                "Version": "8.16.2"
             },
             {
                 "AriaComponent": "WorkspaceONE",

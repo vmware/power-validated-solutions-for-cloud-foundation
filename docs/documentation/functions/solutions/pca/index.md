@@ -19,9 +19,9 @@ Select an option for the solution.
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Test-PcaPrerequisite`](Test-PcaPrerequisite.md)                                                              | Prerequisites         |
+    | [`Request-PcaMscaSignedCertificate`](Request-PcaMscaSignedCertificate.md)                                      | Prerequisites         |
     | [`Export-PcaJsonSpec`](Export-PcaJsonSpec.md)                                                                  | End-to-End Deployment |
     | [`Invoke-PcaDeployment`](Invoke-PcaDeployment.md)                                                              | End-to-End Deployment |
-    | [`Request-vRAMscaSignedCertificate`](./../../aria-suite/aria-automation/Request-vRAMscaSignedCertificate.md)   | Procedure             |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                        | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                  | Procedure             |
     | [`New-vRSLCMLockerLicense`](./../../aria-suite/aria-suite-lifecycle/New-vRSLCMLockerLicense.md)                | Procedure             |
