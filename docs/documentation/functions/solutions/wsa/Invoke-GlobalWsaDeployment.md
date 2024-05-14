@@ -7,8 +7,7 @@ End-to-end Deployment of Global Workspace ONE Access
 ## Syntax
 
 ```powershell
-Invoke-GlobalWsaDeployment [-jsonFile] <String> [-workbook] <String> [-certificates] <String>
- [-binaries] <String> [-useContentLibrary] [-standard] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-GlobalWsaDeployment [-jsonFile] <String> [-workbook] <String> [-certificates] <String> [-binaries] <String> [-useContentLibrary] [-standard] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

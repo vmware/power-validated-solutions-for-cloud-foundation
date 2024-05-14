@@ -35,7 +35,7 @@ This example gets the details of a datacenter based on the vmid
 ### Example 3
 
 ```powershell
-Get-vRSLCMDatacenter -name sfo-m01-dc01
+Get-vRSLCMDatacenter -datacenterName sfo-m01-dc01
 ```
 
 This example gets the details of a datacenter based on the name.
