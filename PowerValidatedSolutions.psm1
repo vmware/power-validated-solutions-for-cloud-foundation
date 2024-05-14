@@ -16606,7 +16606,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Activating Data Persistence on VMware Cloud Proxy Appliances for the $operationsProductName Virtual Machines"
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "NO AUTOMATION DUE TO MISSING API"
                                         }
 
                                         if (!$failureDetected) {
@@ -25369,9 +25369,9 @@ Function New-vRSLCMDatacenter {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
-                                Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
-                                if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
+                            if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction Ignore -ErrorVariable FunctionError)) {
+                                $newDatacenter = Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location
+                                if (Get-vRSLCMDatacenter -vmid $newDatacenter.dataCenterVmid -ErrorAction Ignore -ErrorVariable FunctionError) {
                                     Write-Output "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
                                 } else {
                                     Write-Error "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
@@ -25441,12 +25441,12 @@ Function New-vRSLCMDatacenterVcenter {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
+                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction Ignore) {
                                 if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
-                                    if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
+                                    if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction Ignore -ErrorVariable FunctionError)) {
                                         Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
                                         Start-Sleep 10
-                                        if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
+                                        if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction Ignore -ErrorVariable FunctionError) {
                                             Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
                                         } else {
                                             Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
@@ -25597,7 +25597,7 @@ Function Update-vRSLCMPSPack {
                                             $request = Install-vRSLCMPSPack -pspackId $pspackId
                                             Do {
                                                 Start-Sleep 30
-                                                Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass | Out-Null
+                                                Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass -ErrorAction Continue | Out-Null
                                                 $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
                                                 $postgresStatus = (Get-vRSLCMHealth).postgres
                                                 $blackstoneStatus = (Get-vRSLCMHealth).blackstone
@@ -26168,6 +26168,9 @@ Function Start-vRSLCMUpgrade {
 
         .PARAMETER type
         The location for the upgrade ISO file.
+
+        .PARAMETER version
+        The version of VMware Aria Suite Lifecycle to upgrade to.
     #>
 
     Param (
@@ -26734,11 +26737,11 @@ Function Invoke-GlobalWsaDeployment {
                                             if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                                 $wsaOva = (Get-ChildItem $binaries | Where-Object { $_.name -match "identity-manager-$wsaVersion" }).name
                                                 $wsaOvaPath = $binaries + $wsaOva
-                                                if ($opsforlogsOva) {
+                                                if ($wsaOvaPath) {
                                                     if ((([regex]::Match(((Split-Path $wsaOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vidm))) {
                                                         Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName version ($wsaVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
                                                     } else {
-                                                        Show-PowerValidatedSolutionsOutput -message "Importing $wsaProductName OVA ($wsaOva) into  vSphere Content Library"
+                                                        Show-PowerValidatedSolutionsOutput -message "Importing $wsaProductName OVA ($wsaOva) into vSphere Content Library"
                                                         $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $wsaOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
@@ -26757,11 +26760,12 @@ Function Invoke-GlobalWsaDeployment {
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Configuring Data Center and vCenter Server in $lcmProductName"
                                             $StatusMsg = New-vRSLCMDatacenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -location $jsonInput.xintLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            Start-Sleep 3
+                                            if ($StatusMsg -or $WarnMsg) { $ErrorMsg.Clear() } elseif ($ErrorMsg) { $failureDetected = $true }
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                             $userNameAlias = (Get-vRSLCMLockerPassword | Where-Object { $_.userName -match $jsonInput.vcHostname }).alias
                                             $StatusMsg = New-vRSLCMDatacenterVcenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -vcenterFqdn $jsonInput.vcfqdn -userLockerAlias $userNameAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            if ($StatusMsg -or $WarnMsg) { $ErrorMsg.Clear() } elseif ($ErrorMsg) { $failureDetected = $true }
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                         }
 
                                         if (!$failureDetected) {
@@ -40643,7 +40647,7 @@ Function Get-vRSLCMDatacenter {
         This example gets the details of a datacenter based on the vmid
 
         .EXAMPLE
-        Get-vRSLCMDatacenter -name sfo-m01-dc01
+        Get-vRSLCMDatacenter -datacenterName sfo-m01-dc01
         This example gets the details of a datacenter based on the name.
 
         .PARAMETER vmid
@@ -55652,8 +55656,8 @@ Function Start-IomMenu {
             Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
-            Write-Host -Object " 05. $menuItem06" -ForegroundColor White
-            Write-Host -Object " 06. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }

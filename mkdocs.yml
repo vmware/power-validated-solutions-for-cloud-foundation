@@ -451,6 +451,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMPSPack.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Invoke-vRSLCMUpgrade.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMAdapterOperation.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenterVcenter.md
