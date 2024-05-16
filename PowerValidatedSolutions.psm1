@@ -3022,7 +3022,8 @@ Function Invoke-PdrDeployment {
                                                     Show-PowerValidatedSolutionsOutput -message "Adding a Network Adapter and Configure Static Routes for vSphere Replication for $solutionName"
                                                     foreach ($site in $sites) {
                                                         $StatusMsg = Add-VrmsNetworkAdapter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -vrmsFqdn $site.vrmsFqdn -vrmsRootPass $site.vrmsRootPassword -vrmsAdminPass $site.vrmsAdminPassword -vrmsIpAddress $site.vrmsIpAddress -replicationSubnet $site.replicationSubnet -replicationIpAddress $site.replicationIpAddress -replicationGateway $site.replicationGateway -replicationPortgroup $site.replicationPortgroup -replicationRemoteNetwork $site.remoteReplicationNetwork -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -or $WarnMsg) { $ErrorMsg.Clear() } elseif ($ErrorMsg) { $failureDetected = $true }
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                                     }
                                                 }
 
@@ -3194,7 +3195,7 @@ Function Invoke-PdrDeployment {
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Automation"
                                                         $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -pgName $jsonInput.protectionGroupAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        Start-Sleep -Seconds 3
+                                                        Start-Sleep -Seconds 10
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
 
@@ -25597,7 +25598,7 @@ Function Update-vRSLCMPSPack {
                                             $request = Install-vRSLCMPSPack -pspackId $pspackId
                                             Do {
                                                 Start-Sleep 30
-                                                Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass -ErrorAction Continue | Out-Null
+                                                Request-vRSLCMToken -fqdn $vcfVrslcmDetails.fqdn -username $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -ErrorAction Ignore | Out-Null
                                                 $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
                                                 $postgresStatus = (Get-vRSLCMHealth).postgres
                                                 $blackstoneStatus = (Get-vRSLCMHealth).blackstone
@@ -26206,11 +26207,18 @@ Function Start-vRSLCMUpgrade {
                                                             $request = Invoke-vRSLCMUpgrade -type $type -userName $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -version $version -action upgrade
                                                             Start-Sleep 3
                                                             Do {
-                                                                $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
-                                                                $postgresStatus = (Get-vRSLCMHealth).postgres
-                                                                $blackstoneStatus = (Get-vRSLCMHealth).blackstone
-                                                                $vrclmServerStatus = (Get-vRSLCMHealth).'vrlcm-server'
-                                                            } Until (($bootstrapStatus -eq "UP") -and ($postgresStatus -eq "UP") -and ($blackstoneStatus -eq "UP") -and ($vrclmServerStatus -eq "UP"))
+                                                                Start-Sleep 30
+                                                                Request-vRSLCMToken -fqdn $vcfVrslcmDetails.fqdn -username $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -ErrorAction Ignore | Out-Null
+                                                                $upgradeState = Get-vRSLCMUpgradeStatus
+                                                            } Until ($upgradeState.state -ne "Running")
+                                                            # Do {
+                                                            #     Start-Sleep 30
+                                                            #     Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass -ErrorAction Ignore | Out-Null
+                                                            #     $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
+                                                            #     $postgresStatus = (Get-vRSLCMHealth).postgres
+                                                            #     $blackstoneStatus = (Get-vRSLCMHealth).blackstone
+                                                            #     $vrclmServerStatus = (Get-vRSLCMHealth).'vrlcm-server'
+                                                            # } Until (($bootstrapStatus -eq "UP") -and ($postgresStatus -eq "UP") -and ($blackstoneStatus -eq "UP") -and ($vrclmServerStatus -eq "UP"))
                                                             Write-Output "Upgrade of VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)): SUCCESSFUL"
                                                         } else {
                                                             Write-Error "Validating VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) Upgrade: PRE_VALIDATION_FAILED"
@@ -55493,8 +55501,8 @@ Function Start-DriMenu {
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
-            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
