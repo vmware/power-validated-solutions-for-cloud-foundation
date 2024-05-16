@@ -25090,16 +25090,17 @@ Function Invoke-vRSLCMDeployment {
                                 }
 
                                 if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Upgrading VMware Aria Suite Lifecycle"
+                                    Show-PowerValidatedSolutionsOutput -message "Upgrading $lcmProductName"
                                     $upgradeIso = (Get-ChildItem $binaries | Where-Object { $_.name -match ("(updaterepo.iso)") }).basename
                                     $regex = "([A-Za-z0-9]+(\.[A-Za-z0-9]+)+)"
                                     $upgradeVersion = [regex]::matches($upgradeIso,$regex).value
+                                    Show-PowerValidatedSolutionsOutput -message "Attaching Upgrade ISO to $lcmProductName"
                                     $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Upgrade $lcmProductName using ($upgradeIso)"
-                                    procedureWaitKey
-                                    # $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -version $upgradeVersion -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    # messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    Show-PowerValidatedSolutionsOutput -message "Starting Upgrade of $lcmProductName, please be paitent..."
+                                    $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -version $upgradeVersion -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg -or $WarnMsg) { $ErrorMsg.Clear() } elseif ($ErrorMsg) { $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
                             }
 
@@ -26209,16 +26210,14 @@ Function Start-vRSLCMUpgrade {
                                                             Do {
                                                                 Start-Sleep 30
                                                                 Request-vRSLCMToken -fqdn $vcfVrslcmDetails.fqdn -username $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -ErrorAction Ignore | Out-Null
-                                                                $upgradeState = Get-vRSLCMUpgradeStatus
-                                                            } Until ($upgradeState.state -ne "Running")
-                                                            # Do {
-                                                            #     Start-Sleep 30
-                                                            #     Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass -ErrorAction Ignore | Out-Null
-                                                            #     $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
-                                                            #     $postgresStatus = (Get-vRSLCMHealth).postgres
-                                                            #     $blackstoneStatus = (Get-vRSLCMHealth).blackstone
-                                                            #     $vrclmServerStatus = (Get-vRSLCMHealth).'vrlcm-server'
-                                                            # } Until (($bootstrapStatus -eq "UP") -and ($postgresStatus -eq "UP") -and ($blackstoneStatus -eq "UP") -and ($vrclmServerStatus -eq "UP"))
+                                                                if (Get-vRSLCMUpgradeStatus -ErrorAction Ignore) {
+                                                                    $upgradeState = Get-vRSLCMUpgradeStatus
+                                                                }
+                                                                $bootstrapStatus = (Get-vRSLCMHealth).bootstrap
+                                                                $postgresStatus = (Get-vRSLCMHealth).postgres
+                                                                $blackstoneStatus = (Get-vRSLCMHealth).blackstone
+                                                                $vrclmServerStatus = (Get-vRSLCMHealth).'vrlcm-server'
+                                                            } Until (($upgradeState.status -ne "Running") -and ($bootstrapStatus -eq "UP") -and ($postgresStatus -eq "UP") -and ($blackstoneStatus -eq "UP") -and ($vrclmServerStatus -eq "UP"))
                                                             Write-Output "Upgrade of VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)): SUCCESSFUL"
                                                         } else {
                                                             Write-Error "Validating VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) Upgrade: PRE_VALIDATION_FAILED"

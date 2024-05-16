@@ -91,6 +91,7 @@
 - Enhanced `Add-ContentLibrary` cmdlet to not exit the workflow when checking for the version of VMware Cloud Foundation.
 - Enhanced `Invoke-vRSLCMDeployment` cmdlet to use the internal `messageHandler` function for better message output handling.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to check the certificate before attempting to install.
+- Enhanced `Start-vRSLCMUpgrade` cmdlet perform better status checks during the upgrade process.
 
 ## v2.9.0
 
