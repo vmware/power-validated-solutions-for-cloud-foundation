@@ -23779,6 +23779,9 @@ Function Deploy-PhotonAppliance {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (!(Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore)) {
+                                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).Name
+                                    $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).primaryDatastoreName
+                                    $datacenter = (Get-Datacenter -Cluster $cluster).Name
                                     $ovfConfiguration = Get-OvfConfiguration $ovaPath
                                     $ovfConfiguration.Common.guestinfo.hostname.Value = ($hostname + "." + $domain)
                                     $ovfConfiguration.Common.guestinfo.ipaddress.Value = $ipaddress
@@ -23791,7 +23794,7 @@ Function Deploy-PhotonAppliance {
                                     $ovfConfiguration.Common.guestinfo.enable_ssh.Value = $enableSsh
                                     $ovfConfiguration.Common.guestinfo.debug.Value = $enableDebug
                                     $ovfConfiguration.NetworkMapping.DHCP.Value = $portgroup
-                                    Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location (Get-Cluster -Server $vcfVcenterDetails.fqdn).Name -InventoryLocation $folder -Datastore (Get-Datastore -Server $vcfVcenterDetails.fqdn).Name -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force
+                                    Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location $cluster -InventoryLocation $folder -Datastore $datastore -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force | Out-Null
                                     if (Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore) {
                                         Start-VM -VM $hostname -Server ($vcfVcenterDetails.fqdn).Name | Out-Null
                                         if ((Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name).PowerState -eq "PoweredOn") {
