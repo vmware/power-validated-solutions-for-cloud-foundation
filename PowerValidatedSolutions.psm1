@@ -16374,6 +16374,8 @@ Function Request-IomMscaSignedCertificate {
         .PARAMETER jsonFile
         The path to the JSON specification file.
 
+        .PARAMETER certificates
+        The path to the store the certificate files.
     #>
 
     Param (
@@ -20542,6 +20544,76 @@ Function Test-InvPrerequisite {
 }
 Export-ModuleMember -Function Test-InvPrerequisite
 
+Function Request-InvMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for VMware Aria Operations for Networks
+
+        .DESCRIPTION
+        The Request-InvMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for 
+        Networks from a Microsoft Certificate Authority using the details from the Intelligent Network Visibility
+        JSON specification file.
+
+        .EXAMPLE
+        Request-InvMscaSignedCertificate -jsonFile .\invDeploySpec.json -certificates .\certificates\
+        This example request a signed certificate for VMware Aria Operations for Networks.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the store the certificate files.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $productName = "VMware Aria Operations for Networks"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.ariaNetworksPlatformNodeaFqdn -subjectAlternativeNames "$($jsonInput.ariaNetworksPlatformNodeaFqdn)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".key") -crtFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-InvMscaSignedCertificate
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -23577,12 +23649,12 @@ Function Invoke-HrmDeployment {
 
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in VMware Aria Operations for the Python Module for $solutionName"
-                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Follow Manual Steps."
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Follow the Manual Steps"
                     }
 
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Assigning VMware Aria Operations Custom Role to a Service Account for the Python Module for $solutionName"
-                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Follow Manual Steps."
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Follow the Manual Steps"
                     }
 
                     if (!$failureDetected) {
@@ -55669,6 +55741,7 @@ Function Start-InvMenu {
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Generate Signed Certificate from Microsoft Certifiate Authority"
 
         $headingItem02 = "Implementation"
         $menuitem05 = "End-to-End Deployment"
@@ -55696,6 +55769,7 @@ Function Start-InvMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem06" -ForegroundColor White
@@ -55714,6 +55788,11 @@ Function Start-InvMenu {
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
                     Test-InvPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                3 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-InvMscaSignedCertificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath
                     waitKey
                 }
                 5 {
