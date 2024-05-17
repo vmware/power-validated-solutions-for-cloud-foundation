@@ -45,6 +45,7 @@
 - Added `Get-AriaNetworksDataSource` cmdlet to get all the data sources in a VMware Aria Operations for Networks deployment.
 - Added `Request-IlaMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Logs.
 - Added `Request-IomMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations.
+- Added `Request-InvMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Operations for Networks.
 - Added `Request-PcaMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for VMware Aria Automation.
 - Added `Request-WSAMscaSignedCertificate` cmdlet to request a signed certificate from a Microsoft Certificate Authority for Workspace ONE Access.
 - Added `New-PowerValidatedSolutionsLogFile` cmdlet to enable support for a log file when using the VMware Validated Solutions menu.
