@@ -16,6 +16,7 @@ Select an option for the solution.
 
     | Function                                                                                | Type                  |
     | --------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-InvPrerequisite`](Test-InvPrerequisite.md)                                       | Prerequisites         |
     | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                           | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md) | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                           | Procedure             |
@@ -32,7 +33,7 @@ Select an option for the solution.
 
     | Function                                                                                | Type                  |
     | --------------------------------------------------------------------------------------- | --------------------- |
-        | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                       | End-to-End Deployment |
+    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                           | End-to-End Deployment |
     | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                         | Procedure             |
     | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                               | Procedure             |
     | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md)       | Procedure             |

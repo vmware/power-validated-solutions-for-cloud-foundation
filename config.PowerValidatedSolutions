@@ -32,6 +32,10 @@
                 "Version": "8.16.0"
             },
             {
+                "AriaComponent": "AriaOperationsForNetworks",
+                "Version": "6.12.1"
+            },
+            {
                 "AriaComponent": "AriaOperations",
                 "Version": "8.16.1"
             },
@@ -56,6 +60,10 @@
             {
                 "AriaComponent": "AriaOperationsForLogs",
                 "Version": "8.16.0"
+            },
+            {
+                "AriaComponent": "AriaOperationsForNetworks",
+                "Version": "6.12.1"
             },
             {
                 "AriaComponent": "AriaOperations",

@@ -38,6 +38,7 @@
   - Added `Test-CbwPrerequisite` cmdlet to verify prerequisites for Cloud-Based Workload Protection.
   - Added `Test-CbrPrerequisite` cmdlet to verify prerequisites for Cloud-Based Ransomware Recovery.
   - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
+  - Added `Test-InvPrerequisite` cmdlet to verify prerequisites for Intelligent Network Visibility.
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.
