@@ -60,6 +60,8 @@
 - Added `Invoke-VrslcmUndoDeployment` cmdlet to remove VMware Suite Lifecycle from the environment.
 - Added `Get-MscaRootCertificate` cmdlet to retrieve the root or the full chain certificate from the Microsoft Certificate Authority.
 - Added `Request-IamMscaSignedCertificate` cmdlet to retrieve the root certificate of the Microsoft Certificate Authority for Identity and Access Management.
+- Added `Invoke-InvDeployment` cmdlet to perform an end-to-end deployment of Intelligent Network Visibility.
+- Added `Invoke-UndoInvDeployment` cmdlet to perform removal of Intelligent Network Visibility.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Fixed `Invoke-PcaDeployment` cmdlet where it was throwing errors when creating a Cluster Group when Standard Workspace ONE Access is deployed.
 - Fixed `Get-ADPrincipalGuid` cmdlet to handle failed credentials correctly.

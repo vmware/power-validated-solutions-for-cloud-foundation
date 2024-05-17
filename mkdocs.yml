@@ -409,6 +409,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/Get-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Get-AriaNetworksNodes.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
+      - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
     - Aria Suite Lifecycle:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenter.md
@@ -925,6 +926,8 @@ nav:
         - documentation/functions/solutions/iom/Test-IomPrerequisite.md
       - Intelligent Network Visibility:
         - documentation/functions/solutions/inv/Export-InvJsonSpec.md
+        - documentation/functions/solutions/inv/Invoke-InvDeployment.md
+        - documentation/functions/solutions/inv/Invoke-UndoInvDeployment.md
         - documentation/functions/solutions/inv/Request-InvMscaSignedCertificate.md
         - documentation/functions/solutions/inv/Test-InvPrerequisite.md
       - Private Cloud Automation:
