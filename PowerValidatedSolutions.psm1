@@ -16357,7 +16357,6 @@ Function Test-IomPrerequisite {
 }
 Export-ModuleMember -Function Test-IomPrerequisite
 
-
 Function Request-IomMscaSignedCertificate {
     <#
         .SYNOPSIS
@@ -20435,8 +20434,12 @@ Function Export-InvJsonSpec {
                 # Identity Management Settings
                 'domainFqdn'                         = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainAlias'                        = $pnpWorkbook.Workbook.Names["region_ad_child_netbios"].Value
-                'domainBindUserVsphere'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPassVsphere'              = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'domainBindUser'                     = $pnpWorkbook.Workbook.Names["svc_inv_ad_user_email"].Value
+                'domainBindPass'                     = $pnpWorkbook.Workbook.Names["svc_inv_ad_password"].Value
+                'domainControllerMachineName'        = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
+                'serviceAccountNetworksVsphere'      = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_user"].Value
+                'serviceAccountNetworksVspherePass'  = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_password"].Value
+                'adGroups'                           = "$($pnpWorkbook.Workbook.Names["gg_vrni_admin_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_member_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_auditor_group"].Value)"
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -20461,170 +20464,83 @@ Function Export-InvJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-InvJsonSpec
-Function Request-AriaNetworksToken {
+
+Function Test-InvPrerequisite {
     <#
         .SYNOPSIS
-        Connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
+        Verify the prerequisites for Intelligent Network Visibility
 
         .DESCRIPTION
-        The Request-AriaNetworksToken cmdlet connects to the specified VMware Aria Operations for Networks platform node and obtains an authorization token.
-        It is required once per session before running all other cmdlets.
+        The Test-InvPrerequisite cmdlet verifies the prerequisites for Intelligent Network Visibility for VMware
+        Cloud Foundation validated solution.
 
         .EXAMPLE
-        Request-AriaNetworksToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
-        This example shows how to connect to the VMware Aria Operations for Networks platform node.
+        Test-InvPrerequisite -jsonFile .\invDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Intelligent Network Visibility.
 
-        .PARAMETER fqdn
-        The fully qualified domain name of the VMware Aria Operations for Networks platform node.
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
 
-        .PARAMETER username
-        The username to use for authentication.
-
-        .PARAMETER password
-        The password to use for authentication.
+        .PARAMETER binaries
+        The path to the binaries folder.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
     )
 
-    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
-        $creds = Get-Credential # Request Credentials
-        $username = $creds.UserName.ToString()
-        $password = $creds.GetNetworkCredential().password
-    }
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
 
     Try {
-        $Global:ariaNetworksAppliance = $fqdn
-        $Global:ariaNetworksHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-        $ariaNetworksHeader.Add("Accept", "application/json")
-        $ariaNetworksHeader.Add("Content-Type", "application/json")
-        $uri = "https://$ariaNetworksAppliance/api/ni/auth/token"
-        $body = '{
-            "username": "'+ $username +'",
-            "password": "'+ $password +'",
-            "domain": {
-                "domain_type": "LOCAL",
-                "value": "local"
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                            if ($vcfVersion.$actualVcfVersion) {
+                                $ariaOperationsForNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaOperationsForNetworks"}).Version
+                            }
+                        }
+                        Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                        Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                        Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
+                        Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Networks" # Verify a license key is present
+                        Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that the required service accounts are created in Active Directory
+                        $serviceAccounts = '[
+                            {"user": "'+ $jsonInput.domainBindUser +'", "password": "'+ $jsonInput.domainBindPass +'"},
+                            {"user": "'+ $jsonInput.serviceAccountNetworksVsphere +'", "password": "'+ $jsonInput.serviceAccountNetworksVspherePass +'"}
+                        ]' | ConvertFrom-Json
+                        foreach ( $serviceAccount in $serviceAccounts ) {
+                            Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
+                        }
+                        Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
+                        Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                        Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                        Test-PrereqOpenSsl # Verify that OpenSSL is installed
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
-        }'
-        if ($PSEdition -eq 'Core') {
-            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
         } else {
-            $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body
-        }
-        if ($ariaNetworksResponse.token) {
-            $ariaNetworksHeader.Add("Authorization", "NetworkInsight " + $ariaNetworksResponse.token)
-            Write-Output "Successfully connected to VMware Aria Operations for Networks: $ariaNetworksAppliance"
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
         }
     } Catch {
-        Write-Error $_.Exception.Message
+        Debug-CatchWriter -object $_
     }
 }
-Export-ModuleMember -Function Request-AriaNetworksToken
-
-Function Get-AriaNetworksNodes {
-    <#
-        .SYNOPSIS
-        Get various details about the VMware Aria Operations for Networks nodes.
-
-        .DESCRIPTION
-        The Get-AriaNetworksNodes cmdlet gets various details about the VMware Aria Operations for Networks nodes.  This is necessary in order to find out the id of a specified VMware Aria Operations for Networks collector node.
-
-        .EXAMPLE
-        Get-AriaNetworksNodes
-        This example gets the ids of all of the collector nodes in a VMware Aria Operations for Networks deployment.
-
-        .EXAMPLE
-        Get-AriaNetworksNodes -ipAddress 192.168.31.41
-        This example gets the details of the collector node with the IP address 192.168.31.41
-
-        .PARAMETER expandedNodes
-        Get list of infrastructure nodes with all details.
-
-	    .PARAMETER ipAddress
-        The IP address of the collector node to use for authentication.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$expandedNodes,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ipAddress
-    )
-
-    Try {
-        if ($ariaNetworksAppliance) {
-            if ($PsBoundParameters.ContainsKey("expandedNodes")) {
-                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
-            } elseif (($PsBoundParameters.ContainsKey("ipAddress"))) {
-                $uri = "https://$ariaNetworksAppliance/api/ni/infra/expanded-nodes/"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.ip_address -eq $ipAddress}
-            } else {
-                $uri = "https://$ariaNetworksAppliance/api/ni/infra/nodes/"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
-            }
-        } else {
-            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
-        }
-        } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-AriaNetworksNodes
-
-Function Get-AriaNetworksDataSource {
-    <#
-        .SYNOPSIS
-        Get all the data sources in a VMware Aria Operations for Networks deployment.
-
-        .DESCRIPTION
-        The Get-AriaNetworksDataSource cmdlet collects data sources are connected to a VMware Aria Operations for Networks deployment.  This is necessary in order to find the "entity_id" for use in other modules, such as the Delete-AriaNetworksDataSource.
-
-        .EXAMPLE
-        Get-AriaNetworksDataSource
-        This example gets all of the items which are configured as a data source in a VMware Aria Operations for Networks deployment.
-
-        .EXAMPLE
-        Get-AriaNetworksDataSource -fqdn sfo-m01-vc01.sfo.rainpole.io
-        This example gets the details of the vCenter Server with the fqdn sfo-m01-vc01.sfo.rainpole.io
-
-        .PARAMETER fqdn
-        The fqdn of the data source.
-
-        .PARAMETER dataSourceType
-        Specifies the type of the resource. One of: vcenter or nsxt.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter(Mandatory = $false)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType
-    )
-
-    Try {
-        if ($ariaNetworksAppliance) {
-            if ($PsBoundParameters.ContainsKey("fqdn")) {
-                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.fqdn -eq $fqdn}
-            } elseif ($dataSourceType -eq 'vcenter') {
-                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
-            } elseif ($dataSourceType -eq 'nsxt') {
-                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
-            } else {
-                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources"
-                (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
-            }
-        } else {
-            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-AriaNetworksDataSource
+Export-ModuleMember -Function Test-InvPrerequisite
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -25108,6 +25024,7 @@ Function Invoke-vRSLCMDeployment {
                                     $upgradeVersion = [regex]::matches($upgradeIso,$regex).value
                                     Show-PowerValidatedSolutionsOutput -message "Attaching Upgrade ISO to $lcmProductName"
                                     $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Start-Sleep 5
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     Show-PowerValidatedSolutionsOutput -message "Starting Upgrade of $lcmProductName, please be paitent..."
                                     $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -version $upgradeVersion -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -48645,7 +48562,7 @@ Function Get-AriaNetworksNodes {
         .PARAMETER expandedNodes
         Get list of infrastructure nodes with all details.
 
-	    .PARAMETER ipAddress
+        .PARAMETER ipAddress
         The IP address of the collector node to use for authentication.
     #>
 
@@ -54793,6 +54710,27 @@ Function Test-PrereqBinary {
     }
 }
 
+Function Test-PrereqBinaryNetworks {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$searchCriteria
+    )
+
+    Try {
+        if ((Get-ChildItem $binaries | Where-Object { ($_.name -match $searchCriteria) -and ($_.name -match "platform") }).name) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that the platform binary is available ($(((Get-ChildItem $binaries | Where-Object { ($_.name -match $searchCriteria) -and ($_.name -match "platform") }).name))): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the platform binary is available: PRE_VALIDATION_FAILED"
+        }
+        if ((Get-ChildItem $binaries | Where-Object { ($_.name -match $searchCriteria) -and ($_.name -match "collector") }).name) {
+            Show-PowerValidatedSolutionsOutput -message "Verify that the platform collector is available ($(((Get-ChildItem $binaries | Where-Object { ($_.name -match $searchCriteria) -and ($_.name -match "collector") }).name))): SUCCESSFUL"
+        } else {
+            Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that the platform collector is available: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
 Function Test-PrereqLicenseKey {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey,
@@ -55722,11 +55660,12 @@ Function Start-IomMenu {
 
 Function Start-InvMenu {
     Try {
-        $jsonSpecFile = "invDeploySpec.json"
+        $jsonSpecFile = "validatedSolution-invDeploySpec.json"
         $submenuTitle = ("Intelligent Network Visibility for VMware Cloud Foundation")
 
         $headingItem01 = "Planning and Preperation"
         $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "Verify Prerequisites"
 
         $headingItem02 = "Implementation"
         $menuitem05 = "End-to-End Deployment"
@@ -55753,6 +55692,7 @@ Function Start-InvMenu {
 
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem06" -ForegroundColor White
@@ -55766,6 +55706,11 @@ Function Start-InvMenu {
                 1 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
                     Export-InvJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                2 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-InvPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 5 {

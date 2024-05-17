@@ -12,9 +12,7 @@ Request-AriaNetworksToken [-fqdn] <String> [[-username] <String>] [[-password] <
 
 ## Description
 
-The `Request-AriaNetworksToken` cmdlet connects to the specified VMware Aria
-Operations for Networks instance and obtains an authorization token. It is
-required once per session before running all other cmdlets.
+The `Request-AriaNetworksToken` cmdlet connects to the specified VMware Aria Operations for Networks instance and obtains an authorization token. It is required once per session before running all other cmdlets.
 
 ## Examples
 
