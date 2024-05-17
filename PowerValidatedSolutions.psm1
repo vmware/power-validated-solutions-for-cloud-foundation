@@ -15600,7 +15600,9 @@ Function Get-vRAvRLIConfig {
                                         if (($output.ScriptOutput).Contains('No vRLI integration configured')) {
                                             Write-Output "VMware Aria Automation integration with VMware Aria Operations for Logs status 'Not Configured'"
                                         } elseif (($output.ScriptOutput).Contains('agentId')) {
-                                            $output.ScriptOutput | ConvertFrom-JSON
+                                            $jsonString = [regex]::Match($output.ScriptOutput, '\{.*\}', [System.Text.RegularExpressions.RegexOptions]::SingleLine).Value
+                                            Return $jsonString | ConvertFrom-JSON
+                                            # $output.ScriptOutput | ConvertFrom-JSON
                                         } else {
                                             Write-Error "Returning the VMware Aria Automation integration with VMware Aria Operations for Logs: POST_VALIDATION_FAILED"
                                         }
