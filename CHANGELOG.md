@@ -76,6 +76,7 @@
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet where an error is thrown when creating the Datacenter and vCenter Server objects for Cross-Instance.
 - Fixed `Invoke-PdrDeployment` cmdlet where expected errors are thrown to the output making it look like a failure when in fact the task completes.
 - Fixed `Get-vRAvRLIConfig` cmdlet where is failed due to an OpenSSL error being returned with the data.
+- Fixed `Export-PdrJsonSpec` where some values should be an integer.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.

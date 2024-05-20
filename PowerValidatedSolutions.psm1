@@ -2660,9 +2660,9 @@ Function Export-PdrJsonSpec {
                     'environmentName'             = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                     'automationUser'              = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
                     'automationPassword'          = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
-                    'recoveryPointObjective'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value
-                    'instancesPerDay'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value
-                    'days'                        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value
+                    'recoveryPointObjective'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value -as [Int]
+                    'instancesPerDay'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value -as [Int]
+                    'days'                        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value -as [Int]
                     'protectionGroupWsa'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_pg"].Value
                     'recoveryPlanWsa'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_rp"].Value
                     'protectionGroupOperations'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
@@ -3086,14 +3086,13 @@ Function Invoke-PdrDeployment {
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
 
-
                                                 $vmNames = @()
                                                 $vmNames += $wsaVmNames
                                                 $vmNames += $($jsonInput.vmNameLifecycle)
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                                    $StatusMsg = F -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
 
