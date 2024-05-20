@@ -3093,7 +3093,7 @@ Function Invoke-PdrDeployment {
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
-                                                    $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    $StatusMsg = F -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
 
@@ -16656,7 +16656,7 @@ Function Invoke-IomDeployment {
                                         if (!$failureDetected) {
                                             if ($stretchedCluster -eq "Include") {
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $groupName -vmList $vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -20417,6 +20417,8 @@ Function Export-InvJsonSpec {
                 'ntp'                                = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                 'domain'                             = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
                 'searchpath'                         = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                'gateway'                            = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                'netmask'                            = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
                 # Product Settings: Platform Nodes
                 'ariaNetworksPlatformNodeSize'       = $pnpWorkbook.Workbook.Names["xreg_vrni_platform_node_size"].Value.ToLower()
                 'ariaNetworksPlatformNodeaFqdn'      = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_fqdn"].Value
@@ -20432,6 +20434,11 @@ Function Export-InvJsonSpec {
                 'ariaNetworksCollectorNodeaFqdn'     = $pnpWorkbook.Workbook.Names["region_vrni_nodea_fqdn"].Value
                 'ariaNetworksCollectorNodeaHostname' = $pnpWorkbook.Workbook.Names["region_vrni_nodea_hostname"].Value
                 'ariaNetworksCollectorNodeaIp'       = $pnpWorkbook.Workbook.Names["region_vrni_nodea_ip"].Value
+                'networkProxies'                     = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                'gatewayProxies'                     = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                'netmaskProxies'                     = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                'domainProxies'                      = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'searchpathProxies'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 # Post Configuration
                 'vmList'                             = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrni_nodea_hostname"].Value
                 # Identity Management Settings
@@ -20444,6 +20451,8 @@ Function Export-InvJsonSpec {
                 'serviceAccountNetworksVspherePass'  = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_password"].Value
                 'adGroups'                           = "$($pnpWorkbook.Workbook.Names["gg_vrni_admin_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_member_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_auditor_group"].Value)"
                 'vsphereRoleNameNetworks'            = $pnpWorkbook.Workbook.Names["inv_vsphere_role"].Value
+                'drsGroupNameAz'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+                'stretchedCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -20481,15 +20490,15 @@ Function Export-AriaNetworksJsonSpec {
         - Validates that network connectivity is available to VMware Aria Suite Lifecycle.
         - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible.
         - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware
-          Aria Suite Lifecycle.
+        Aria Suite Lifecycle.
 
         .EXAMPLE
-        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json
-        This example creates a JSON deployment specification in the current folder for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification.
+        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json -outputPath .\myJsons
+        This example creates a JSON deployment specification for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification.
 
         .EXAMPLE
-        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -outputPath .\myJsons
-        This example creates a JSON deployment specification in the folder defined for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification.
+        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json -outputPath .\myJsons -useContentLibrary -contentLibrary Operations
+        This example creates a JSON deployment specification for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification using a content library for the OVA.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -20548,7 +20557,7 @@ Function Export-AriaNetworksJsonSpec {
                                     if ($ariaNetworksLicense = Get-vRSLCMLockerLicense | Where-Object { $_.key -eq $jsonInput.licenseKey }) {
                                         if ($ariaNetworksCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $jsonInput.certificateAlias }) {
                                             if ($adminPassword = Get-vRSLCMLockerPassword -alias $jsonInput.xintPasswordAlias) {
-                                                if ($ariaNetworksRootPassword = Get-vRSLCMLockerPassword -alias $jsonInput.rootPasswordAlias) {
+                                                if ($ariaNetworksSupportPassword = Get-vRSLCMLockerPassword -alias $jsonInput.ariaNetworksSupportPasswordAlias) {
                                                     if ($actualVcfVersion -ge "4.5.0") {
                                                         $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($jsonInput.vcenterFqdn).Split(".")[0] + "@vsphere.local") }
                                                     } else {
@@ -20563,7 +20572,7 @@ Function Export-AriaNetworksJsonSpec {
                                                                 }
                                                             }
                                                         } else {
-                                                            $ariaNetworks = $customVersion
+                                                            $ariaNetworksVersion = $customVersion
                                                         }
 
                                                         ### Generate the Properties Details
@@ -20614,12 +20623,12 @@ Function Export-AriaNetworksJsonSpec {
                                                             'certificate'                   = ("locker:certificate:" + $($ariaNetworksCertificate.vmid) + ":" + $($ariaNetworksCertificate.alias))
                                                             'contentLibraryItemId:platform' = $contentLibraryItemIdPlatform
                                                             'contentLibraryItemId:proxy'    = $contentLibraryItemIdCollector
-                                                            'productPassword'               = ("locker:password:" + $($ariaNetworksRootPassword.vmid) + ":" + $($ariaNetworksRootPassword.alias))
+                                                            'productPassword'               = ("locker:password:" + $($ariaNetworksSupportPassword.vmid) + ":" + $($ariaNetworksSupportPassword.alias))
                                                             'licenseRef'                    = ("locker:license:" + $($ariaNetworksLicense.vmid) + ":" + $($ariaNetworksLicense.alias))
                                                             'ntp'                           = $jsonInput.ntp
-                                                            'affinityRule'                  = false
+                                                            'affinityRule'                  = $false
                                                             'configureAffinitySeparateAll'  = "false"
-                                                            'masterVidmEnabled'             = false
+                                                            'masterVidmEnabled'             = $false
                                                             'monitorWithvROps'              = "false"
                                                             'fipsMode'                      = "false"
                                                         }
@@ -20627,17 +20636,24 @@ Function Export-AriaNetworksJsonSpec {
                                                         #### Generate VMware Aria Operations for Networks Node Details
                                                         $ariaNetworksPlatformProperties = @()
                                                         $ariaNetworksPlatformProperties += [pscustomobject]@{
-                                                            'hostName'     = $jsonInput.ariaNetworksNodeaFqdn
-                                                            'vmName'       = $jsonInput.ariaNetworksNodeaHostname
-                                                            'ip'           = $jsonInput.ariaNetworksNodeaIp
+                                                            'hostName'     = $jsonInput.ariaNetworksPlatformNodeaFqdn
+                                                            'vmName'       = $jsonInput.ariaNetworksPlatformNodeaHostname
+                                                            'ip'           = $jsonInput.ariaNetworksPlatformNodeaIp
                                                             'vrniNodeSize' = $jsonInput.ariaNetworksPlatformNodeSize
                                                         }
                                                         $ariaNetworksCollectorProperties = @()
                                                         $ariaNetworksCollectorProperties += [pscustomobject]@{
-                                                            'hostName'     = $jsonInput.ariaNetworkCollectorsNodeaFqdn
+                                                            'hostName'     = $jsonInput.ariaNetworksCollectorNodeaFqdn
                                                             'vmName'       = $jsonInput.ariaNetworksCollectorNodeaHostname
                                                             'ip'           = $jsonInput.ariaNetworksCollectorNodeaIp
                                                             'vrniNodeSize' = $jsonInput.ariaNetworksCollectorNodeSize
+                                                            'gateway'      = $jsonInput.gatewayProxies
+                                                            'domain'       = $jsonInput.domainProxies
+                                                            'searchpath'   = $jsonInput.domainProxies
+                                                            'dns'          = $jsonInput.dns
+                                                            'netmask'      = $jsonInput.netmaskProxies
+                                                            'network'      = $jsonInput.networkProxies
+                                                            'ntp'          = $jsonInput.ntp
                                                         }
                                                         $nodesObject = @()
                                                         $nodesobject += [pscustomobject]@{
@@ -20796,7 +20812,7 @@ Function New-AriaNetworksDeployment {
                                     $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
                                 }
                                 $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
-                                Invoke-Expression "AriaNetworks -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
+                                Invoke-Expression "Export-AriaNetworksJsonSpec -server $server -user $user -pass $pass -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
                                 $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "ariaNetworksDeploySpec.json")))
                                 $jsonSpec = $json | ConvertFrom-Json
                                 if (!((Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName }).products.id -contains $jsonSpec.products.id)) {
@@ -21154,6 +21170,31 @@ Function Invoke-InvDeployment {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksConsolePasswordAlias -password $jsonInput.ariaNetworksConsolePassword -userName $jsonInput.ariaNetworksConsoleUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Deploying $networksProductName Using $lcmProductName"
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            } else {
+                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            }
+                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Moving the $networksProductName Appliance to the Dedicated Folder"
+                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmList -folder $jsonInput.ariaNetworksPlatformNodeVmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($stretchedCluster -eq "Include") {
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
                                         }
 
                                         if (!$failureDetected) {
@@ -31453,7 +31494,7 @@ Function Import-ContentLibraryItem {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $templateName = (Get-ChildItem -file $file).basename
+                            $templateName = (Get-ChildItem -file $file).name
                             if (Get-ContentLibrary -Name $contentLibrary -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                 if (!(Get-ContentLibraryItem | Where-Object { $_.ContentLibrary -match $contentLibrary -and $_.Name -eq $templateName })) {
                                     New-ContentLibraryItem -ContentLibrary $contentLibrary -Name $templateName -Files $file | Out-Null
