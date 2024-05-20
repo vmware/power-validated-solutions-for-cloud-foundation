@@ -3004,7 +3004,7 @@ Function Invoke-PdrDeployment {
                                                         $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.vrmsFqdn -vamiAdminPassword $site.vrmsAdminPassword -siteName $site.vrmsSiteName -adminEmail $site.vrmsAdminEmail -solution VRMS -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         if ($StatusMsg -match "SUCCESSFUL") {
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                                                        } else { 
+                                                        } else {
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
                                                     }
@@ -3049,7 +3049,7 @@ Function Invoke-PdrDeployment {
                                                         $StatusMsg = Connect-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -siteName $site.srmSiteName -adminEmail $site.srmAdminEmail -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         if ($StatusMsg -match "SUCCESSFUL") {
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                                                        } else { 
+                                                        } else {
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
                                                     }
@@ -3086,7 +3086,7 @@ Function Invoke-PdrDeployment {
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
 
-                                                
+
                                                 $vmNames = @()
                                                 $vmNames += $wsaVmNames
                                                 $vmNames += $($jsonInput.vmNameLifecycle)
@@ -4193,13 +4193,13 @@ Function Request-VamiPKCS12Certificate {
     )
 
     Try {
-        
+
         if (Test-Path -Path $jsonFile) {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-Path -Path $certificates) {
                 $sites = $jsonInput.protected; $sites += $jsonInput.recovery
                 foreach ($site in $sites) {
-                    if ($solution -eq "VRMS") { 
+                    if ($solution -eq "VRMS") {
                         $certificatePassword = $site.vrmsCertificatePassword
                         $hostname = $site.vrmsFqdn
                     } elseif ($solution -eq "SRM") {
@@ -4302,7 +4302,7 @@ Function Install-VamiCertificate {
                             if (($currentVrmsCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
                                 Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
                                 $updatedVrmsCertificate = Get-VrmsVamiCertificate
-                                if (-Not ($updatedVrmsCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) { 
+                                if (-Not ($updatedVrmsCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
                                     Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
                                 } else {
                                     Write-Error "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): POST_VALIDATION_FAILED"
@@ -4319,7 +4319,7 @@ Function Install-VamiCertificate {
                             if (($currentSrmCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
                                 Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
                                 $updatedSrmCertificate = Get-SrmVamiCertificate
-                                if (-Not ($updatedSrmCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) { 
+                                if (-Not ($updatedSrmCertificate | Where-Object {$_.subject_dn -match "OU=SRM"})) {
                                     Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
                                 } else {
                                     Write-Error "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): POST_VALIDATION_FAILED"
@@ -15882,7 +15882,7 @@ Function Enable-vRLIContentPack {
                             if ($contentPack -eq 'LINUX-SYSTEMD') { $contentPackNamespace = 'com.linux.systemd' }
 
                             $index = Get-vRLIMarketplaceMetadata -index -token $myToken
-                            if (-Not ($index -match "401 (Unauthorized)")) { 
+                            if (-Not ($index -match "401 (Unauthorized)")) {
                                 $contentPackFile = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).filename
                                 $contentPackName = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).name
                                 $contentPackVersion = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
@@ -16521,7 +16521,7 @@ Function Invoke-IomDeployment {
                                                 }
                                                 $opsOva = (Get-ChildItem $binaries | Where-Object { $_.name -match "Operations-Manager-Appliance-$ariaOperationsVersion" }).name
                                                 $opsOvaPath = $binaries + $opsOva
-                                                if ($opsOva) { 
+                                                if ($opsOva) {
                                                     if ((([regex]::Match(((Split-Path $opsOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrops))) {
                                                         Show-PowerValidatedSolutionsOutput -type ERROR -message "$operationsProductName version ($ariaOperationsVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
                                                     } elseif (($opsOvaPath -match "Operations-Manager-Appliance-$ariaOperationsVersion")) {
@@ -17314,7 +17314,7 @@ Function New-vROPSDeployment {
         This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
-        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.jsono -nested
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.json -nested
         This example starts a reduce footprint deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
@@ -20469,6 +20469,379 @@ Function Export-InvJsonSpec {
 }
 Export-ModuleMember -Function Export-InvJsonSpec
 
+Function Export-AriaNetworksJsonSpec {
+    <#
+        .SYNOPSIS
+        Create VMware Aria Operations for Networks Deployment JSON specification
+
+        .DESCRIPTION
+        The Export-AriaNetworksJsonSpec cmdlet creates the JSON specification file using the Intelligent Network Visibility
+        JSON specification file generated from the Planning and Preparation Workbook to deploy VMware Aria Operations
+        for Networks using VMware Aria Suite Lifecycle:
+        - Validates that network connectivity is available to VMware Aria Suite Lifecycle.
+        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible.
+        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware
+          Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json
+        This example creates a JSON deployment specification in the current folder for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification.
+
+        .EXAMPLE
+        Export-AriaNetworksJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -outputPath .\myJsons
+        This example creates a JSON deployment specification in the folder defined for VMware Aria Operations for Networks using the Intelligent Network Visibility JSON specification.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
+
+        .PARAMETER outputPath
+        The folder path to store the JSON specification file.
+
+        .PARAMETER customVersion
+        The custom version of VMware Aria Operations for Networks.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library to deploy the VMware Aria Operations for Networks OVA.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to use to deploy the VMware Aria Operations for Networks OVA.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$outputPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+    )
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                            if ($PsBoundParameters.ContainsKey("outputPath")) {
+                                $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "ariaNetworksDeploySpec.json")
+                            } else {
+                                $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "ariaNetworksDeploySpec.json")
+                            }
+                            if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                                if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                    if ($ariaNetworksLicense = Get-vRSLCMLockerLicense | Where-Object { $_.key -eq $jsonInput.licenseKey }) {
+                                        if ($ariaNetworksCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $jsonInput.certificateAlias }) {
+                                            if ($adminPassword = Get-vRSLCMLockerPassword -alias $jsonInput.xintPasswordAlias) {
+                                                if ($ariaNetworksRootPassword = Get-vRSLCMLockerPassword -alias $jsonInput.rootPasswordAlias) {
+                                                    if ($actualVcfVersion -ge "4.5.0") {
+                                                        $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($jsonInput.vcenterFqdn).Split(".")[0] + "@vsphere.local") }
+                                                    } else {
+                                                        $vcCredentials = Get-vRSLCMLockerPassword -alias (($jsonInput.vcenterFqdn).Split(".")[0] + "-" + $jsonInput.vcenterDatacenter)
+                                                    }
+                                                    if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.datacenter }) {
+                                                        $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
+                                                        if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                            foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                                                                if ($vcfVersion.$actualVcfVersion) {
+                                                                    $ariaNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object { $_.AriaComponent -eq "AriaOperationsForNetworks" }).Version
+                                                                }
+                                                            }
+                                                        } else {
+                                                            $ariaNetworks = $customVersion
+                                                        }
+
+                                                        ### Generate the Properties Details
+                                                        if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                            $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($jsonInput.vcenterFqdn).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
+                                                            if ($contentLibraryItems) {
+                                                                $contentLibraryItemIdPlatform = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -like "VMware-Aria-Operations-for-Networks-$ariaNetworksVersion*-platform.ova" }).contentLibraryItemId
+                                                                $contentLibraryItemIdCollector = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -like "VMware-Aria-Operations-for-Networks-$ariaNetworksVersion*-collector.ova" }).contentLibraryItemId
+                                                            } else {
+                                                                Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                                Break
+                                                            }
+                                                        }
+
+                                                        $infrastructurePropertiesObject = @()
+                                                        $infrastructurePropertiesObject += [pscustomobject]@{
+                                                            'acceptEULA'        = "true"
+                                                            'enableTelemetry'   = "true"
+                                                            'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                            'vCenterName'       = ($jsonInput.vcenterFqdn).Split(".")[0]
+                                                            'vCenterHost'       = $jsonInput.vcenterFqdn
+                                                            'vcUsername'        = $vcCredentials.userName
+                                                            'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                            'defaultPassword'   = ("locker:password:" + $($adminPassword.vmid) + ":" + $($adminPassword.alias))
+                                                            'certificate'       = ("locker:certificate:" + $($ariaNetworksCertificate.vmid) + ":" + $($ariaNetworksCertificate.alias))
+                                                            'cluster'           = ($jsonInput.vcenterDatacenter + "#" + $jsonInput.vcenterCluster)
+                                                            'storage'           = $jsonInput.vcenterDatastore
+                                                            'diskMode'          = "thin"
+                                                            'network'           = $jsonInput.network
+                                                            'masterVidmEnabled' = "false"
+                                                            'dns'               = $jsonInput.dns
+                                                            'domain'            = $jsonInput.domain
+                                                            'gateway'           = $jsonInput.gateway
+                                                            'netmask'           = $jsonInput.netmask
+                                                            'searchpath'        = $jsonInput.searchpath
+                                                            'timeSyncMode'      = "ntp"
+                                                            'ntp'               = $jsonInput.ntp
+                                                            'vcfProperties'     = '{\"vcfEnabled\":false,\"sddcManagerDetails\":[]}'
+                                                        }
+
+                                                        $infrastructureObject = @()
+                                                        $infrastructureObject += [pscustomobject]@{
+                                                            'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                                                        }
+
+                                                        $productPropertiesObject = @()
+                                                        $productPropertiesObject += [pscustomobject]@{
+                                                            'certificate'                   = ("locker:certificate:" + $($ariaNetworksCertificate.vmid) + ":" + $($ariaNetworksCertificate.alias))
+                                                            'contentLibraryItemId:platform' = $contentLibraryItemIdPlatform
+                                                            'contentLibraryItemId:proxy'    = $contentLibraryItemIdCollector
+                                                            'productPassword'               = ("locker:password:" + $($ariaNetworksRootPassword.vmid) + ":" + $($ariaNetworksRootPassword.alias))
+                                                            'licenseRef'                    = ("locker:license:" + $($ariaNetworksLicense.vmid) + ":" + $($ariaNetworksLicense.alias))
+                                                            'ntp'                           = $jsonInput.ntp
+                                                            'affinityRule'                  = false
+                                                            'configureAffinitySeparateAll'  = "false"
+                                                            'masterVidmEnabled'             = false
+                                                            'monitorWithvROps'              = "false"
+                                                            'fipsMode'                      = "false"
+                                                        }
+
+                                                        #### Generate VMware Aria Operations for Networks Node Details
+                                                        $ariaNetworksPlatformProperties = @()
+                                                        $ariaNetworksPlatformProperties += [pscustomobject]@{
+                                                            'hostName'     = $jsonInput.ariaNetworksNodeaFqdn
+                                                            'vmName'       = $jsonInput.ariaNetworksNodeaHostname
+                                                            'ip'           = $jsonInput.ariaNetworksNodeaIp
+                                                            'vrniNodeSize' = $jsonInput.ariaNetworksPlatformNodeSize
+                                                        }
+                                                        $ariaNetworksCollectorProperties = @()
+                                                        $ariaNetworksCollectorProperties += [pscustomobject]@{
+                                                            'hostName'     = $jsonInput.ariaNetworkCollectorsNodeaFqdn
+                                                            'vmName'       = $jsonInput.ariaNetworksCollectorNodeaHostname
+                                                            'ip'           = $jsonInput.ariaNetworksCollectorNodeaIp
+                                                            'vrniNodeSize' = $jsonInput.ariaNetworksCollectorNodeSize
+                                                        }
+                                                        $nodesObject = @()
+                                                        $nodesobject += [pscustomobject]@{
+                                                            'type'       = "vrni-platform"
+                                                            'properties' = ($ariaNetworksPlatformProperties | Select-Object -Skip 0)
+                                                        }
+                                                        $nodesobject += [pscustomobject]@{
+                                                            'type'       = "vrni-collector"
+                                                            'properties' = ($ariaNetworksCollectorProperties | Select-Object -Skip 0)
+                                                        }
+
+                                                        #### Generate the VMware Aria Operations for Networks Properties Section
+                                                        $productsObject = @()
+                                                        $productsObject += [pscustomobject]@{
+                                                            'id'         = "vrni"
+                                                            'version'    = $ariaNetworksVersion
+                                                            'properties' = ($productPropertiesObject | Select-Object -Skip 0)
+                                                            'nodes'      = $nodesObject
+                                                        }
+                                                        if (!($xintEnvironment)) {
+                                                            $ariaNetworksDeploymentObject = @()
+                                                            $ariaNetworksDeploymentObject += [pscustomobject]@{
+                                                                'environmentName' = $jsonInput.environmentName
+                                                                'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
+                                                                'products'        = $productsObject
+                                                            }
+                                                        } else {
+                                                            $ariaNetworksDeploymentObject = @()
+                                                            $ariaNetworksDeploymentObject += [pscustomobject]@{
+                                                                'environmentId'   = $xintEnvironment.environmentId
+                                                                'environmentName' = $jsonInput.environmentName
+                                                                'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
+                                                                'products'        = $productsObject
+                                                            }
+                                                        }
+                                                        $ariaNetworksDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
+                                                        Write-Output "Creation of VMware Aria Suite Lifecycle Deployment JSON Specification file for VMware Aria Operations for Networks: SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Datacenter Provided ($($jsonInput.datacenter)) does not exist: PRE_VALIDATION_FAILED"
+                                                    }
+                                                } else {
+                                                    Write-Error "Root Password with alias ($($jsonInput.rootPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                                }
+                                            } else {
+                                                Write-Error "Admin Password with alias ($($jsonInput.xintPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Certificate with alias ($($jsonInput.certificateAlias)) not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "License with alias ($($jsonInput.licenseAlias)) not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+            }
+        } else {
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Export-AriaNetworksJsonSpec
+
+Function New-AriaNetworksDeployment {
+    <#
+        .SYNOPSIS
+        Deploy VMware Aria Operations for Networks using VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The New-AriaNetworksDeployment cmdlet deploys VMware Aria Operations for Networks via VMware Aria Suite Lifecycle.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
+        - Requests a new deployment of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        New-AriaNetworksDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json
+        This example starts a deployment of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle using using data from the JSON Specification for Intelligent Network Visibility.
+
+        .EXAMPLE
+        New-AriaNetworksDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json -nested
+        This example starts a reduce footprint deployment of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Network Visibility.
+
+        .EXAMPLE
+        New-AriaNetworksDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json -customversion x.y.z
+        This example starts a deployment using a custom version of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Network Visibility.
+
+        .EXAMPLE
+        New-AriaNetworksDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\invDeploySpec.json -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Network Visibility and a vSphere Content Library for OVA installs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file for Intelligent Network Visibility.
+
+        .PARAMETER monitor
+        Specifies to monitor the deployment request in VMware Aria Suite Lifecycle.
+
+        .PARAMETER nested
+        Specifies to use the reduced footprint JSON specification file for deploying VMware Aria Operations for Networks.
+
+        .PARAMETER customVersion
+        The custom version to use for deploying VMware Aria Operations for Networks.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library for deploying VMware Aria Operations for Networks.
+
+        .PARAMETER contentLibrary
+        The vSphere Content Library to use for deploying VMware Aria Operations for Networks.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $commandSwitch = ""
+                                if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                    $commandSwitch = $commandSwitch + " -customVersion $customVersion"
+                                }
+                                if ($PsBoundParameters.ContainsKey("nested")) {
+                                    $commandSwitch = $commandSwitch + " -nested"
+                                }
+                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                    $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
+                                }
+                                $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                                Invoke-Expression "AriaNetworks -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
+                                $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "ariaNetworksDeploySpec.json")))
+                                $jsonSpec = $json | ConvertFrom-Json
+                                if (!((Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName }).products.id -contains $jsonSpec.products.id)) {
+                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
+                                        if (Get-vRSLCMLockerCertificate | Where-Object { $_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3]) }) {
+                                            if (Get-vRSLCMLockerLicense | Where-Object { $_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3]) }) {
+                                                if ($jsonSpec.environmentId) {
+                                                    $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+                                                } else {
+                                                    $newRequest = Add-vRSLCMEnvironment -json $json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+                                                }
+                                                if ($newRequest) {
+                                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                                        Start-Sleep 10
+                                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                                    } else {
+                                                        Write-Output "Deployment Request for VMware Aria Operations for Networks Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                    }
+                                                } else {
+                                                    Write-Error "Request to deploy VMware Aria Operations for Networks failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                                }
+                                            } else {
+                                                Write-Error "License in VMware Aria Suite Lifecycle ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "VMware Aria Operations for Networks in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-AriaNetworksDeployment
+
 Function Test-InvPrerequisite {
     <#
         .SYNOPSIS
@@ -20552,7 +20925,7 @@ Function Request-InvMscaSignedCertificate {
         Request signed certificate for VMware Aria Operations for Networks
 
         .DESCRIPTION
-        The Request-InvMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for 
+        The Request-InvMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for
         Networks from a Microsoft Certificate Authority using the details from the Intelligent Network Visibility
         JSON specification file.
 
@@ -20742,7 +21115,7 @@ Function Invoke-InvDeployment {
                                                 }
                                                 $networksOva = ((Get-ChildItem $binaries | Where-Object { ($_.name -match "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion") -and ($_.name -match "platform") }).name)
                                                 $networksOvaPath = $binaries + $networksOva
-                                                if ($networksOva) { 
+                                                if ($networksOva) {
                                                     if ((([regex]::Match(((Split-Path $networksOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrni))) {
                                                         Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName version ($ariaOperationsForNetworksVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
                                                     } else {
@@ -53379,7 +53752,7 @@ namespace CertificateCapture
 {
     public class Utility
     {
-        public static Func<HttpRequestMessage,X509Certificate2,X509Chain,SslPolicyErrors,Boolean> ValidationCallback = 
+        public static Func<HttpRequestMessage,X509Certificate2,X509Chain,SslPolicyErrors,Boolean> ValidationCallback =
             (message, cert, chain, errors) => {
                 var newCert = new X509Certificate2(cert);
                 var newChain = new X509Chain();
@@ -53390,12 +53763,12 @@ namespace CertificateCapture
                     PolicyErrors = errors,
                     URI = message.RequestUri
                 });
-                return true; 
+                return true;
             };
         public static List<CapturedCertificate> CapturedCertificates = new List<CapturedCertificate>();
     }
 
-    public class CapturedCertificate 
+    public class CapturedCertificate
     {
         public X509Certificate2 Certificate { get; set; }
         public X509Chain CertificateChain { get; set; }
@@ -53445,7 +53818,7 @@ namespace CertificateCapture
 {
     public class Utility
     {
-        public static Func<HttpRequestMessage,X509Certificate2,X509Chain,SslPolicyErrors,Boolean> ValidationCallback = 
+        public static Func<HttpRequestMessage,X509Certificate2,X509Chain,SslPolicyErrors,Boolean> ValidationCallback =
             (message, cert, chain, errors) => {
                 var newCert = new X509Certificate2(cert);
                 var newChain = new X509Chain();
@@ -53456,12 +53829,12 @@ namespace CertificateCapture
                     PolicyErrors = errors,
                     URI = message.RequestUri
                 });
-                return true; 
+                return true;
             };
         public static List<CapturedCertificate> CapturedCertificates = new List<CapturedCertificate>();
     }
 
-    public class CapturedCertificate 
+    public class CapturedCertificate
     {
         public X509Certificate2 Certificate { get; set; }
         public X509Chain CertificateChain { get; set; }
@@ -54450,7 +54823,7 @@ Function Test-VrSdkAuthentication {
 
         .EXAMPLE
         Test-VrSdkAuthentication -server sfo-m01-vrms01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -RemoteServer lax0-m01-vrms01.lax.rainpole.io -remoteUser administrator@vsphere.local -remotePass VMw@re1!
-        This example checks authentication with a vSphere Replication instance and a remote vSphere Replication instance. 
+        This example checks authentication with a vSphere Replication instance and a remote vSphere Replication instance.
 
         .PARAMETER server
         The fully qualified domain name of the vSphere Replication instance.
@@ -54693,7 +55066,7 @@ Function Test-SrmSdkAuthentication {
 
         .EXAMPLE
         Test-SrmSdkAuthentication -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -remoteUser administrator@vsphere.local -remotePass VMw@re1!
-        This example checks authentication with a Site Recovery Manager instance and a remote Site Recovery Manager instance. 
+        This example checks authentication with a Site Recovery Manager instance and a remote Site Recovery Manager instance.
 
         .PARAMETER server
         The fully qualified domain name of the Site Recovery Manager instance.

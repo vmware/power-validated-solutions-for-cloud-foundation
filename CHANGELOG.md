@@ -40,6 +40,8 @@
   - Added `Test-CcmPrerequisite` cmdlet to verify prerequisites for Cross Cloud Mobility.
   - Added `Test-InvPrerequisite` cmdlet to verify prerequisites for Intelligent Network Visibility.
 - Added `Export-InvJsonSpec` cmdlet to generate a JSON specification file for Intelligent Network Visibility.
+- Added `Export-AriaNetworksJsonSpec` cmdlet to generate the deployment JSON for VMware Aria Operations for Networks.
+- Added `New-AriaNetworksDeployment` cmdlet to deploy VMware Aria Operations for Networks via VMware Aria Suite Lifecycle in VMware Cloud Foundation aware mode.
 - Added `Request-AriaNetworksToken` cmdlet to generate and obtain an authorization token for VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksNodes` cmdlet to get various details about the VMware Aria Operations for Networks nodes.
 - Added `Get-AriaNetworksDataSource` cmdlet to get all the data sources in a VMware Aria Operations for Networks deployment.
