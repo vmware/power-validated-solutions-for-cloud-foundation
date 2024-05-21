@@ -3328,6 +3328,14 @@ Function Invoke-UndoPdrDeployment {
                                 }
                             }
 
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Removing License for Site Recovery Manager for $solutionName"
+                                foreach ($site in $sites) {
+                                    $StatusMsg = Undo-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
                             Show-PowerValidatedSolutionsOutput -Type NOTE -message "Removing Site Recovery Manager for $solutionName"
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Removing Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
@@ -3339,14 +3347,6 @@ Function Invoke-UndoPdrDeployment {
                                 Show-PowerValidatedSolutionsOutput -message "Un-Registering Site Recovery Manager from vCenter Single Sign-On for $solutionName"
                                 foreach ($site in $sites) {
                                     $StatusMsg = Undo-DRSolutionTovCenter -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -applianceFqdn $site.srmFqdn -vamiAdminPassword $site.srmAdminPassword -solution SRM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                }
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing License for Site Recovery Manager for $solutionName"
-                                foreach ($site in $sites) {
-                                    $StatusMsg = Undo-SrmLicenseKey -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -srmLicenseKey $site.srmLicenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
                             }
@@ -4440,6 +4440,9 @@ Function Add-VrmsNetworkAdapter {
                                             $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
                                             $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction Ignore
                                         } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
+                                        # Set the Interface State to Up
+                                        $scriptCommand = 'netmgr link_info --set --interface eth1 --state up'
+                                        Invoke-VMScript -ScriptType bash -VM $vrmsVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrmsRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                         # Configure a static route for the replication network
                                         $scriptCommand = "sed -i '/^Gateway*/a Destination=$replicationRemoteNetwork' /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd.service"
                                         Invoke-VMScript -ScriptType bash -VM $vrmsVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrmsRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
@@ -50938,6 +50941,7 @@ Function Set-VrmsNetworkInterface {
         $ipv4Object | Add-Member -notepropertyname 'default_gateway' -notepropertyvalue $gateway
         $ipv4Object | Add-Member -notepropertyname 'prefix' -notepropertyvalue $prefix
         $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'interfaceStatus' -notepropertyvalue "UP"
         $body | Add-Member -notepropertyname 'ipv4' -notepropertyvalue $ipv4Object
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"
