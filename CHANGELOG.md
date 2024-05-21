@@ -102,6 +102,7 @@
 - Enhanced `Start-vRSLCMUpgrade` cmdlet perform better status checks during the upgrade process.
 - Enhanced `Enable-vRLIContentPack` cmdlet to handle invalid Git Hub tokens, and additional checks to ensure content pack URL is obtained.
 - Enhanced `Deploy-PhotonAppliance` cmdlet to pull the primary datastore and cluster details from SDDC Manager.
+- Enhanced `Add-VrmsNetworkAdapter` cmdlet to set the eth1 interface status to up for the vSphere Replication appliance.
 
 ## v2.9.0
 
