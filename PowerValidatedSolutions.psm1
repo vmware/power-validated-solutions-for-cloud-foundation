@@ -3038,7 +3038,7 @@ Function Invoke-PdrDeployment {
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring ESXi Host Static Routes for vSphere Replication for $solutionName"
                                                     foreach ($site in $sites) {
-                                                        $StatusMsg = Add-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -gateway $site.vrmsGateway -subnet $site.remoteReplicationNetwork -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        $StatusMsg = Add-EsxiVrmsStaticRoute -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -gateway $site.replicationGateway -subnet $site.remoteReplicationNetwork -portgroup $site.replicationPortgroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
                                                 }
@@ -3119,7 +3119,7 @@ Function Invoke-PdrDeployment {
                                                     $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Cross-Instance Workspace ONE Access Load Balancer Availability" -calloutContent "Verify the Load Balancer for the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
-                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Run VMware Aria Suite Lifecycle Power On Workflow for the Cross-Instance Workspace ONE Access" -calloutContent "To complete the bring-up sequence of the Cross-Insrance Workspace ONE Access, follow the process outlined in the Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "VMware Aria Suite Lifecycle Power On Workflow for Workspace ONE Access" -calloutContent "To complete the bring-up sequence of the Cross-Insrance Workspace ONE Access, follow the process outlined in the Site Protection and Disaster Recovery validated solution." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
 
@@ -3269,6 +3269,8 @@ Function Invoke-UndoPdrDeployment {
                 if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
                     if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass) {
                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                            if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
+                            if (Get-VCFvRA) { $ariaAutomationPresent = $true } else { $ariaAutomationPresent = $false }
                             $sites = $jsonInput.protected; $sites += $jsonInput.recovery
                             $failureDetected = $false
                             $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
@@ -3296,15 +3298,19 @@ Function Invoke-UndoPdrDeployment {
                             }
 
                             if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Automation"
-                                $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                if ($ariaAutomationPresent) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Automation"
+                                    $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
                             }
 
                             if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Operations Analytics Cluster"
-                                $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                if ($ariaOperationsPresent) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Replications for VMware Aria Operations Analytics Cluster"
+                                    $StatusMsg = Undo-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
                             }
 
                             if (!$failureDetected) {
@@ -50940,7 +50946,6 @@ Function Set-VrmsNetworkInterface {
         $ipv4Object | Add-Member -notepropertyname 'default_gateway' -notepropertyvalue $gateway
         $ipv4Object | Add-Member -notepropertyname 'prefix' -notepropertyvalue $prefix
         $body = New-Object -TypeName psobject
-        $body | Add-Member -notepropertyname 'interfaceStatus' -notepropertyvalue "UP"
         $body | Add-Member -notepropertyname 'ipv4' -notepropertyvalue $ipv4Object
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"

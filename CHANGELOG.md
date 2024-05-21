@@ -77,6 +77,7 @@
 - Fixed `Invoke-PdrDeployment` cmdlet where expected errors are thrown to the output making it look like a failure when in fact the task completes.
 - Fixed `Get-vRAvRLIConfig` cmdlet where is failed due to an OpenSSL error being returned with the data.
 - Fixed `Export-PdrJsonSpec` where some values should be an integer.
+- Fixed `Invoke-PdrDeployment` where the incorrect gateway was being passed to the `Add-EsxiVrmsStaticRoute` cmdlet.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the VM folder for Private Cloud Automation.
 - Enhanced `Invoke-HrmDeployment` cmdlet to set the $failureDetected variable to false before starting the deployment.
@@ -103,6 +104,7 @@
 - Enhanced `Enable-vRLIContentPack` cmdlet to handle invalid Git Hub tokens, and additional checks to ensure content pack URL is obtained.
 - Enhanced `Deploy-PhotonAppliance` cmdlet to pull the primary datastore and cluster details from SDDC Manager.
 - Enhanced `Add-VrmsNetworkAdapter` cmdlet to set the eth1 interface status to up for the vSphere Replication appliance.
+- Enhanced `Invoke-UndoPdrDeployment` cmdlet to check for the existence of VMware Aria Automation and VMware Aria Operations.
 
 ## v2.9.0
 
