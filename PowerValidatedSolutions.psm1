@@ -172,14 +172,14 @@ Function Test-IamPrerequisite {
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     # Verify that the required service accounts are created in Active Directory
                     $serviceAccounts = '[
-                        {"user": "'+ $jsonInput.domainBindUserVsphere +'", "password": "'+ $jsonInput.domainBindPassVsphere +'"},
-                        {"user": "'+ $jsonInput.domainBindUserNsx +'", "password": "'+ $jsonInput.domainBindPassNsx +'"}
+                        {"user": "'+ $jsonInput.domainBindUserVsphere +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.domainBindPassVsphere +'"},
+                        {"user": "'+ $jsonInput.domainBindUserNsx +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.domainBindPassNsx +'"}
                     ]' | ConvertFrom-Json
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
                     }
                     # Verify that the required security groups are created in Active Directory
-                    $adGroups = $jsonInput.nsxAdGroups; $allGroups += @($jsonInput.vcenterAdminGroup, $jsonInput.vcenterReadOnlyGroup, $jsonInput.ssoAdminGroup, $jsonInput.vcfAdminGroup, $jsonInput.vcfOperatorGroup, $jsonInput.vcfViewerGroup)
+                    $adGroups = $jsonInput.nsxAdGroups; $adGroups += @($jsonInput.vcenterAdminGroup, $jsonInput.vcenterReadOnlyGroup, $jsonInput.ssoAdminGroup, $jsonInput.vcfAdminGroup, $jsonInput.vcfOperatorGroup, $jsonInput.vcfViewerGroup)
                     Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUserVsphere -password $jsonInput.domainBindPassVsphere -adGroups $adGroups -domain $jsonInput.domainFqdn
                     Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                     Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
@@ -12589,7 +12589,7 @@ Function Test-IlaPrerequisite {
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                         Test-PrereqBinary -searchCriteria "Log-Insight-$ariaLogsVersion" -productMessage "VMware Aria Operations for Logs" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Logs" # Verify a license key is present
-                        Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
+                        Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                         Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                         Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
@@ -16339,8 +16339,8 @@ Function Test-IomPrerequisite {
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
-                            {"user": "'+ $jsonInput.serviceAccountOperationsVcf +'", "password": "'+ $jsonInput.serviceAccountOperationsVcfPass +'"},
-                            {"user": "'+ $jsonInput.serviceAccountOperationsVsphere +'", "password": "'+ $jsonInput.serviceAccountOperationsVspherePass +'"}
+                            {"user": "'+ $jsonInput.serviceAccountOperationsVcf +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountOperationsVcfPass +'"},
+                            {"user": "'+ $jsonInput.serviceAccountOperationsVsphere +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountOperationsVspherePass +'"}
                         ]' | ConvertFrom-Json
                         foreach ( $serviceAccount in $serviceAccounts ) {
                             Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -20918,7 +20918,7 @@ Function Test-InvPrerequisite {
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
                             {"user": "'+ $jsonInput.domainBindUser +'", "password": "'+ $jsonInput.domainBindPass +'"},
-                            {"user": "'+ $jsonInput.serviceAccountNetworksVsphere +'", "password": "'+ $jsonInput.serviceAccountNetworksVspherePass +'"}
+                            {"user": "'+ $jsonInput.serviceAccountNetworksVsphere +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountNetworksVspherePass +'"}
                         ]' | ConvertFrom-Json
                         foreach ( $serviceAccount in $serviceAccounts ) {
                             Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -21669,8 +21669,8 @@ Function Test-PcaPrerequisite {
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
-                            {"user": "'+ $jsonInput.serviceAccountAutomation +'", "password": "'+ $jsonInput.serviceAccountAutomationPass +'"},
-                            {"user": "'+ $jsonInput.serviceAccountOrchestrator +'", "password": "'+ $jsonInput.serviceAccountOrchestratorPass +'"}
+                            {"user": "'+ $jsonInput.serviceAccountAutomation +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountAutomationPass +'"},
+                            {"user": "'+ $jsonInput.serviceAccountOrchestrator +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountOrchestratorPass +'"}
                         ]' | ConvertFrom-Json
                         foreach ( $serviceAccount in $serviceAccounts ) {
                             Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -24390,7 +24390,7 @@ Function Test-HrmPrerequisite {
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                     Test-PrereqBinary -searchCriteria $jsonInput.ova -productMessage "Virtual Host Machine" # Verify that the required binaries are available
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
-                    Test-PrereqServiceAccount -user $jsonInput.hrmVcfServiceAccount -password $jsonInput.hrmVcfServiceAccountPassword -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
+                    Test-PrereqServiceAccount -user ($jsonInput.hrmVcfServiceAccount + "@" + $jsonInput.domainFqdn) -password $jsonInput.hrmVcfServiceAccountPassword -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                 }
             }
         } else {
@@ -24925,9 +24925,9 @@ Function Test-CbwPrerequisite {
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     # Verify Service Accounts
                     $serviceAccounts = '[
-                        {"user": "'+ $jsonInput.serviceAccountVcdr +'", "password": "'+ $jsonInput.serviceAccountVcdrPass +'"},
-                        {"user": "'+ $jsonInput.serviceAccountHcx +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
-                        {"user": "'+ $jsonInput.serviceAccountNsx +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
+                        {"user": "'+ $jsonInput.serviceAccountVcdr +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountVcdrPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountHcx +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountNsx +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
                     ]' | ConvertFrom-Json
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -25472,8 +25472,8 @@ Function Test-CcmPrerequisite {
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     # Verify that the required service accounts are created in Active Directory
                     $serviceAccounts = '[
-                        {"user": "'+ $jsonInput.serviceAccountHcx +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
-                        {"user": "'+ $jsonInput.serviceAccountNsx +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
+                        {"user": "'+ $jsonInput.serviceAccountHcx +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountHcxPass +'"},
+                        {"user": "'+ $jsonInput.serviceAccountNsx +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountNsxPass +'"}
                     ]' | ConvertFrom-Json
                     foreach ( $serviceAccount in $serviceAccounts ) {
                         Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -25924,7 +25924,7 @@ Function Invoke-vRSLCMDeployment {
                                     $upgradeVersion = [regex]::matches($upgradeIso,$regex).value
                                     Show-PowerValidatedSolutionsOutput -message "Attaching Upgrade ISO to $lcmProductName"
                                     $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    Start-Sleep 5
+                                    Start-Sleep 30
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     Show-PowerValidatedSolutionsOutput -message "Starting Upgrade of $lcmProductName, please be paitent..."
                                     $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -version $upgradeVersion -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -27404,7 +27404,7 @@ Function Test-GlobalWsaPrerequisite {
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqBinary -searchCriteria "identity-manager-$wsaVersion" -productMessage "Workspace ONE Access" # Verify that the required binaries are available
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
-                        Test-PrereqServiceAccount -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
+                        Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                         Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                         Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                         Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
