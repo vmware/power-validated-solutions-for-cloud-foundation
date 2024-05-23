@@ -284,7 +284,6 @@ nav:
       - documentation/functions/aria-suite/aria-operations/Get-vROPSCredential.md
       - documentation/functions/aria-suite/aria-operations/Get-vROPSCurrency.md
       - documentation/functions/aria-suite/aria-operations/Get-vROpsLogForwarding.md
-      - documentation/functions/aria-suite/aria-operations/Get-vROpsLogForwardingConfig.md
       - documentation/functions/aria-suite/aria-operations/Get-vROPSManagementPack.md
       - documentation/functions/aria-suite/aria-operations/Get-vROPSManagementPackActivity.md
       - documentation/functions/aria-suite/aria-operations/Get-vROPSManagementPackStatus.md
@@ -312,6 +311,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSNotification.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSUserAccount.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSUserGroup.md
+      - documentation/functions/aria-suite/aria-operations/Request-vROpsLogForwardingConfig.md
       - documentation/functions/aria-suite/aria-operations/Request-vROPSToken.md
       - documentation/functions/aria-suite/aria-operations/Search-vROPSUserAccount.md
       - documentation/functions/aria-suite/aria-operations/Search-vROPSUserGroup.md

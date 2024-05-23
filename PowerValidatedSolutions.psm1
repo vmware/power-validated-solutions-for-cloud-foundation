@@ -15486,21 +15486,20 @@ Function Undo-NsxtNodeProfileSyslogExporter {
 }
 Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
 
-Function Get-vROpsLogForwardingConfig {
+Function Request-vROpsLogForwardingConfig {
     <#
         .SYNOPSIS
         Gets the VMware Aria Operations log forwarding configuration.
 
         .DESCRIPTION
-        The Get-vROpsLogForwardingConfig cmdlet gets the VMware Aria Operations logging forwarding configuration.
+        The Request-vROpsLogForwardingConfig cmdlet gets the VMware Aria Operations logging forwarding configuration.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Operations
-        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Gets the VMware Aria Operations logging forwarding configuration
 
         .EXAMPLE
-        Get-vROpsLogForwardingConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        Request-vROpsLogForwardingConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example returns the log forwarding configuration on VMware Aria Operations.
 
         .PARAMETER server
@@ -15522,24 +15521,15 @@ Function Get-vROpsLogForwardingConfig {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if ($vcfVropsDetails = Get-vROpsServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
-                                if (Test-vROpsConnection -server $vcfVropsDetails.loadBalancerFqdn) {
-                                    if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
-                                        if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
-                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
-                                                $response = Get-vROpsLogForwarding
-                                                $response
-                                                if ($response.enabled -eq $false) {
-                                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not enabled."
-                                                } elseif ($response.enabled -eq $true -and $response.host -ne $vcfVrliDetails.fqdn) {
-                                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not configured with $($vcfVrliDetails.fqdn)."
-                                                }
-                                            }
-                                        }
-                                    }
+                if ($vcfVropsDetails = Get-vROpsServerDetail -fqdn $server -username $user -password $pass) {
+                    if (Test-vROpsConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                                $response = Get-vROpsLogForwarding
+                                if ((Get-vROpsLogForwarding).enabled -eq $false) {
+                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not enabled."
+                                } elseif ((Get-vROpsLogForwarding).enabled -eq $true -and $response.host -ne $vcfVrliDetails.fqdn) {
+                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not configured with $($vcfVrliDetails.fqdn)."
                                 }
                             }
                         }
@@ -15551,7 +15541,7 @@ Function Get-vROpsLogForwardingConfig {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Get-vROpsLogForwardingConfig
+Export-ModuleMember -Function Request-vROpsLogForwardingConfig
 
 Function Get-vRAvRLIConfig {
     <#
@@ -17966,7 +17956,7 @@ Function Update-vROPSAdapterCollecterGroup {
 
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "LogInsightAdapter"
-        This example updates VMware Aria Operations for LogsAdapter to use the collector group named 'sfo-remote-collectors'
+        This example updates VMware Aria Operations for Logs Adapter to use the collector group named 'sfo-remote-collectors'
 
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "VMWARE"
@@ -18021,18 +18011,21 @@ Function Update-vROPSAdapterCollecterGroup {
                                         $adapters = $adapters | Where-Object { $_.resourceKey.name -eq $adapterName }
                                     } else {
                                         Write-Error "Adapter with name $adapterName not found"
-                                        Break
                                     }
                                 }
                                 Foreach ($adapter in $adapters) {
                                     $json = $adapter
                                     if (!($($json.collectorGroupId) -eq $collectorGroupId)) {
-                                        $json.collectorGroupId = $collectorGroupId
-                                        #Remove collectorId as the request body can accept a collectorId or a collectorGroupId, but not both.
                                         $json.PSObject.Properties.Remove('collectorId')
+                                        $json.PSObject.Properties.Remove('collectorGroupId')
+                                        $json | Add-Member -notepropertyname 'collectorGroupId' -notepropertyvalue $collectorGroupId
                                         $json | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
-                                        Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
+                                        if ((Get-vROPSAdapter -id $json.id).collectorGroupId -eq $collectorGroupId) { 
+                                            Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): POST_VALIDATION_FAILED"
+                                        }
                                         Remove-Item .\updateAdapter.json -Force -Confirm:$false
                                     } else {
                                         Write-Warning "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)) already assigned: SKIPPED"
@@ -24590,7 +24583,7 @@ Function Deploy-PhotonAppliance {
         - Deploys the Photon Appliance into a vSphere Cluster
 
         .EXAMPLE
-        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -portGroup sfo-m01-cl01-vds01-mgmt -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
+        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
         This example deploys the Photon appliance named sfo-m01-hrm01.
 
         .PARAMETER server
@@ -24635,9 +24628,6 @@ Function Deploy-PhotonAppliance {
         .PARAMETER enableDebug
         Enable debug mode on the Photon appliance.
 
-        .PARAMETER portgroup
-        The portgroup to place the Photon appliance on.
-
         .PARAMETER folder
         The virtual machine folder to place the Photon appliance in.
 
@@ -24660,7 +24650,6 @@ Function Deploy-PhotonAppliance {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPassword,
         [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableSsh,
         [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableDebug,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ovaPath
     )
@@ -24676,6 +24665,7 @@ Function Deploy-PhotonAppliance {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (!(Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore)) {
+                                    $portgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object { $_.DeviceName -eq "vmk0" }).PortGroupName
                                     $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).Name
                                     $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).primaryDatastoreName
                                     $datacenter = (Get-Datacenter -Cluster $cluster).Name
