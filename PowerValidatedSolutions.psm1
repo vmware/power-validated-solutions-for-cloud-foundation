@@ -24311,7 +24311,6 @@ Function Export-HrmJsonSpec {
                 'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                 'rootPassword'                 = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
                 'ova'                          = "vvs_appliance_v0.0.1.ova"
-                'portgroup'                    = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
                 'stretchedCluster'             = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
                 'drsVmGroupNameAz'             = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'domainFqdn'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -24441,7 +24440,7 @@ Function Invoke-HrmDeployment {
 
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Deploying the Host Virtual Machine for $solutionName"
-                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -rootPassword $jsonInput.rootPassword -enableSsh True -enableDebug False -portGroup $jsonInput.portgroup -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -rootPassword $jsonInput.rootPassword -enableSsh True -enableDebug False -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
 
