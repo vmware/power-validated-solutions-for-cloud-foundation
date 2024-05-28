@@ -2,7 +2,7 @@
 
 ## v2.10.0
 
-> Release Date: Unreleased
+> Release Date: 2024-05-28
 
 - Added `Start-ValidatedSolutionMenu` cmdlet to load the Validated Solution main menu.
 - Added `Start-AriaSuiteLifecycleMenu` cmdlet to load the VMware Aria Suite Lifecycle sub-menu.
