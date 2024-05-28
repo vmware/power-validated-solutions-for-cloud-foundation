@@ -3093,34 +3093,62 @@ Function Invoke-PdrDeployment {
                                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName $vmNames -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
                                                 }
 
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupWsa -vmName $vmNames -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
                                                 }
 
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -pgName $jsonInput.protectionGroupWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
                                                 }
 
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Suite Lifecycle and Clustered Workspace ONE Access"
                                                     $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameLifecycle -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
 
                                                     $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -setVmPriority $true -addCallout $false -vmName $wsaVmNames -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
 
                                                     $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Cross-Instance Workspace ONE Access Load Balancer Availability" -calloutContent "Verify the Load Balancer for the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
 
                                                     $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanWsa -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "VMware Aria Suite Lifecycle Power On Workflow for Workspace ONE Access" -calloutContent "To complete the bring-up sequence of the Cross-Insrance Workspace ONE Access, follow the process outlined in the Site Protection and Disaster Recovery validated solution." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                    } else {
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
                                                 }
 
                                                 if ($ariaOperationsPresent) {
@@ -3128,52 +3156,104 @@ Function Invoke-PdrDeployment {
                                                         Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Operations Analytics Cluster"
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Operations Analytics Cluster"
                                                         $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Operations Analytics Cluster"
                                                         $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupOperations -vmName @("$($jsonInput.vmNameOperationsNodeA)", "$($jsonInput.vmNameOperationsNodeB)", "$($jsonInput.vmNameOperationsNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Operations Analytics Cluster"
                                                         $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -pgName $jsonInput.protectionGroupOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Operations Analytics Cluster"
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeB -priority "P2" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameOperationsNodeC -priority "P3" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Operations Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Operations is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Manually Power Off all running Cloud Proxy Appliances" -calloutContent "Manually Power Off all running Cloud Proxy appliances. In case of planned migration, the appliances will already be powered down." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P2" -calloutName "Monitor the Status of the VMware Aria Operations Primary Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P3" -calloutName "Monitor the status of the VMware Aria Operations Replica Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Monitor the status of the VMware Aria Operations Data Node" -calloutContent "For planned migration: State is Not Running, Status is Offline. For disaster recovery: State is Running, Status is Waiting For Analytics." -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanOperations -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P4" -calloutName "Power On the VMware Aria Operations Cloud Proxies" -calloutContent "Power on all available VMware Aria Operations Cloud Proxies" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
                                                 }
 
@@ -3182,32 +3262,56 @@ Function Invoke-PdrDeployment {
                                                         Show-PowerValidatedSolutionsOutput -type NOTE -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Automation"
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Automation"
                                                         $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Protection Group for VMware Aria Automation"
                                                         $StatusMsg = Add-ProtectionGroup -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -pgName $jsonInput.protectionGroupAutomation -vmName @("$($jsonInput.vmNameAutomationNodeA)", "$($jsonInput.vmNameAutomationNodeB)", "$($jsonInput.vmNameAutomationNodeC)") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Recovery Plan for VMware Aria Automation"
                                                         $StatusMsg = Add-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -pgName $jsonInput.protectionGroupAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         Start-Sleep -Seconds 10
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
 
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Customizing Recovery Plan for VMware Aria Automation"
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -setVmPriority $true -addCallout $false -vmName $jsonInput.vmNameAutomationNodeA -priority "P1" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "VMware Aria Automation Load Balancer Availability" -calloutContent "Verify the Load Balancer for the VMware Aria Automation is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
 
                                                         $StatusMsg = Set-RecoveryPlan -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -rpName $jsonInput.recoveryPlanAutomation -addCallout $true -setVmPriority $false -calloutType "PROMPT" -calloutPositionBefore "P1" -calloutName "Cross-Instance Workspace ONE Access Availability" -calloutContent "Verify the Cross-Instance Workspace ONE Access is available" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        if ($StatusMsg -match "SUCCESSFUL") {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                                        } else {
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
                                                     }
                                                 }
 
@@ -7998,7 +8102,7 @@ Function Add-vSphereReplication {
         - Adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
-        Add-vSphereReplication --sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
+        Add-vSphereReplication -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
         This example adds vSphere Replication for VM xint-vrslcm01 from the protected instance to the recovery instance.
 
         .PARAMETER sddcManagerAFqdn
@@ -8040,13 +8144,15 @@ Function Add-vSphereReplication {
     Try {
         if (Test-VCFConnection -server $sddcManagerAFqdn) {
             if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType "MANAGEMENT")) {
                     if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
                             $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
                             if (Test-VCFConnection -server $sddcManagerBFqdn) {
                                 if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType "MANAGEMENT")) {
+                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
+                                        $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).primaryDatastoreName
                                         if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object { $_.key -eq "com.vmware.vcHms" }).Server.Url -Split "//" -Split ":")[2]
@@ -8072,7 +8178,7 @@ Function Add-vSphereReplication {
                                                             }
                                                         }
                                                         foreach ($vm in $vmsToReplicate) {
-                                                            $newReplication = Add-VrmsReplication -vmName $vm -recoveryPointObjective $recoveryPointObjective
+                                                            $newReplication = Add-VrmsReplication -vmName $vm -recoveryPointObjective $recoveryPointObjective -datastore $datastore
                                                             if (!$newReplication) {
                                                                 Write-Error "Adding vSphere Replication for Virtual Machine ($vm): POST_VALIDATION_FAILED"
                                                             } else {
@@ -51481,7 +51587,7 @@ Function Add-VrmsReplication {
         The Add-VrmsReplication cmdlet adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
-        Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440
+        Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440 -datastore lax-m01-cl01-ds-vsan01
         This example adds a vSphere Replication for virtual machine xint-vrslcm01 to the vSphere Replication instance.
 
         .PARAMETER vmName
@@ -51489,11 +51595,15 @@ Function Add-VrmsReplication {
 
         .PARAMETER recoveryPointObjective
         The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication.
+
+        .PARAMETER vmName
+        The name of the target datastore to replicate to.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-        [Parameter (Mandatory = $true)] [ValidateRange(5, 1440)] [Int]$recoveryPointObjective
+        [Parameter (Mandatory = $true)] [ValidateRange(5, 1440)] [Int]$recoveryPointObjective,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datastore
     )
 
     Try {
@@ -51501,7 +51611,7 @@ Function Add-VrmsReplication {
         $pairingId = $sitePair.pairing_id
         $vmToReplicate = Get-VrmsVm -vmName $vmName
         $existingDisks = $vmToReplicate.disks
-        $destinationDatastore = Get-VrmsDatastore -site recovery
+        $destinationDatastore = Get-VrmsDatastore -site recovery | Where-Object {$_.name -eq $datastore}
         $disks = @()
         foreach ($existingDisk in $existingDisks) {
             $tempDisk = @{
