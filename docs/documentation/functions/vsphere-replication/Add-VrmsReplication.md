@@ -19,7 +19,7 @@ The `Add-VrmsReplication` cmdlet adds a vSphere Replication for the specified vi
 ### Example 1
 
 ```powershell
-Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440
+Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440 -datastore lax-m01-cl01-ds-vsan01
 ```
 
 This example adds a vSphere Replication for virtual machine xint-vrslcm01 to the vSphere Replication instance.
@@ -54,6 +54,22 @@ Aliases:
 Required: True
 Position: 2
 Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -datastore
+
+The name of the target datastore to replicate to.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 3
+Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

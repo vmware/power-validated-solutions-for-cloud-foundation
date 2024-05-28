@@ -107,6 +107,8 @@
 - Enhanced `Deploy-PhotonAppliance` cmdlet to retrieve the primary datastore, cluster details and management portgroup automatically.
 - Enhanced `Add-VrmsNetworkAdapter` cmdlet to set the eth1 interface status to up for the vSphere Replication appliance.
 - Enhanced `Invoke-UndoPdrDeployment` cmdlet to check for the existence of VMware Aria Automation and VMware Aria Operations.
+- Enhanced `Add-VrmsReplication` cmdlet by adding a parameter for the datastore t`Add-VrmsReplication`o replicate the virtual machine to.
+- Enhanced `Add-vSphereReplication` cmdlet to obtain the primary datastore in the recovery site and pass it to the `Add-VrmsReplication` cmdlet.
 
 ## v2.9.0
 
