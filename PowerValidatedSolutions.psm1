@@ -381,8 +381,8 @@ Function Invoke-IamDeployment {
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
-                            Show-PowerValidatedSolutionsOutput -TYPE ADVISORY -message "Going to Sleep for 5 Minutes to Allow vCenter Server Single Sign-On to Finishing Replicating"
-                            Start-Sleep 360
+                            Show-PowerValidatedSolutionsOutput -TYPE ADVISORY -message "Going to Sleep for 2 Minutes to Allow vCenter Server Single Sign-On to Finishing Replicating"
+                            Start-Sleep 120
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $serviceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -role $jsonInput.vsphereRoleName -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -391,7 +391,7 @@ Function Invoke-IamDeployment {
                                 if ($sddcDomain.type -eq "MANAGEMENT") {
                                     $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }
                                     foreach ($viDomain in $viWorkloadDomains) {
-                                        $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
+                                        $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($viDomain.nsxtCluster.vipFqdn).Split('.',2)[-0]) }).username.Split("@")[-0]
                                         $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
@@ -399,7 +399,7 @@ Function Invoke-IamDeployment {
                                 }
                                 if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
                                     $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }
-                                    $mgmtServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
+                                    $mgmtServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($mgmtWorkloadDomain.nsxtCluster.vipFqdn).Split('.',2)[-0]) }).username.Split("@")[-0]
                                     $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
@@ -461,7 +461,7 @@ Function Invoke-UndoIamDeployment {
                         if ($sddcDomain.type -eq "MANAGEMENT") {
                             $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }
                             foreach ($viDomain in $viWorkloadDomains) {
-                                $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
+                                $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($viDomain.nsxtCluster.vipFqdn).Split('.',2)[-0]) }).username.Split("@")[-0]
                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
@@ -469,7 +469,7 @@ Function Invoke-UndoIamDeployment {
                         }
                         if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
                             $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }
-                            $mgmtServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER" }).username.Split("@")[-0]
+                            $mgmtServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($mgmtWorkloadDomain.nsxtCluster.vipFqdn).Split('.',2)[-0]) }).username.Split("@")[-0]
                             $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg

@@ -4,6 +4,7 @@
 
 > Release Date: (Not Released)
 
+- Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` where it was not discovering the NSX service accounts correctly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 
 ## v2.10.0
