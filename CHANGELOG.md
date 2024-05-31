@@ -1,5 +1,11 @@
 # Release History
 
+## v2.11.0
+
+> Release Date: (Not Released)
+
+- Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
+
 ## v2.10.0
 
 > Release Date: 2024-05-28
