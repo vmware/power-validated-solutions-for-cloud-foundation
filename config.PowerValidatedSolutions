@@ -29,19 +29,19 @@
             },
             {
                 "AriaComponent": "AriaOperationsForLogs",
-                "Version": "8.16.0"
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "AriaOperationsForNetworks",
-                "Version": "6.12.1"
+                "Version": "6.13.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.16.1"
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.16.2"
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "WorkspaceONE",
@@ -55,23 +55,53 @@
             },
             {
                 "AriaComponent": "AriaSuiteLifecyclePsPack",
-                "Version": "PSPACK2"
+                "Version": "PSPACK3"
             },
             {
                 "AriaComponent": "AriaOperationsForLogs",
-                "Version": "8.16.0"
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "AriaOperationsForNetworks",
-                "Version": "6.12.1"
+                "Version": "6.13.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.16.1"
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.16.2"
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "WorkspaceONE",
+                "Version": "3.3.7"
+            }
+        ],
+        "5.2.0":[
+             {
+                "AriaComponent": "AriaSuiteLifecycle",
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "AriaSuiteLifecyclePsPack",
+                "Version": ""
+            },
+            {
+                "AriaComponent": "AriaOperationsForLogs",
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "AriaOperationsForNetworks",
+                "Version": "6.13.0"
+            },
+            {
+                "AriaComponent": "AriaOperations",
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "AriaAutomation",
+                "Version": "8.18.0"
             },
             {
                 "AriaComponent": "WorkspaceONE",
