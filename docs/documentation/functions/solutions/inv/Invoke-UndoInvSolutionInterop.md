@@ -1,31 +1,31 @@
-# Invoke-UndoIomSolutionInterop
+# Invoke-UndoInvSolutionInterop
 
 ## Synopsis
 
-Remove solution interoperability for Intelligent Operations Management.
+Remove solution interoperability for Intelligent Network Visibility.
 
 ## Syntax
 
 ```powershell
-Invoke-UndoIomSolutionInterop [-jsonFile] <String> [<CommonParameters>]
+Invoke-UndoInvSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Invoke-UndoIomSolutionInterop` cmdlet is a single function to remove the solution interoperability of the
-Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+The `Invoke-UndoInvSolutionInterop` cmdlet is a single function to remove the solution interoperability of the
+Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
 
-- Logging
+- Montitoring and Alerting
 
 ## Examples
 
 ### Example 1
 
-``` powershell
-Invoke-UndoIomSolutionInterop -jsonFile .\iomDeploySpec.json
+```powershell
+Invoke-UndoInvSolutionInterop -jsonFile .\invDeploySpec.json
 ```
 
-This example removes solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation using the JSON spec supplied
+This example removes solution interoperability of the Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied
 
 ## Parameters
 

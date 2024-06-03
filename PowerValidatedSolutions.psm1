@@ -13246,7 +13246,7 @@ Function Invoke-IlaSolutionInterop {
                                     }
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $operationsProductName"
                                 } else {
-                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found:, SKIPPED"
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
                                 }
 
                                 if (!$failureDetected) {
@@ -13325,7 +13325,7 @@ Function Invoke-UndoIlaSolutionInterop {
 
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $logsProductName Integration with $operationsProductName"
                                 } else {
-                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found:, SKIPPED"
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
                                 }
 
                                 if (!$failureDetected) {
@@ -17282,7 +17282,7 @@ Function Invoke-IomSolutionInterop {
                                     }
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $operationsProductName"
                                 } else {
-                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found:, SKIPPED"
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
                                 }
 
                                 if (!$failureDetected) {
@@ -17356,7 +17356,7 @@ Function Invoke-UndoIomSolutionInterop {
 
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $operationsProductName Integration with $logsProductName"
                                 } else {
-                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found:, SKIPPED"
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
                                 }
 
                                 if (!$failureDetected) {
@@ -20889,6 +20889,12 @@ Function Export-InvJsonSpec {
                 'drsGroupNameAz'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'stretchedCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
             }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "network-visibility-nodes"
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["xreg_vrni_nodea_ip"].Value),$($pnpWorkbook.Workbook.Names["region_vrni_nodea_ip"].Value)"
+            }
+
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -20912,6 +20918,647 @@ Function Export-InvJsonSpec {
     }
 }
 Export-ModuleMember -Function Export-InvJsonSpec
+
+Function Test-InvPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for Intelligent Network Visibility
+
+        .DESCRIPTION
+        The Test-InvPrerequisite cmdlet verifies the prerequisites for Intelligent Network Visibility for VMware
+        Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Test-InvPrerequisite -jsonFile .\invDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for Intelligent Network Visibility.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                            if ($vcfVersion.$actualVcfVersion) {
+                                $ariaOperationsForNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaOperationsForNetworks"}).Version
+                            }
+                        }
+                        Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
+                        Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                        Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                        Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
+                        Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Networks" # Verify a license key is present
+                        Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that the required service accounts are created in Active Directory
+                        $serviceAccounts = '[
+                            {"user": "'+ $jsonInput.domainBindUser +'", "password": "'+ $jsonInput.domainBindPass +'"},
+                            {"user": "'+ $jsonInput.serviceAccountNetworksVsphere +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountNetworksVspherePass +'"}
+                        ]' | ConvertFrom-Json
+                        foreach ( $serviceAccount in $serviceAccounts ) {
+                            Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
+                        }
+                        Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
+                        Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                        Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                        Test-PrereqOpenSsl # Verify that OpenSSL is installed
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+        } else {
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-InvPrerequisite
+
+Function Request-InvMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for VMware Aria Operations for Networks
+
+        .DESCRIPTION
+        The Request-InvMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for
+        Networks from a Microsoft Certificate Authority using the details from the Intelligent Network Visibility
+        JSON specification file.
+
+        .EXAMPLE
+        Request-InvMscaSignedCertificate -jsonFile .\invDeploySpec.json -certificates .\certificates\
+        This example request a signed certificate for VMware Aria Operations for Networks.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the store the certificate files.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $productName = "VMware Aria Operations for Networks"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.ariaNetworksPlatformNodeaFqdn -subjectAlternativeNames "$($jsonInput.ariaNetworksPlatformNodeaFqdn)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".key") -crtFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-InvMscaSignedCertificate
+
+Function Invoke-InvDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of Intelligent Network Visibility.
+
+        .DESCRIPTION
+        The Invoke-InvDeployment cmdlet is a single function to implement the configuration of the Intelligent Network
+        Visibility for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-InvDeployment -jsonFile .\invDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
+        This example configures Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The fully qualified path to the JSON specification file (.json).
+
+        .PARAMETER certificates
+        The fully qualified path to the certificates directory.
+
+        .PARAMETER binaries
+        The fully qualified path to the binaries directory.
+
+        .PARAMETER useContentLibrary
+        Use a vSphere Content Library to store the binaries.
+
+        .PARAMETER nested
+        Deploy Intelligent Network Visibility for VMware Cloud Foundation in a nested configuration.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $networksProductName = "VMware Aria Operations for Networks"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                $networksPem = $certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".pem"
+                if (Test-Path -Path $networksPem) {
+                    if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                        if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                            if (Get-VCFWSA) {
+                                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                        $allWorkloadDomains = Get-VCFWorkloadDomain
+                                        $failureDetected = $false
+                                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                                            if ($vcfVersion.$actualVcfVersion) {
+                                                $ariaOperationsForNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaOperationsForNetworks"}).Version
+                                            }
+                                        }
+                                        $networksVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-operations-for-networks-vsphere-integration.role"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in vSphere for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                                    $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameNetworks -template $networksVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configure Service Account Permissions for vSphere Integration for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                                    $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountNetworksVsphere -role $jsonInput.vsphereRoleNameNetworks -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Create a Virtual Machine and Template Folder for the Platform and Collector Nodes for $solutionName"
+                                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.ariaNetworksPlatformNodeVmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Prepare NSX to $networksProductName Integration for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                Show-PowerValidatedSolutionsOutput -message "Preparing NSX for $networksProductName Integration for Workload Domain ($($sddcDomain.name))"
+                                                $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-inv-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -outputPath $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                                                $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                $networksProxyOva = ((Get-ChildItem $binaries | Where-Object { ($_.name -match "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion") -and ($_.name -match "collector") }).name)
+                                                $networksProxyOvaPath = $binaries + $networksProxyOva
+                                                if ($networksProxyOva) {
+                                                    if ((([regex]::Match(((Split-Path $networksProxyOva -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrni))) {
+                                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName Cloud Proxy version ($ariaOperationsForNetworksVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
+                                                    } else {
+                                                        Show-PowerValidatedSolutionsOutput -message "Importing $networksProductName Cloud Proxy OVA ($networksProxyOva) into vSphere Content Library"
+                                                        $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $networksProxyOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                } else {
+                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName Cloud Proxy OVA version ($ariaOperationsForNetworksVersion) File Not Found: PRE_VALIDATION_FAILED"
+                                                    $failureDetected = $true
+                                                }
+                                                $networksOva = ((Get-ChildItem $binaries | Where-Object { ($_.name -match "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion") -and ($_.name -match "platform") }).name)
+                                                $networksOvaPath = $binaries + $networksOva
+                                                if ($networksOva) {
+                                                    if ((([regex]::Match(((Split-Path $networksOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrni))) {
+                                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName version ($ariaOperationsForNetworksVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
+                                                    } else {
+                                                        Show-PowerValidatedSolutionsOutput -message "Importing $networksProductName OVA ($networksOva) into vSphere Content Library"
+                                                        $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $networksOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                } else {
+                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName OVA version ($ariaOperationsForNetworksVersion) File Not Found: PRE_VALIDATION_FAILED"
+                                                    $failureDetected = $true
+                                                }
+                                            }
+                                            $allDatacenters = Get-vRSLCMDatacenter
+                                            foreach ($datacenter in $allDatacenters) {
+                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Adding $networksProductName License to $lcmProductName for $solutionName"
+                                            $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $networksProductName to $lcmProductName for $solutionName"
+                                            $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $networksPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Passwords to $lcmProductName for $solutionName"
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksAdminPasswordAlias -password $jsonInput.ariaNetworksAdminPassword -userName $jsonInput.ariaNetworksAdminUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksSupportPasswordAlias -password $jsonInput.ariaNetworksSupportPassword -userName $jsonInput.ariaNetworksSupportUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksConsolePasswordAlias -password $jsonInput.ariaNetworksConsolePassword -userName $jsonInput.ariaNetworksConsoleUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Deploying $networksProductName Using $lcmProductName"
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            } else {
+                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            }
+                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Moving the $networksProductName Appliance to the Dedicated Folder"
+                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmList -folder $jsonInput.ariaNetworksPlatformNodeVmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($stretchedCluster -eq "Include") {
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                                        }
+                                    }
+                                }
+                            } else {
+                                Show-PowerValidatedSolutionsOutput -type ERROR -Message "Unable to find Workspace ONE Access in ($($jsonInput.sddcManagerFqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                } else {
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $networksProductName ($networksPem): File Not Found"
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-InvDeployment
+
+Function Invoke-UndoInvDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Intelligent Network Visibility.
+
+        .DESCRIPTION
+        The Invoke-UndoInvDeployment cmdlet is a single function to remove the configuration of the Intelligent Network
+        Visibility for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-UndoInvDeployment -jsonFile .\invDeploySpec.json
+        This example removes the configuration of Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON specification file for the Intelligent Network Visibility for VMware Cloud Foundation validated solution.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $networksProductName = "VMware Aria Operations for Networks"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $allWorkloadDomains = Get-VCFWorkloadDomain
+
+                                if (!$failureDetected) {
+                                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                            foreach ($vm in ($jsonInput.vmList -Split ',')) {
+                                                if (Get-VM -name $vm -ErrorAction Ignore ) {
+                                                    Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                                    Do { $powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
+                                                    Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                                }
+                                            }
+                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                            Show-PowerValidatedSolutionsOutput -message "Deleting $networksProductName from $lcmProductName"
+                                            $StatusMsg = Undo-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environmentName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing the $networksProductName Passwords to $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksAdminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksSupportPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksConsolePasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing $networksProductName Certificate from $lcmProductName for $solutionName"
+                                    $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing $networksProductName License from $lcmProductName for $solutionName"
+                                    $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing NSX to $networksProductName Integration for $solutionName"
+                                    foreach ($sddcDomain in $allWorkloadDomains) {
+                                        Show-PowerValidatedSolutionsOutput -message "Removing NSX to $networksProductName Integration for Workload Domain ($($sddcDomain.name))"
+                                        $StatusMsg = Undo-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-inv-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing a Virtual Machine and Template Folder for the Platform and Collector Nodes for $solutionName"
+                                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.ariaNetworksPlatformNodeVmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for vSphere Integration for $solutionName"
+                                    foreach ($sddcDomain in $allWorkloadDomains) {
+                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                            $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountNetworksVsphere -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing a Custom Role in vSphere for $solutionName"
+                                    foreach ($sddcDomain in $allWorkloadDomains) {
+                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                            $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameNetworks -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoInvDeployment
+
+Function Invoke-InvSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Intelligent Network Visibility.
+
+        .DESCRIPTION
+        The Invoke-InvSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-InvSolutionInterop -jsonFile .\invDeploySpec.json
+        This example configures solution interoperability of the Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $networksProductName = "VMware Aria Operations for Networks"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $networksProductName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the Platform and Collector Nodes in $operationsProductName for $solutionName"
+                                        $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $networksProductName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-InvSolutionInterop
+
+Function Invoke-UndoInvSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Intelligent Network Visibility.
+
+        .DESCRIPTION
+        The Invoke-UndoInvSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-UndoInvSolutionInterop -jsonFile .\invDeploySpec.json
+        This example removes solution interoperability of the Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
+    $networksProductName = "VMware Aria Operations for Networks"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $networksProductName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Remove a Ping Adapter for the $networksProductName for $solutionName"
+                                        $StatusMsg = Undo-vROPSAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterName $jsonInput.pingAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $networksProductName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoInvSolutionInterop
 
 Function Export-AriaNetworksJsonSpec {
     <#
@@ -21292,498 +21939,6 @@ Function New-AriaNetworksDeployment {
     }
 }
 Export-ModuleMember -Function New-AriaNetworksDeployment
-
-Function Test-InvPrerequisite {
-    <#
-        .SYNOPSIS
-        Verify the prerequisites for Intelligent Network Visibility
-
-        .DESCRIPTION
-        The Test-InvPrerequisite cmdlet verifies the prerequisites for Intelligent Network Visibility for VMware
-        Cloud Foundation validated solution.
-
-        .EXAMPLE
-        Test-InvPrerequisite -jsonFile .\invDeploySpec.json -binaries .\binaries
-        This example verifies the prerequisites for Intelligent Network Visibility.
-
-        .PARAMETER jsonFile
-        The path to the JSON specification file.
-
-        .PARAMETER binaries
-        The path to the binaries folder.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
-    )
-
-    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
-
-    Try {
-        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
-        $configFile = "config.PowerValidatedSolutions"
-        if (Test-Path -Path "$pvsModulePath\$configFile") {
-            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
-            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
-            if (Test-Path -Path $jsonFile) {
-                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
-                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
-                            if ($vcfVersion.$actualVcfVersion) {
-                                $ariaOperationsForNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaOperationsForNetworks"}).Version
-                            }
-                        }
-                        Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
-                        Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
-                        Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
-                        Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
-                        Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Networks" # Verify a license key is present
-                        Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
-                        # Verify that the required service accounts are created in Active Directory
-                        $serviceAccounts = '[
-                            {"user": "'+ $jsonInput.domainBindUser +'", "password": "'+ $jsonInput.domainBindPass +'"},
-                            {"user": "'+ $jsonInput.serviceAccountNetworksVsphere +'@'+ $jsonInput.domainFqdn +'", "password": "'+ $jsonInput.serviceAccountNetworksVspherePass +'"}
-                        ]' | ConvertFrom-Json
-                        foreach ( $serviceAccount in $serviceAccounts ) {
-                            Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
-                        }
-                        Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
-                        Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
-                        Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
-                        Test-PrereqOpenSsl # Verify that OpenSSL is installed
-                    }
-                }
-            } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
-            }
-            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
-        } else {
-            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
-        }
-    } Catch {
-        Debug-CatchWriter -object $_
-    }
-}
-Export-ModuleMember -Function Test-InvPrerequisite
-
-Function Request-InvMscaSignedCertificate {
-    <#
-        .SYNOPSIS
-        Request signed certificate for VMware Aria Operations for Networks
-
-        .DESCRIPTION
-        The Request-InvMscaSignedCertificate cmdlet requests a signed certificate for VMware Aria Operations for
-        Networks from a Microsoft Certificate Authority using the details from the Intelligent Network Visibility
-        JSON specification file.
-
-        .EXAMPLE
-        Request-InvMscaSignedCertificate -jsonFile .\invDeploySpec.json -certificates .\certificates\
-        This example request a signed certificate for VMware Aria Operations for Networks.
-
-        .PARAMETER jsonFile
-        The path to the JSON specification file.
-
-        .PARAMETER certificates
-        The path to the store the certificate files.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
-    )
-
-    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
-    $productName = "VMware Aria Operations for Networks"
-
-    Try {
-        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            if (Test-Path -Path $certificates) {
-                $failureDetected = $false
-                if (!$failureDetected) {
-                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
-                    $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $jsonInput.ariaNetworksPlatformNodeaFqdn -subjectAlternativeNames "$($jsonInput.ariaNetworksPlatformNodeaFqdn)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                if (!$failureDetected) {
-                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
-                    $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                if (!$failureDetected) {
-                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
-                    $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".key") -crtFilePath ($certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                if (!$failureDetected) {
-                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
-                }
-
-            } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($$certificates): Not Found"
-            }
-        } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
-        }
-
-    } Catch {
-        Debug-CatchWriter -object $_
-    }
-}
-Export-ModuleMember -Function Request-InvMscaSignedCertificate
-Function Invoke-InvDeployment {
-    <#
-        .SYNOPSIS
-        End-to-end Deployment of Intelligent Network Visibility.
-
-        .DESCRIPTION
-        The Invoke-InvDeployment cmdlet is a single function to implement the configuration of the Intelligent Network
-        Visibility for VMware Cloud Foundation validated solution.
-
-        .EXAMPLE
-        Invoke-InvDeployment -jsonFile .\invDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
-        This example configures Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied
-
-        .PARAMETER jsonFile
-        The fully qualified path to the JSON specification file (.json).
-
-        .PARAMETER certificates
-        The fully qualified path to the certificates directory.
-
-        .PARAMETER binaries
-        The fully qualified path to the binaries directory.
-
-        .PARAMETER useContentLibrary
-        Use a vSphere Content Library to store the binaries.
-
-        .PARAMETER nested
-        Deploy Intelligent Network Visibility for VMware Cloud Foundation in a nested configuration.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
-    )
-
-    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
-    $networksProductName = "VMware Aria Operations for Networks"
-    $lcmProductName = "VMware Aria Suite Lifecycle"
-
-    Try {
-        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
-        $configFile = "config.PowerValidatedSolutions"
-        if (Test-Path -Path "$pvsModulePath\$configFile") {
-            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
-            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
-            if (Test-Path -Path $jsonFile) {
-                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-                $networksPem = $certificates + $jsonInput.ariaNetworksPlatformNodeaFqdn + ".pem"
-                if (Test-Path -Path $networksPem) {
-                    if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
-                        if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                            if (Get-VCFWSA) {
-                                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
-                                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                        $allWorkloadDomains = Get-VCFWorkloadDomain
-                                        $failureDetected = $false
-                                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
-                                            if ($vcfVersion.$actualVcfVersion) {
-                                                $ariaOperationsForNetworksVersion = ($vcfVersion.$actualVcfVersion | Where-Object   {$_.AriaComponent -eq "AriaOperationsForNetworks"}).Version
-                                            }
-                                        }
-                                        $networksVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-operations-for-networks-vsphere-integration.role"
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in vSphere for $solutionName"
-                                            foreach ($sddcDomain in $allWorkloadDomains) {
-                                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                                    $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameNetworks -template $networksVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configure Service Account Permissions for vSphere Integration for $solutionName"
-                                            foreach ($sddcDomain in $allWorkloadDomains) {
-                                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                                    $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountNetworksVsphere -role $jsonInput.vsphereRoleNameNetworks -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Create a Virtual Machine and Template Folder for the Platform and Collector Nodes for $solutionName"
-                                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.ariaNetworksPlatformNodeVmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Prepare NSX to $networksProductName Integration for $solutionName"
-                                            foreach ($sddcDomain in $allWorkloadDomains) {
-                                                Show-PowerValidatedSolutionsOutput -message "Preparing NSX for $networksProductName Integration for Workload Domain ($($sddcDomain.name))"
-                                                $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-inv-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -outputPath $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
-                                                $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                $networksProxyOva = ((Get-ChildItem $binaries | Where-Object { ($_.name -match "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion") -and ($_.name -match "collector") }).name)
-                                                $networksProxyOvaPath = $binaries + $networksProxyOva
-                                                if ($networksProxyOva) {
-                                                    if ((([regex]::Match(((Split-Path $networksProxyOva -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrni))) {
-                                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName Cloud Proxy version ($ariaOperationsForNetworksVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
-                                                    } else {
-                                                        Show-PowerValidatedSolutionsOutput -message "Importing $networksProductName Cloud Proxy OVA ($networksProxyOva) into vSphere Content Library"
-                                                        $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $networksProxyOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                    }
-                                                } else {
-                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName Cloud Proxy OVA version ($ariaOperationsForNetworksVersion) File Not Found: PRE_VALIDATION_FAILED"
-                                                    $failureDetected = $true
-                                                }
-                                                $networksOva = ((Get-ChildItem $binaries | Where-Object { ($_.name -match "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion") -and ($_.name -match "platform") }).name)
-                                                $networksOvaPath = $binaries + $networksOva
-                                                if ($networksOva) {
-                                                    if ((([regex]::Match(((Split-Path $networksOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vrni))) {
-                                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName version ($ariaOperationsForNetworksVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
-                                                    } else {
-                                                        Show-PowerValidatedSolutionsOutput -message "Importing $networksProductName OVA ($networksOva) into vSphere Content Library"
-                                                        $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $networksOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                    }
-                                                } else {
-                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$networksProductName OVA version ($ariaOperationsForNetworksVersion) File Not Found: PRE_VALIDATION_FAILED"
-                                                    $failureDetected = $true
-                                                }
-                                            }
-                                            $allDatacenters = Get-vRSLCMDatacenter
-                                            foreach ($datacenter in $allDatacenters) {
-                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding $networksProductName License to $lcmProductName for $solutionName"
-                                            $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $networksProductName to $lcmProductName for $solutionName"
-                                            $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $networksPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Passwords to $lcmProductName for $solutionName"
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksAdminPasswordAlias -password $jsonInput.ariaNetworksAdminPassword -userName $jsonInput.ariaNetworksAdminUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksSupportPasswordAlias -password $jsonInput.ariaNetworksSupportPassword -userName $jsonInput.ariaNetworksSupportUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksConsolePasswordAlias -password $jsonInput.ariaNetworksConsolePassword -userName $jsonInput.ariaNetworksConsoleUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Deploying $networksProductName Using $lcmProductName"
-                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            } else {
-                                                $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            }
-                                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR "$StatusMsg"; $failureDetected = $true }
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Moving the $networksProductName Appliance to the Dedicated Folder"
-                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmList -folder $jsonInput.ariaNetworksPlatformNodeVmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            if ($stretchedCluster -eq "Include") {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
-                                        }
-                                    }
-                                }
-                            } else {
-                                Show-PowerValidatedSolutionsOutput -type ERROR -Message "Unable to find Workspace ONE Access in ($($jsonInput.sddcManagerFqdn)): PRE_VALIDATION_FAILED"
-                            }
-                        }
-                    }
-                } else {
-                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $networksProductName ($networksPem): File Not Found"
-                }
-            } else {
-                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
-            }
-        } else {
-            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Invoke-InvDeployment
-
-Function Invoke-UndoInvDeployment {
-    <#
-        .SYNOPSIS
-        End-to-end removal of Intelligent Network Visibility.
-
-        .DESCRIPTION
-        The Invoke-UndoInvDeployment cmdlet is a single function to remove the configuration of the Intelligent Network
-        Visibility for VMware Cloud Foundation validated solution.
-
-        .EXAMPLE
-        Invoke-UndoInvDeployment -jsonFile .\invDeploySpec.json
-        This example removes the configuration of Intelligent Network Visibility for VMware Cloud Foundation using the JSON spec supplied.
-
-        .PARAMETER jsonFile
-        The JSON specification file for the Intelligent Network Visibility for VMware Cloud Foundation validated solution.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
-    )
-
-    $solutionName = "Intelligent Network Visibility for VMware Cloud Foundation"
-    $networksProductName = "VMware Aria Operations for Networks"
-    $lcmProductName = "VMware Aria Suite Lifecycle"
-
-    Try {
-        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
-                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
-                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
-                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                $allWorkloadDomains = Get-VCFWorkloadDomain
-
-                                if (!$failureDetected) {
-                                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                            foreach ($vm in ($jsonInput.vmList -Split ',')) {
-                                                if (Get-VM -name $vm -ErrorAction Ignore ) {
-                                                    Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                                    Do { $powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
-                                                    Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                                }
-                                            }
-                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                            Show-PowerValidatedSolutionsOutput -message "Deleting $networksProductName from $lcmProductName"
-                                            $StatusMsg = Undo-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environmentName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-                                    }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing the $networksProductName Passwords to $lcmProductName"
-                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksAdminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksSupportPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.ariaNetworksConsolePasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing $networksProductName Certificate from $lcmProductName for $solutionName"
-                                    $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing $networksProductName License from $lcmProductName for $solutionName"
-                                    $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing NSX to $networksProductName Integration for $solutionName"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        Show-PowerValidatedSolutionsOutput -message "Removing NSX to $networksProductName Integration for Workload Domain ($($sddcDomain.name))"
-                                        $StatusMsg = Undo-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-inv-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                                    }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing a Virtual Machine and Template Folder for the Platform and Collector Nodes for $solutionName"
-                                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.ariaNetworksPlatformNodeVmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for vSphere Integration for $solutionName"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountNetworksVsphere -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-                                    }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing a Custom Role in vSphere for $solutionName"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameNetworks -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-                                    }
-                                }
-
-                                if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Invoke-UndoInvDeployment
 
 Function Undo-AriaNetworksDeployment {
     <#
@@ -57046,6 +57201,10 @@ Function Start-InvMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Deployment"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -57073,6 +57232,10 @@ Function Start-InvMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -57102,6 +57265,16 @@ Function Start-InvMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoInvDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-InvSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoInvSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {

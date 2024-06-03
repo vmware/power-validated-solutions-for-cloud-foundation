@@ -44,4 +44,24 @@ Select an option for the solution.
     | [`Undo-NsxtPrincipalIdentity`](./../../nsx/Undo-NsxtPrincipalIdentity.md)               | Procedure             |
     | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)                     | Procedure             |
 
+=== ":material-transit-connection-variant: &nbsp; Solution Interoperability"
+
+    The following functions can be use for the solution interoperability.
+
+    | Function                                                                                                       | Type                  |
+    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                                                  | End-to-End Deployment |
+    | [`Invoke-InvSolutionInterop`](Invoke-InvSolutionInterop.md)                                                    | End-to-End Deployment |
+    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                           | Procedure             |
+
+=== ":material-transit-connection-variant: &nbsp; Solution Interoperability Removal"
+
+    The following functions can be use for the solution interoperability.
+
+    | Function                                                                                                       | Type                  |
+    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                                                  | End-to-End Removal    |
+    | [`Invoke-UndoInvSolutionInterop`](Invoke-UndoInvSolutionInterop.md)                                            | End-to-End Removal    |
+    | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                                 | Procedure             |
+
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-intelligent-network-visibility-v1/GUID-8E4C43CD-AFB2-48A6-B6F3-86BFBFE46C23.html
