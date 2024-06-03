@@ -2775,7 +2775,7 @@ Function Test-PdrPrerequisite {
             if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                     Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                     Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                     Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
@@ -2795,7 +2795,7 @@ Function Test-PdrPrerequisite {
             if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                     Test-PrereqLicenseKey -licenseKey $jsonInput.recovery.srmLicenseKey -productName "VMware Site Recovery Manager" # Verify a license key is present
                 }
             }
@@ -12690,7 +12690,7 @@ Function Test-IlaPrerequisite {
                             }
                         }
                         Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqApplicationVirtualNetwork -regionType REGION_A # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                         Test-PrereqBinary -searchCriteria "Log-Insight-$ariaLogsVersion" -productMessage "VMware Aria Operations for Logs" # Verify that the required binaries are available
@@ -16427,7 +16427,7 @@ Function Test-IomPrerequisite {
                             }
                         }
                         Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                         Test-PrereqBinary -searchCriteria "Operations-Cloud-Proxy-$ariaOperationsVersion" -productMessage "VMware Aria Operations Cloud Proxy" # Verify that the required binaries are available
@@ -21009,7 +21009,7 @@ Function Test-InvPrerequisite {
                             }
                         }
                         Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                         Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
@@ -21760,7 +21760,7 @@ Function Test-PcaPrerequisite {
                         }
 
                         Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
@@ -24485,6 +24485,7 @@ Function Test-HrmPrerequisite {
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                     Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                     Test-PrereqBinary -searchCriteria $jsonInput.ova -productMessage "Virtual Host Machine" # Verify that the required binaries are available
@@ -25903,7 +25904,7 @@ Function Test-VrslcmPrerequisite {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
                     }
                     Test-PrereqEdgeCluster -workloadDomain $jsonInput.mgmtSddcDomainName # Verify that an NSX Edge Cluster is deployed to Management Domain
-                    Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                    Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                 }
             }
         } else {
@@ -27500,7 +27501,7 @@ Function Test-GlobalWsaPrerequisite {
                         } else {
                             Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
                         }
-                        Test-PrereqApplicationVirtualNetwork # Verify Application Virtual Networks are present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqBinary -searchCriteria "identity-manager-$wsaVersion" -productMessage "Workspace ONE Access" # Verify that the required binaries are available
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
@@ -55671,9 +55672,13 @@ Function Test-PrereqWorkloadDomains {
 }
 
 Function Test-PrereqApplicationVirtualNetwork {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('X_REGION', 'REGION_A')] [String]$regionType
+    )
+
     Try {
         if (Get-VCFApplicationVirtualNetwork) {
-            Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}).name)): SUCCESSFUL"
+            Show-PowerValidatedSolutionsOutput -message "Verify that Application Virtual Networks have been configured ($((Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq $regionType}).name)): SUCCESSFUL"
         } else {
             Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Application Virtual Networks have been configured: PRE_VALIDATION_FAILED"
         }
