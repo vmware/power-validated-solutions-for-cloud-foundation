@@ -75,8 +75,8 @@ Select an option for the solution.
 
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
-    | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                            | End-to-End Deployment |
-    | [`Invoke-UndoIlaSolutionInterop`](./../../solutions/ila/Invoke-UndoIlaSolutionInterop.md)                      | End-to-End Deployment |
+    | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                            | End-to-End Removal    |
+    | [`Invoke-UndoIlaSolutionInterop`](./../../solutions/ila/Invoke-UndoIlaSolutionInterop.md)                      | End-to-End Removal    |
     | [`Update-vROPSAdapterCollecterGroup`](./../../aria-suite/aria-operations/Update-vROPSAdapterCollecterGroup.md) | Procedure             |
     | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                                 | Procedure             |
 

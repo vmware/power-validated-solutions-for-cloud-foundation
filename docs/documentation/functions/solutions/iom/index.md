@@ -84,8 +84,22 @@ Select an option for the solution.
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                              | Type      |
-    | --------------------------------------------------------------------------------------| --------- |
-    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md) | Procedure |
+    | Function                                                                                                          | Type                  |
+    | ------------------------------------------------------------------------------------------------------------------| --------------------- |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Removal    |
+    | [`Invoke-IomSolutionInterop`](Invoke-IomSolutionInterop.md)                                                       | End-to-End Removal    |
+    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)                             | Procedure             |
+    | [`Request-vROpsLogForwardingConfig`](./../../aria-suite/aria-operations/Request-vROpsLogForwardingConfig.md)      | Procedure             |
+
+=== ":material-transit-connection-variant: &nbsp; Solution Interoperability Removal"
+
+    The following functions can be use for the solution interoperability.
+
+    | Function                                                                                                          | Type                  |
+    | ------------------------------------------------------------------------------------------------------------------| --------------------- |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Deployment |
+    | [`Invoke-UndoIomSolutionInterop`](Invoke-UndoIomSolutionInterop.md)                                               | End-to-End Deployment |
+    | [`Undo-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Undo-vRLIAgentGroup.md)                           | Procedure             |
+    | [`Request-vROpsLogForwardingConfig`](./../../aria-suite/aria-operations/Request-vROpsLogForwardingConfig.md)      | Procedure             |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-intelligent-operations-management-v1/GUID-31B18AB1-9E88-4355-BECF-A90F1E1F7C19.html

@@ -16529,6 +16529,12 @@ Function Export-IomJsonSpec {
                 'caUsername'                          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'                      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'agentGroupName' -notepropertyvalue "Photon OS (IOM) - Appliance Agent Group"
+                $jsonObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value)"
+            }
+
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -17219,6 +17225,158 @@ Function Invoke-UndoIomDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoIomDeployment
+
+Function Invoke-IomSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Intelligent Operations Management.
+
+        .DESCRIPTION
+        The Invoke-IomSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+        - Logging
+
+        .EXAMPLE
+        Invoke-IomSolutionInterop -jsonFile .\iomDeploySpec.json
+        This example configures solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Operations Management for VMware Cloud Foundation"
+    $logsProductName = "VMware Aria Operations for Logs"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvRLI) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $logsProductName Integration with $operationsProductName"
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Create a $logsProductName Photon OS Agent Group for the $operationsProductName Nodes for $solutionName"
+                                        $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupType photon -agentGroupName $jsonInput.agentGroupName -criteria $jsonInput.vmListFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Verify the Log Forwarding Status of $operationsProductName for $solutionName"
+                                        $StatusMsg = Request-vROpsLogForwardingConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found:, SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-IomSolutionInterop
+
+Function Invoke-UndoIomSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Intelligent Operations Management.
+
+        .DESCRIPTION
+        The Invoke-UndoIomSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+        - Logging
+
+        .EXAMPLE
+        Invoke-UndoIomSolutionInterop -jsonFile .\iomDeploySpec.json
+        This example removes solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Operations Management for VMware Cloud Foundation"
+    $logsProductName = "VMware Aria Operations for Logs"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvRLI) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $operationsProductName Integration with $logsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Remove $logsProductName Photon OS Agent Group for the $operationsProductName Nodes for $solutionName"
+                                        $StatusMsg = Undo-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupName $jsonInput.agentGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $operationsProductName Integration with $logsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found:, SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoIomSolutionInterop
 
 Function Export-vROPsJsonSpec {
     <#
@@ -56786,6 +56944,10 @@ Function Start-IomMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Deployment"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -56813,6 +56975,10 @@ Function Start-IomMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -56842,6 +57008,16 @@ Function Start-IomMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIomDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IomSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIomSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {

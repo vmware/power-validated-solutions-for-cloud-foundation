@@ -925,7 +925,9 @@ nav:
       - Intelligent Operations Management:
         - documentation/functions/solutions/iom/Export-IomJsonSpec.md
         - documentation/functions/solutions/iom/Invoke-IomDeployment.md
+        - documentation/functions/solutions/iom/Invoke-IomSolutionInterop.md
         - documentation/functions/solutions/iom/Invoke-UndoIomDeployment.md
+        - documentation/functions/solutions/iom/Invoke-UndoIomSolutionInterop.md
         - documentation/functions/solutions/iom/Request-IomMscaSignedCertificate.md
         - documentation/functions/solutions/iom/Test-IomPrerequisite.md
       - Intelligent Network Visibility:
