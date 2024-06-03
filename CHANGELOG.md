@@ -6,7 +6,8 @@
 
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
-- Enhanced `Install-vRSLCMCertificate` cmdlet to perform additonal checks that a Microsoft Certificate Authority is configured in SDDC Manager.
+- Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
+- Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
 
 ## v2.10.0
 
