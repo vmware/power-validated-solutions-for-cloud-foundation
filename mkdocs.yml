@@ -959,7 +959,9 @@ nav:
       - Cloud-Based Workload Protection:
         - documentation/functions/solutions/cbw/Export-CbwJsonSpec.md
         - documentation/functions/solutions/cbw/Invoke-CbwDeployment.md
+        - documentation/functions/solutions/cbw/Invoke-CbwSolutionInterop.md
         - documentation/functions/solutions/cbw/Invoke-UndoCbwDeployment.md
+        - documentation/functions/solutions/cbw/Invoke-UndoCbwSolutionInterop.md
         - documentation/functions/solutions/cbw/Test-CbwPrerequisite.md
       - Cloud-Based Ransomware Recovery:
         - documentation/functions/solutions/cbr/Export-CbrJsonSpec.md

@@ -18747,7 +18747,7 @@ Function Register-vROPSManagementPack {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateSet("enable", "disable")] [ValidateNotNullOrEmpty()] [String]$state,
-        [Parameter (Mandatory = $true)] [ValidateSet("Ping", "PCI", "ISO", "FISMA", "HIPAA", "CIS", "DISA", "VCF", "VMwareInfrastructureHealth")] [ValidateNotNullOrEmpty()] [String]$packType
+        [Parameter (Mandatory = $true)] [ValidateSet("Ping", "PCI", "ISO", "FISMA", "HIPAA", "CIS", "DISA", "VCF", "VMwareInfrastructureHealth", "NetworkInsightAdapter")] [ValidateNotNullOrEmpty()] [String]$packType
     )
 
     Try {
@@ -21459,6 +21459,12 @@ Function Invoke-InvSolutionInterop {
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the Platform and Collector Nodes in $operationsProductName for $solutionName"
                                         $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Activating the $networksProductName Integration in $operationsProductName"
+                                        $StatusMsg = Register-vROPSManagementPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -state enable -packType NetworkInsightAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     }
 
@@ -25447,6 +25453,12 @@ Function Export-CbwJsonSpec {
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "workload-protection-proxies"
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["cbw_vcdr_cdp_ip1"].Value),$($pnpWorkbook.Workbook.Names["cbw_vcdr_cdp_ip2"].Value),$($pnpWorkbook.Workbook.Names["cbw_hcx_cdp_ip"].Value)"
+            }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -25688,6 +25700,154 @@ Function Invoke-UndoCbwDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoCbwDeployment
+
+Function Invoke-CbwSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Cloud-Based Workload Protection.
+
+        .DESCRIPTION
+        The Invoke-CbwSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-CbwSolutionInterop -jsonFile .\cbwDeploySpec.json
+        This example configures solution interoperability of the Cloud-Based Workload Protection for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Workload Protection for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Live Cyber Recovery"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the $productName Collector for $solutionName"
+                                        $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -collectorGroupName $jsonInput.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $productName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-CbwSolutionInterop
+
+Function Invoke-UndoCbwSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Cloud-Based Workload Protection.
+
+        .DESCRIPTION
+        The Invoke-UndoCbwSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-UndoCbwSolutionInterop -jsonFile .\cbwDeploySpec.json
+        This example removes solution interoperability of the Cloud-Based Workload Protection for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Workload Protection for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Live Cyber Recovery"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $productName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Remove a Ping Adapter for $productName for $solutionName"
+                                        $StatusMsg = Undo-vROPSAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterName $jsonInput.pingAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $productName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoCbwSolutionInterop
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -57552,6 +57712,10 @@ Function Start-CbwMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Deployment"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -57579,6 +57743,10 @@ Function Start-CbwMenu {
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
+
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
             $menuInput = $MenuInput -replace "`t|`n|`r", ""
@@ -57602,6 +57770,16 @@ Function Start-CbwMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CbwSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoCbwSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
