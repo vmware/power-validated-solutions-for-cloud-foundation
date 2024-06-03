@@ -13332,6 +13332,7 @@ Function Export-vRLIJsonSpec {
                                                     'isUpgradeVmCompatibility'     = "true"
                                                     'vrliAlwaysUseEnglish'         = "false"
                                                     'masterVidmEnabled'            = "false"
+                                                    'vmwareSSOEnabled'             = "false"
                                                     'contentLibraryItemId'         = $contentLibraryItemId
                                                     'ntp'                          = $jsonInput.ntp
                                                     'timeSyncMode'                 = "ntp"
@@ -26818,81 +26819,85 @@ Function Install-vRSLCMCertificate {
             if ((Get-CertificateSubject -url ("https://" + $jsonInput.aslcmFqdn)) -notmatch ("O=" + $($jsonInput.organization))) {
                 if (Test-VCFConnection -server $server) {
                     if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                        if (Get-VCFCertificateAuthority -caType Microsoft) {
-                            if ((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn) {
-                                $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
-                                $csrGenerationSpecJson = '{
-                                    "csrGenerationSpec": {
-                                        "country": "'+ $jsonInput.country + '",
-                                        "email": "'+ $jsonInput.email + '",
-                                        "keyAlgorithm": "'+ $jsonInput.keyAlgorithm + '",
-                                        "keySize": "'+ $jsonInput.keySize + '",
-                                        "locality": "'+ $jsonInput.locality + '",
-                                        "organization": "'+ $jsonInput.organization + '",
-                                        "organizationUnit": "'+ $jsonInput.organizationUnit + '",
-                                        "state": "'+ $jsonInput.state + '"
-                                        },
-                                        "resources":  [
-                                            {
-                                                "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
-                                                "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
-                                                "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
-                                                "type":  "VRSLCM"
-                                            }
-                                        ]
-                                    }'
-                                $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCsrSpec.json")
-                                $caTypeJson = '{
-                                    "caType": "Microsoft",
-                                        "resources":  [
-                                            {
-                                                "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
-                                                "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
-                                                "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
-                                                "type":  "VRSLCM"
-                                            }
-                                        ]
-                                    }'
-                                $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCertificateSpec.json")
-                                $operationTypeJson = '{
-                                    "operationType": "INSTALL",
-                                        "resources":  [
-                                            {
-                                                "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
-                                                "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
-                                                "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
-                                                "type":  "VRSLCM"
-                                            }
-                                        ]
-                                    }'
-                                $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmUpdateCertificateSpec.json")
-                                $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCsrSpec.json")
-                                Start-Sleep 3
-                                Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
-                                if ($request.status -eq "FAILED") {
-                                    Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
-                                } else {
-                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCertificateSpec.json")
+                        if ($caConfig = Get-VCFCertificateAuthority) {
+                            if ($caConfig.id -eq "Microsoft") {
+                                if ((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn) {
+                                    $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                                    $csrGenerationSpecJson = '{
+                                        "csrGenerationSpec": {
+                                            "country": "'+ $jsonInput.country + '",
+                                            "email": "'+ $jsonInput.email + '",
+                                            "keyAlgorithm": "'+ $jsonInput.keyAlgorithm + '",
+                                            "keySize": "'+ $jsonInput.keySize + '",
+                                            "locality": "'+ $jsonInput.locality + '",
+                                            "organization": "'+ $jsonInput.organization + '",
+                                            "organizationUnit": "'+ $jsonInput.organizationUnit + '",
+                                            "state": "'+ $jsonInput.state + '"
+                                            },
+                                            "resources":  [
+                                                {
+                                                    "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
+                                                    "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
+                                                    "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
+                                                    "type":  "VRSLCM"
+                                                }
+                                            ]
+                                        }'
+                                    $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCsrSpec.json")
+                                    $caTypeJson = '{
+                                        "caType": "Microsoft",
+                                            "resources":  [
+                                                {
+                                                    "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
+                                                    "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
+                                                    "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
+                                                    "type":  "VRSLCM"
+                                                }
+                                            ]
+                                        }'
+                                    $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCertificateSpec.json")
+                                    $operationTypeJson = '{
+                                        "operationType": "INSTALL",
+                                            "resources":  [
+                                                {
+                                                    "fqdn":  "'+ (Get-VCFvRSLCM).fqdn + '",
+                                                    "name":  "'+ (Get-VCFvRSLCM).fqdn.Split(".")[0] + '",
+                                                    "resourceId":  "'+ (Get-VCFvRSLCM).id + '",
+                                                    "type":  "VRSLCM"
+                                                }
+                                            ]
+                                        }'
+                                    $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmUpdateCertificateSpec.json")
+                                    $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCsrSpec.json")
                                     Start-Sleep 3
                                     Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                     if ($request.status -eq "FAILED") {
-                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
                                     } else {
-                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmUpdateCertificateSpec.json")
+                                        $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCertificateSpec.json")
                                         Start-Sleep 3
-                                        Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                                        Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                         if ($request.status -eq "FAILED") {
-                                            Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                            Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
                                         } else {
-                                            Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
+                                            $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmUpdateCertificateSpec.json")
+                                            Start-Sleep 3
+                                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                                            if ($request.status -eq "FAILED") {
+                                                Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                            } else {
+                                                Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
+                                            }
                                         }
                                     }
+                                } else {
+                                    Write-Error "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), Not Found: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), Not Found: PRE_VALIDATION_FAILED"
+                                Write-Error "Microsoft Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Error "Microsoft Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                            Write-Error "Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
                         }
                     }
                 }
