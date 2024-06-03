@@ -4,6 +4,8 @@
 
 > Release Date: (Not Released)
 
+- Added `Invoke-IlaSolutionInterop` cmdlet to perform solution interoperability configuration for Intelligent Logging and Analytics.
+- Added `Invoke-UndoIlaSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Logging and Analytics.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.

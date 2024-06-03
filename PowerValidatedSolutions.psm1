@@ -12622,6 +12622,13 @@ Function Export-IlaJsonSpec {
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue ($pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value + "-cluster")
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value)"
+            }
+
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -13176,6 +13183,169 @@ Function Invoke-UndoIlaDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoIlaDeployment
+
+Function Invoke-IlaSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Intelligent Logging and Analytics.
+
+        .DESCRIPTION
+        The Invoke-IlaSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-IlaSolutionInterop -jsonFile .\ilaDeploySpec.json
+        This example configures solution interoperability of the Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Logging and Analytics for VMware Cloud Foundation"
+    $logsProductName = "VMware Aria Operations for Logs"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $logsProductName Integration with $operationsProductName"
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Reconfigure the Collector Group for the $logsProductName Integration for $solutionName"
+                                        $StatusMsg = Update-vROPSAdapterCollecterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroup -adapterType "LogInsightAdapter" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the $logsProductName Cluster for $solutionName"
+                                        $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -collectorGroupName $jsonInput.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Verify the Integration of $operationsProductName with $logsProductName for $solutionName"
+                                        $StatusMsg = Test-vROPsAdapterStatusByType -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterKind LogInsightAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found:, SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-IlaSolutionInterop
+
+Function Invoke-UndoIlaSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Intelligent Logging and Analytics.
+
+        .DESCRIPTION
+        The Invoke-UndoIlaSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
+        - Montitoring and Alerting
+
+        .EXAMPLE
+        Invoke-UndoIlaSolutionInterop -jsonFile .\ilaDeploySpec.json
+        This example removes solution interoperability of the Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Intelligent Logging and Analytics for VMware Cloud Foundation"
+    $logsProductName = "VMware Aria Operations for Logs"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $logsProductName Integration with $operationsProductName"
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Reconfigure the Collector Group for the $logsProductName Integration for $solutionName"
+                                        $StatusMsg = Update-vROPSAdapterCollecterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterType "LogInsightAdapter" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Remove a Ping Adapter for the $logsProductName Cluster for $solutionName"
+                                        $StatusMsg = Undo-vROPSAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterName $jsonInput.pingAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $logsProductName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found:, SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoIlaSolutionInterop
 
 Function Export-vRLIJsonSpec {
     <#
@@ -56514,6 +56684,10 @@ Function Start-IlaMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Deployment"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -56541,6 +56715,10 @@ Function Start-IlaMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -56570,6 +56748,16 @@ Function Start-IlaMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoIlaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IlaSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIlaSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
