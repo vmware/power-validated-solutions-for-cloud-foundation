@@ -1,0 +1,58 @@
+---
+external help file: PowerValidatedSolutions-help.xml
+Module Name: PowerValidatedSolutions
+online version:
+schema: 2.0.0
+---
+
+# Invoke-UndoIomSolutionInterop
+
+## SYNOPSIS
+Remove solution interoperability for Intelligent Operations Management.
+
+## SYNTAX
+
+```
+Invoke-UndoIomSolutionInterop [-jsonFile] <String> [<CommonParameters>]
+```
+
+## DESCRIPTION
+The Invoke-UndoIomSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+- Logging
+
+## EXAMPLES
+
+### EXAMPLE 1
+```
+Invoke-UndoIomSolutionInterop -jsonFile .\iomDeploySpec.json
+This example removes solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation using the JSON spec supplied
+```
+
+## PARAMETERS
+
+### -jsonFile
+The JSON (.json) file created.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### CommonParameters
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+
+## INPUTS
+
+## OUTPUTS
+
+## NOTES
+
+## RELATED LINKS
