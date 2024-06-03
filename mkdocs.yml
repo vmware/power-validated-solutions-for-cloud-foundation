@@ -933,7 +933,9 @@ nav:
       - Intelligent Network Visibility:
         - documentation/functions/solutions/inv/Export-InvJsonSpec.md
         - documentation/functions/solutions/inv/Invoke-InvDeployment.md
+        - documentation/functions/solutions/inv/Invoke-InvSolutionInterop.md
         - documentation/functions/solutions/inv/Invoke-UndoInvDeployment.md
+        - documentation/functions/solutions/inv/Invoke-UndoInvSolutionInterop.md
         - documentation/functions/solutions/inv/Request-InvMscaSignedCertificate.md
         - documentation/functions/solutions/inv/Test-InvPrerequisite.md
       - Private Cloud Automation:
