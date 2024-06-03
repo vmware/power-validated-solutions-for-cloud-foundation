@@ -917,7 +917,9 @@ nav:
       - Intelligent Logging and Analytics:
         - documentation/functions/solutions/ila/Export-IlaJsonSpec.md
         - documentation/functions/solutions/ila/Invoke-IlaDeployment.md
+        - documentation/functions/solutions/ila/Invoke-IlaSolutionInterop.md
         - documentation/functions/solutions/ila/Invoke-UndoIlaDeployment.md
+        - documentation/functions/solutions/ila/Invoke-UndoIlaSolutionInterop.md
         - documentation/functions/solutions/ila/Request-IlaMscaSignedCertificate.md
         - documentation/functions/solutions/ila/Test-IlaPrerequisite.md
       - Intelligent Operations Management:

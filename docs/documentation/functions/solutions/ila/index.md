@@ -61,9 +61,23 @@ Select an option for the solution.
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                                        | Type      |
-    | ----------------------------------------------------------------------------------------------- | --------- |
-    | [`Add-NetworkSegment`](./../../aria-suite/aria-operations/Update-vROPSAdapterCollecterGroup.md) | Procedure |
-    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)            | Procedure |
+    | Function                                                                                                       | Type                  |
+    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                            | End-to-End Deployment |
+    | [`Invoke-IlaSolutionInterop`](./../../solutions/ila/Invoke-IlaSolutionInterop.md)                              | End-to-End Deployment |
+    | [`Update-vROPSAdapterCollecterGroup`](./../../aria-suite/aria-operations/Update-vROPSAdapterCollecterGroup.md) | Procedure             |
+    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                           | Procedure             |
+    | [`Test-vROPsAdapterStatusByType`](./../../aria-suite/aria-operations/Test-vROPsAdapterStatusByType.md)         | Procedure             |
+
+=== ":material-transit-connection-variant: &nbsp; Solution Interoperability Removal"
+
+    The following functions can be use for the solution interoperability.
+
+    | Function                                                                                                       | Type                  |
+    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-IlaJsonSpec`](./../../solutions/ila/Export-IlaJsonSpec.md)                                            | End-to-End Deployment |
+    | [`Invoke-UndoIlaSolutionInterop`](./../../solutions/ila/Invoke-UndoIlaSolutionInterop.md)                      | End-to-End Deployment |
+    | [`Update-vROPSAdapterCollecterGroup`](./../../aria-suite/aria-operations/Update-vROPSAdapterCollecterGroup.md) | Procedure             |
+    | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                                 | Procedure             |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-intelligent-logging-and-analytics-v1/GUID-42022E8E-7C84-4864-AE49-69D016EF5600.html
