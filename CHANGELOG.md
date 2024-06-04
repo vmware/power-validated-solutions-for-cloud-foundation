@@ -12,6 +12,8 @@
 - Added `Invoke-UndoInvSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Network Visibility.
 - Added `Invoke-CbwSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-UndoCbwSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cloud-Based Workload Protection.
+- Added `Remove-AriaNetworksDataSource` cmdlet to remove a data source from VMware Aria Operations for Networks.
+- Added `New-AriaNetworksvCenterDataSource` cmdlet to add a vCenter Server in VMware Aria Operations for Networks.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.

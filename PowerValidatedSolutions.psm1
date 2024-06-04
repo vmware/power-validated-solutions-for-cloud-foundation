@@ -18456,7 +18456,7 @@ Function Update-vROPSAdapterCollecterGroup {
                                         $json | Add-Member -notepropertyname 'collectorGroupId' -notepropertyvalue $collectorGroupId
                                         $json | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
-                                        if ((Get-vROPSAdapter -id $json.id).collectorGroupId -eq $collectorGroupId) { 
+                                        if ((Get-vROPSAdapter -id $json.id).collectorGroupId -eq $collectorGroupId) {
                                             Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
                                         } else {
                                             Write-Error "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): POST_VALIDATION_FAILED"
@@ -50287,6 +50287,121 @@ Function Get-AriaNetworksDataSource {
     }
 }
 Export-ModuleMember -Function Get-AriaNetworksDataSource
+
+Function Remove-AriaNetworksDataSource {
+    <#
+        .SYNOPSIS
+        Remove a data source from a VMware Aria Operations for Networks deployment.
+
+        .DESCRIPTION
+        The Remove-AriaNetworksDataSource cmdlet removes a data source from a VMware Aria Operations for Networks deployment.
+
+		.PARAMETER dataSourceType
+        The type of the data source, in one of nsxt or vcenter.
+
+        .PARAMETER id
+        The id of the data source in the VMware Aria Operations for Networks deployment.
+
+        .EXAMPLE
+        Remove-AriaNetworksDataSource -dataSourceType vcenter -id 15832:902:2623605245375371420
+        This example removes the vCenter Server which is configured as a data source in a VMware Aria Operations for Networks deployment with a specific ID.
+
+    #>
+
+	Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+		[Parameter (Mandatory = $true)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($dataSourceType -eq 'vcenter') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters/$id"
+                (Invoke-RestMethod -Method 'DEL' -Uri $uri -Headers $ariaNetworksHeader).results
+            } elseif($dataSourceType -eq 'nsxt') {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers/$id"
+                (Invoke-RestMethod -Method 'DEL' -Uri $uri -Headers $ariaNetworksHeader).results
+			} else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+			}
+		}
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-AriaNetworksDataSource
+
+Function New-AriaNetworksvCenterDataSource {
+    <#
+        .SYNOPSIS
+        Add a new vCenter Server data source to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The New-AriaNetworksvCenterDataSource cmdlet allows a user to add in a vCenter Server as a new data source in VMware Aria Operations for Networks in order to collect network flow data.
+
+        .EXAMPLE
+        New-AriaNetworksvCenterDataSource -fqdn sfo-m01-vc01.sfo.rainpole.io -username svc-inv-vsphere -password VMw@re1! -nickname "sfo-m01-vc01 - Management Domain vCenter Server" -CollectorId 15832:901:1711011916294613031 -enabled true
+        This example adds a vCenter Server as a new data source in VMware Aria Operations for Networks.
+
+        .PARAMETER fqdn
+        The fqdn of the vCenter Server to add as a data source.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+
+        .PARAMETER nickname
+        The nickname to use for this data source in VMware Aria Operations for Networks.
+
+        .PARAMETER collectorId
+        The id of the VMware Aria Operations for Networks collector node where the vCenter data source will be connected.
+
+        .PARAMETER enabled
+        The parameter to enable the datasource.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nickname,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorId,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$enabled
+    )
+
+		if ( -not $PsBoundParameters.ContainsKey("fqdn") -or ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password") -or ( -not $PsBoundParameters.ContainsKey("nickname") -or ( -not $PsBoundParameters.ContainsKey("collectorId") -or ( -not $PsBoundParameters.ContainsKey("enabled"))))))){
+			Write-Error "Please Provide the necessary parameters and try again"
+		}
+
+    Try {
+        $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
+        $body = '{
+		"fqdn": "'+ $fqdn +'",
+		"proxy_id": "'+ $collectorId +'",
+		"nickname": "'+ $nickname +'",
+		"enabled": '+ $enabled +',
+		"credentials": {
+			"username": "'+ $username +'",
+			"password": "'+ $password +'"
+		},
+		  "ipfix_request": {
+			"enable_all": true
+		  }
+		}'
+
+        if ($PSEdition -eq 'Core') {
+            $DataSourceResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+		} else {
+				$DataSourceResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body
+				Write-Output "Successfully added $vcenter to VMware Aria Operations for Networks as a Data Source"
+		}
+  } Catch {
+        Write-Error $_.Exception.Message
+  }
+}
+Export-ModuleMember -Function New-AriaNetworksvCenterDataSource
 
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
