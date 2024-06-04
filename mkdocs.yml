@@ -409,7 +409,9 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/Export-AriaNetworksJsonSpec.md
       - documentation/functions/aria-suite/aria-operations-networks/Get-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Get-AriaNetworksNodes.md
+      - documentation/functions/aria-suite/aria-operations-networks/New-AriaNetworksvCenterDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/New-AriaNetworksDeployment.md
+      - documentation/functions/aria-suite/aria-operations-networks/Remove-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
     - Aria Suite Lifecycle:
