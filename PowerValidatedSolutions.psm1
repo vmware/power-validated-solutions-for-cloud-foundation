@@ -3737,7 +3737,7 @@ Function Invoke-PdrSolutionInterop {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-vROPSAdapterVr -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vrFqdn $jsonInput.recovery.vrmsFqdn -vrUser ($jsonInput.recovery.ssoServiceAccountVrmsUser + "@vsphere.local") -vrPass $jsonInput.recovery.ssoServiceAccountVrmsPass -collectorGroupName $jsonInput.recovery.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            
+
                                         }
 
                                         if (!$failureDetected) {
