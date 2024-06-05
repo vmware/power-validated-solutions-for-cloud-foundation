@@ -16,9 +16,14 @@
 - Added `New-AriaNetworksvCenterDataSource` cmdlet to add a vCenter Server in VMware Aria Operations for Networks.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
+- Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
+- Enhanced `Export-vRLIJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Logs virtual appliances into the defined folder.
+- Enhanced `Export-vROPsJsonSpec` cmdlet for automatic placement of the VMware Aria Operations virtual appliances into the defined folder.
+- Enhanced `Export-InvJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Networks virtual appliances into the defined folder.
+- Enhanced `Export-vRAJsonSpec` cmdlet for automatic placement of the VMware Aria Automation virtual appliances into the defined folder.
 
 ## v2.10.0
 
