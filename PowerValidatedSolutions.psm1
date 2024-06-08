@@ -21255,12 +21255,6 @@ Function Invoke-InvDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Moving the $networksProductName Appliance to the Dedicated Folder"
-                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmList -folder $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
                                                 $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -28420,8 +28414,14 @@ Function Invoke-GlobalWsaDeployment {
 
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
+                                                $clusterNodes = (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vidm).vmName
+                                                if ($clusterNodes.Count -gt 1) {
+                                                    $vmList = $clusterNodes -join ","
+                                                } else {
+                                                    $vmList = $clusterNodes
+                                                }
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -57294,7 +57294,7 @@ Function Start-IlaMenu {
         $menuitem06 = "Remove from Environment"
 
         $headingItem03 = "Solution Interoperability"
-        $menuitem07 = "Deployment"
+        $menuitem07 = "Configuration"
         $menuitem08 = "Remove from Environment"
 
         Do {
@@ -57396,7 +57396,7 @@ Function Start-IomMenu {
         $menuitem06 = "Remove from Environment"
 
         $headingItem03 = "Solution Interoperability"
-        $menuitem07 = "Deployment"
+        $menuitem07 = "Configuration"
         $menuitem08 = "Remove from Environment"
 
         Do {
@@ -57498,7 +57498,7 @@ Function Start-InvMenu {
         $menuitem06 = "Remove from Environment"
 
         $headingItem03 = "Solution Interoperability"
-        $menuitem07 = "Deployment"
+        $menuitem07 = "Configuration"
         $menuitem08 = "Remove from Environment"
 
         Do {
@@ -57849,7 +57849,7 @@ Function Start-CbwMenu {
         $menuitem06 = "Remove from Environment"
 
         $headingItem03 = "Solution Interoperability"
-        $menuitem07 = "Deployment"
+        $menuitem07 = "Configuration"
         $menuitem08 = "Remove from Environment"
 
         Do {
