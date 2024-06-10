@@ -86,8 +86,8 @@ Select an option for the solution.
 
     | Function                                                                                                          | Type                  |
     | ------------------------------------------------------------------------------------------------------------------| --------------------- |
-    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Removal    |
-    | [`Invoke-IomSolutionInterop`](Invoke-IomSolutionInterop.md)                                                       | End-to-End Removal    |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Deployment |
+    | [`Invoke-IomSolutionInterop`](Invoke-IomSolutionInterop.md)                                                       | End-to-End Deployment |
     | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)                             | Procedure             |
     | [`Request-vROpsLogForwardingConfig`](./../../aria-suite/aria-operations/Request-vROpsLogForwardingConfig.md)      | Procedure             |
 
@@ -97,8 +97,8 @@ Select an option for the solution.
 
     | Function                                                                                                          | Type                  |
     | ------------------------------------------------------------------------------------------------------------------| --------------------- |
-    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Deployment |
-    | [`Invoke-UndoIomSolutionInterop`](Invoke-UndoIomSolutionInterop.md)                                               | End-to-End Deployment |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                     | End-to-End Removal    |
+    | [`Invoke-UndoIomSolutionInterop`](Invoke-UndoIomSolutionInterop.md)                                               | End-to-End Removal    |
     | [`Undo-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Undo-vRLIAgentGroup.md)                           | Procedure             |
     | [`Request-vROpsLogForwardingConfig`](./../../aria-suite/aria-operations/Request-vROpsLogForwardingConfig.md)      | Procedure             |
 

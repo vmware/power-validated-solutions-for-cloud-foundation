@@ -20320,7 +20320,7 @@ Function Update-vROPSvRAAdapterCredential {
         - Verifies the VMware Aria Automation adapter status in VMware Aria Operations after updating the credential
 
         .EXAMPLE
-        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "VMware Aria Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
+        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credentialName svc-vrops-vra@sfo.rainpole.io -credentialPassword VMw@re1!
         This example update the credential of VMware Aria Automation adapter with name "VMware Aria Automation Credentials" in VMware Aria Operations.
 
         .PARAMETER server
@@ -20332,30 +20332,23 @@ Function Update-vROPSvRAAdapterCredential {
         .PARAMETER pass
         The password to authenticate to the SDDC Manager.
 
-        .PARAMETER credential_displayname
-        The credential display name.
-
-        .PARAMETER credential_username
+        .PARAMETER credentialName
         The credential user name.
 
-        .PARAMETER credential_password
+        .PARAMETER credentialPassword
         The credential password.
-
-        .PARAMETER adapterKind
-        The adapter kind.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_displayname,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_password,
-        [Parameter (Mandatory = $true)] [ValidateSet("CASAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialPassword
     )
 
     Try {
+        $adapterKind = "CASAdapter"
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
@@ -20365,28 +20358,27 @@ Function Update-vROPSvRAAdapterCredential {
                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                                     if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {
                                         if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {
-                                            if (!(Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
+                                            $displayName = "Aria Automation Credential - " + $vcfVraDetails.loadBalancerFqdn.Split('.')[-0]
+                                            if (!(Get-vROPSCredential | Where-Object { $_.name -eq $displayName })) {
                                                 $credentialJson = ' {
-                                                                        "name" : "'+ $credential_displayname + '",
+                                                                        "name" : "'+ $displayName + '",
                                                                         "adapterKindKey" : "'+ $adapterKind + '",
                                                                         "credentialKindKey" : "CMPCREDENTIALS",
                                                                             "fields" : [ {
                                                                                 "name" : "USERNAME",
-                                                                                "value" : "'+ $credential_username + '"
+                                                                                "value" : "'+ $credentialName + '"
                                                                                 }, {
                                                                                 "name" : "PASSWORD",
-                                                                                "value" : "'+ $credential_password + '"
+                                                                                "value" : "'+ $credentialPassword + '"
                                                                             } ]
                                                                         }'
                                                 $credentialJson | Out-File .\addCredential.json
                                                 Add-vROPSCredential -json .\addCredential.json | Out-Null
                                                 Remove-Item .\addCredential.json -Force -Confirm:$false
-                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
-                                                    Write-Output "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $displayName })) {
+                                                    Write-Output "Adding VMware Aria Automation Credential Named ($displayName) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                                     $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind }
-                                                    $vraAdapterId = $vraAdapterObj.id
-                                                    $adapterName = $vraAdapterObj.resourceKey.name
-                                                    $credid = (Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname }).id
+                                                    $credId = (Get-vROPSCredential | Where-Object { $_.name -eq $displayName }).id
                                                     $vraAdapterObj.credentialInstanceId = $credid
                                                     $vraAdapterObj.PSObject.Properties.Remove('links')
                                                     $vraAdapterObj.PSObject.Properties.Remove('lastHeartbeat')
@@ -20397,27 +20389,22 @@ Function Update-vROPSvRAAdapterCredential {
                                                     $certificates = New-Object System.Collections.ArrayList
                                                     $vraAdapterObj | Add-Member -NotePropertyName adapter-certificates -NotePropertyValue ([Array]$certificates)
                                                     $vraAdapterObj | ConvertTo-Json -Depth 4 | Out-File .\vraadapter.json
-                                                    $testresponse = Test-vROPSAdapterConnection -json .\vraadapter.json -patch
-                                                    if ($testresponse.Count) {
-                                                        Write-Output "Validating VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                                        Set-vROPSAdapter -json .\vraadapter.json | Out-Null
-                                                        Write-Output "Updating VMware Aria Automation adapter named ($adapterName) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                                        Start-vROPSAdapter -adapterId $vraAdapterId | Out-Null
-                                                        Start-Sleep 5
-                                                        Write-Output "Verifying VMware Aria Automation adapter status. $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
+                                                    Set-vROPSAdapter -json .\vraadapter.json -patch | Out-Null
+                                                    Test-vROPSAdapterConnection -json .\vraadapter.json -patch -ErrorAction Ignore | Out-Null
+                                                    Start-vROPSAdapter -adapterId $vraAdapterObj.id | Out-Null
+                                                    Start-Sleep 5
+                                                    if (Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind -and $_.credentialInstanceId -eq $credId }) {
+                                                        Write-Output "Updating VMware Aria Automation adapter named ($($vraAdapterObj.resourceKey.name)) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                                     } else {
-                                                        Write-Error "Validating VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
-                                                        Remove-vROPSCredential -credentialId $credid
-                                                        Write-Output "Removing VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                        Remove-vROPSCredential -credentialId $credid | Out-Null
+                                                        Write-Error "Updating VMware Aria Automation adapter named ($($vraAdapterObj.resourceKey.name)) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                                     }
                                                     Remove-Item .\vraadapter.json -Force -Confirm:$false
                                                 } else {
-                                                    Write-Error "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
-                                                    Break
+                                                    Write-Error "Adding VMware Aria Automation Credential Named ($displayName) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
                                                 }
                                             } else {
-                                                Write-Error "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
-                                                Break
+                                                Write-Warning "Adding VMware Aria Automation Credential Named ($displayName) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                             }
                                         } else {
                                             Write-Error "'$($adapterKind)' Adapter is not configured: PRE_VALIDATION_FAILED"
@@ -22193,6 +22180,23 @@ Function Export-PcaJsonSpec {
                 'caUsername'                     = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'                 = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'operationsIntegrationName' -notepropertyvalue "VMware Aria Operations"
+                $jsonObject | Add-Member -notepropertyname 'operationsIntegrationUser' -notepropertyvalue ($pnpWorkbook.Workbook.Names["user_svc_vra_vrops"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value + "@vIDMAuthSource")
+                $jsonObject | Add-Member -notepropertyname 'operationsIntegrationPass' -notepropertyvalue $pnpWorkbook.Workbook.Names["svc_vra_vrops_password"].Value
+                $jsonObject | Add-Member -notepropertyname 'automationIntegrationUser' -notepropertyvalue ($pnpWorkbook.Workbook.Names["user_svc_vrops_vra"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                $jsonObject | Add-Member -notepropertyname 'automationIntegrationPass' -notepropertyvalue $pnpWorkbook.Workbook.Names["svc_vrops_vra_password"].Value
+                $jsonObject | Add-Member -notepropertyname 'automationIntegrationEmail' -notepropertyvalue ($pnpWorkbook.Workbook.Names["user_svc_vrops_vra"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value)
+                $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue ($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value + "-cluster")
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_ip"].Value),$($pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value),$($pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value),$($pnpWorkbook.Workbook.Names["xreg_vrc_nodeb_ip"].Value)"
+            }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'agentGroupName' -notepropertyvalue "Photon OS (PCA) - Appliance Agent Group"
+                $jsonObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value)"
+            }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -22894,6 +22898,256 @@ Function Invoke-UndoPcaDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoPcaDeployment
+
+Function Invoke-PcaSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Private Cloud Automation.
+
+        .DESCRIPTION
+        The Invoke-PcaSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Private Cloud Automation for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+        - Logging
+
+        .EXAMPLE
+        Invoke-PcaSolutionInterop -jsonFile .\pcaDeploySpec.json
+        This example configures solution interoperability of the Private Cloud Automation for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Private Cloud Automation for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Aria Automation"
+    $logsProductName = "VMware Aria Operations for Logs"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $allWorkloadDomains = Get-VCFWorkloadDomain
+                                $failureDetected = $false
+
+                                if (!$failureDetected) {
+                                    if (Get-VCFvROPS) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $operationsProductName"
+
+                                        # if (!$failureDetected) {
+                                        #     # Show-PowerValidatedSolutionsOutput -message "Configure Privileges for the $productName Service Account in $operationsProductName for $solutionName"
+                                        #     # $StatusMsg = #TO DO -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        #     # messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        # }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Integrate $productName with $operationsProductName for $solutionName"
+                                            $StatusMsg = New-vRAvROPSIntegrationItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -vropsIntegrationName $jsonInput.operationsIntegrationName -vropsIntegrationUser $jsonInput.operationsIntegrationUser -vropsIntegrationPass $jsonInput.operationsIntegrationPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Assign Organization and Service Roles to the $operationsProductName Service Account in $productName for $solutionName"
+                                            $StatusMsg = Add-vRAUser -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -email $jsonInput.automationIntegrationEmail -orgRole org_owner -serviceRole automationservice:cloud_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Update the $productName Integration in $operationsProductName for $solutionName"
+                                            $StatusMsg = Update-vROPSvRAAdapterCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -credentialName $jsonInput.automationIntegrationUser -credentialPassword $jsonInput.automationIntegrationPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Update Placement Policy for Cloud Zones in $productName for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                if ($sddcDomain.type -eq "VI") {
+                                                    $StatusMsg = Update-vRACloudAccountZone -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -placementPolicy SPREAD -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the $productName Nodes for $solutionName"
+                                            $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -collectorGroupName $jsonInput.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Verify the Integration of $operationsProductName with $productName for $solutionName"
+                                            $StatusMsg = Test-vROPsAdapterStatusByType -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterKind CASAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $productName Integration with $operationsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    if (Get-VCFvRLI) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $logsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Create a $logsProductName Photon OS Agent Group for the $operationsProductName Nodes for $solutionName"
+                                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupType photon -agentGroupName $jsonInput.agentGroupName -criteria $jsonInput.vmListFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $logsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-PcaSolutionInterop
+
+Function Invoke-UndoPcaSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Private Cloud Automation.
+
+        .DESCRIPTION
+        The Invoke-UndoPcaSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Private Cloud Automation for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+
+        .EXAMPLE
+        Invoke-UndoPcaSolutionInterop -jsonFile .\pcaDeploySpec.json
+        This example removes solution interoperability of the Private Cloud Automation for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Private Cloud Automation for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Aria Automation"
+    $logsProductName = "VMware Aria Operations for Logs"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (!$failureDetected) {
+                                    if (Get-VCFvROPS) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $productName Integration with $operationsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove a Ping Adapter for the $productName Nodes for $solutionName"
+                                            $StatusMsg = Undo-vROPSAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterName $jsonInput.pingAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Update Placement Policy for Cloud Zones in $productName for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                if ($sddcDomain.type -eq "VI") {
+                                                    $StatusMsg = Update-vRACloudAccountZone -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -placementPolicy DEFAULT -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Organization and Service Roles to the $operationsProductName Service Account in $productName for $solutionName"
+                                            $StatusMsg = Undo-vRAUser -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -email $jsonInput.automationIntegrationEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Integration of $productName with $operationsProductName for $solutionName"
+                                            $StatusMsg = Undo-vRAvROPsIntegrationItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -vropsIntegrationName $jsonInput.operationsIntegrationName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $productName Integration with $operationsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    if (Get-VCFvRLI) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $logsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove a $logsProductName Photon OS Agent Group for the $operationsProductName Nodes for $solutionName"
+                                            $StatusMsg = Undo-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupName $jsonInput.agentGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $logsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoPcaSolutionInterop
 
 Function Export-vRAJsonSpec {
     <#
@@ -24711,7 +24965,7 @@ Function New-vRAvROPSIntegrationItem {
         - Creates VMware Aria Operations integration in VMware Aria Automation
 
         .EXAMPLE
-        New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
+        New-vRAvROPSIntegrationItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -vropsIntegrationUser svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource -vropsIntegrationPass VMw@re1! -vropsIntegrationName 'VMware Aria Operations'
         This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation.
 
         .PARAMETER server
@@ -24759,15 +25013,15 @@ Function New-vRAvROPSIntegrationItem {
                             if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                                 if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                                     if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                        $response = Add-vRAIntegrationItem -integrationType "vrops" -integrationName $vropsIntegrationName -integrationUser $vropsIntegrationUser -integrationPassword $vropsIntegrationPass #| Out-Null
-                                        if ($response.status -eq "FINISHED") {
-                                            if (Get-vRAIntegrationDetail -integrationType "vrops" -integrationName $vropsIntegrationName -getIntegrationID) {
+                                        if (-Not (Get-vRAIntegrationDetail -integrationType "vrops" -getStatus)) {
+                                            Add-vRAIntegrationItem -integrationType "vrops" -integrationName $vropsIntegrationName -integrationUser $vropsIntegrationUser -integrationPassword $vropsIntegrationPass | Out-Null
+                                            if (Get-vRAIntegrationDetail -integrationType "vrops" -getStatus) {
                                                 Write-Output "Creating VMware Aria Operations integration with name ($vropsIntegrationName) in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Creating VMware Aria Operations integration with name ($vropsIntegrationName) in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Creating VMware Aria Operations integration with name ($vropsIntegrationName) in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) failed with '$($response.message)': FAILED"
+                                            Write-Warning "Creating VMware Aria Operations integration with name ($vropsIntegrationName) in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                         }
                                     }
                                 }
@@ -24799,7 +25053,7 @@ Function Undo-vRAvROPsIntegrationItem {
         - Deletes VMware Aria Operations integration from VMware Aria Automation
 
         .EXAMPLE
-        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
+        Undo-vRAvROPsIntegrationItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -vropsIntegrationName "VMware Aria Operations"
         This example deletes VMware Aria Operations in VMware Aria Automation.
 
         .PARAMETER server
@@ -24839,15 +25093,15 @@ Function Undo-vRAvROPsIntegrationItem {
                             if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                                 if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                                     if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                        if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops" -integrationName $vropsIntegrationName -getIntegrationID ) ) {
-                                            Write-Warning "VMware Aria Operations Integration with name ($vropsIntegrationName) not found: SKIPPED"
-                                        } else {
+                                        if (Get-vRAIntegrationDetail -integrationType "vrops" -getStatus) {
                                             Remove-vRAIntegrationItem -integrationType vrops -integrationId (Get-vRAIntegrationDetail -integrationType vrops -integrationName $vropsIntegrationName -getIntegrationID) | Out-Null
-                                            if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops" -integrationName $vropsIntegrationName -getIntegrationID) ) {
+                                            if (-Not (Get-vRAIntegrationDetail -integrationType "vrops" -getStatus)) {
                                                 Write-Output "Removing VMware Aria Operations Integration with name ($vropsIntegrationName) from VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Removing VMware Aria Operations Integration with name ($vropsIntegrationName) from VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                             }
+                                        } else {
+                                            Write-Warning "Removing VMware Aria Operations Integration with name ($vropsIntegrationName) from VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)), does not exist: SKIPPED"
                                         }
                                     }
                                 }
@@ -45175,25 +45429,10 @@ Function Get-vRAIntegrationDetail {
             'Status' {
                 if ($getStatus) {
                     if ($integrationType -eq "vrops") {
-                        $names = $response.content | Where-Object { $_.integrationType -eq "vrops" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
-                        $names
-                        if ($names) {
-                            $names | ForEach-Object {
-                                Write-Output "Integration with $_ is completed successfully."
-                            }
-                        } else {
-                            Write-Error "VMware Aria Operations integration is not complete. Please check configuration in VMware Aria Automation."
-                        }
+                        $response.content | Where-Object { $_.integrationType -eq "vrops" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
                     }
                     if ($integrationType -eq "vro") {
-                        $names = $response.content | Where-Object { $_.integrationType -eq "vro" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
-                        if ($names) {
-                            $names | ForEach-Object {
-                                Write-Output "Integration with $_ is completed successfully."
-                            }
-                        } else {
-                            Write-Error "VMware Aria Automation Orchestrator is not complete. Please check configuration in VMware Aria Automation."
-                        }
+                        $response.content | Where-Object { $_.integrationType -eq "vro" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
                     }
                 }
             }
@@ -46210,16 +46449,13 @@ Function Test-vRAIntegrationItem {
                     Break
                 }
             } elseif ($response.status -eq "FINISHED") {
-                Write-Host "Certificate is already present in the system..."
                 $json = $jsonObj | ConvertTo-Json -Depth 2
                 return  $json
             } else {
                 Write-Error "Error "$response.message
-                Break
             }
         } Catch {
             Write-Error $_.Exception.Message
-            Break
         }
     }
 }
@@ -57907,6 +58143,10 @@ Function Start-PcaMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Configuration"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -57934,6 +58174,10 @@ Function Start-PcaMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -57963,6 +58207,16 @@ Function Start-PcaMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPcaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PcaSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoPcaSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {

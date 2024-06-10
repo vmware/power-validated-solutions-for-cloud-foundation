@@ -943,7 +943,9 @@ nav:
       - Private Cloud Automation:
         - documentation/functions/solutions/pca/Export-PcaJsonSpec.md
         - documentation/functions/solutions/pca/Invoke-PcaDeployment.md
+        - documentation/functions/solutions/pca/Invoke-PcaSolutionInterop.md
         - documentation/functions/solutions/pca/Invoke-UndoPcaDeployment.md
+        - documentation/functions/solutions/pca/Invoke-UndoPcaSolutionInterop.md
         - documentation/functions/solutions/pca/Request-PcaMscaSignedCertificate.md
         - documentation/functions/solutions/pca/Test-PcaPrerequisite.md
       - Site Protection and Disaster Recovery:
