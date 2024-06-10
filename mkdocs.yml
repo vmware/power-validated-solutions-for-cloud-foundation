@@ -968,7 +968,9 @@ nav:
       - Cloud-Based Ransomware Recovery:
         - documentation/functions/solutions/cbr/Export-CbrJsonSpec.md
         - documentation/functions/solutions/cbr/Invoke-CbrDeployment.md
+        - documentation/functions/solutions/cbr/Invoke-CbrSolutionInterop.md
         - documentation/functions/solutions/cbr/Invoke-UndoCbrDeployment.md
+        - documentation/functions/solutions/cbr/Invoke-UndoCbrSolutionInterop.md
         - documentation/functions/solutions/cbr/Test-CbrPrerequisite.md
       - Cross Cloud Mobility:
         - documentation/functions/solutions/ccm/Export-CcmJsonSpec.md
