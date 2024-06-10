@@ -12,8 +12,7 @@ Invoke-CbwDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-CbwDeployment` cmdlet is a single function to implement the configuration of the Cloud-Based Workload
-Protection for VMware Cloud Foundation validated solution.
+The `Invoke-CbwDeployment` cmdlet is a single function to implement the configuration of the Cloud-Based Workload Protection for VMware Cloud Foundation validated solution.
 
 ## Examples
 

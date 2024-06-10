@@ -12,10 +12,9 @@ Invoke-UndoCbwSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoCbwSolutionInterop` cmdlet is a single function to remove the solution interoperability of the
-Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
+The `Invoke-UndoCbwSolutionInterop` cmdlet is a single function to remove the solution interoperability of the Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
 
-- Montitoring and Alerting
+- Monitoring and Alerting
 
 ## Examples
 

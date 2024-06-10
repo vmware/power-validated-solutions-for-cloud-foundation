@@ -12,10 +12,9 @@ Invoke-CbwSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-CbwSolutionInterop` cmdlet is a single function to configure the solution interoperability of the
-Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
+The `Invoke-CbwSolutionInterop` cmdlet is a single function to configure the solution interoperability of the Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
 
-- Montitoring and Alerting
+- Monitoring and Alerting
 
 ## Examples
 

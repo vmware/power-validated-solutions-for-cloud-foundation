@@ -12,8 +12,7 @@ Export-GlobalWsaJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAct
 
 ## Description
 
-The `Export-GlobalWsaJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation
-workbook to deploy and configure Global Workspace ONE Access:
+The `Export-GlobalWsaJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Global Workspace ONE Access:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

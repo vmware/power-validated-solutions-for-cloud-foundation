@@ -12,10 +12,9 @@ Invoke-IlaSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-IlaSolutionInterop` cmdlet is a single function to configure the solution interoperability of the
-Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
+The `Invoke-IlaSolutionInterop` cmdlet is a single function to configure the solution interoperability of the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
 
-- Montitoring and Alerting
+- Monitoring and Alerting
 
 ## Examples
 

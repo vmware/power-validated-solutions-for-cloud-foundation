@@ -12,8 +12,7 @@ Export-InvJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <A
 
 ## Description
 
-The `Export-InvJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy the Intelligent Network Visibility for VMware Cloud Foundation validated solution:
+The `Export-InvJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook to deploy the Intelligent Network Visibility for VMware Cloud Foundation validated solution:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

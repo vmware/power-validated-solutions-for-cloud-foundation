@@ -12,8 +12,7 @@ Invoke-UndoIlaDeployment [-jsonFile] <String> [-ProgressAction <ActionPreference
 
 ## Description
 
-The `Invoke-UndoIlaDeployment` cmdlet is a single function to remove the configuration of the Intelligent Logging
-and Analytics for VMware Cloud Foundation validated solution.
+The `Invoke-UndoIlaDeployment` cmdlet is a single function to remove the configuration of the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
 ## Examples
 

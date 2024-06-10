@@ -12,8 +12,7 @@ Invoke-UndoCbrDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoCbrDeployment` cmdlet is a single function to removal the configuration of the Cloud-Based
-Ransomware Recovery for VMware Cloud Foundation validated solution.
+The `Invoke-UndoCbrDeployment` cmdlet is a single function to removal the configuration of the Cloud-Based Ransomware Recovery for VMware Cloud Foundation validated solution.
 
 ## Examples
 

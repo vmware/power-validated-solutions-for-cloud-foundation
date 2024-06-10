@@ -975,7 +975,9 @@ nav:
       - Cross Cloud Mobility:
         - documentation/functions/solutions/ccm/Export-CcmJsonSpec.md
         - documentation/functions/solutions/ccm/Invoke-CcmDeployment.md
+        - documentation/functions/solutions/ccm/Invoke-CcmSolutionInterop.md
         - documentation/functions/solutions/ccm/Invoke-UndoCcmDeployment.md
+        - documentation/functions/solutions/ccm/Invoke-UndoCcmSolutionInterop.md
         - documentation/functions/solutions/ccm/Test-CcmPrerequisite.md
     - Tests:
       - documentation/functions/supporting/Test-DnsServers.md

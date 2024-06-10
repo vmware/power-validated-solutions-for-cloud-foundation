@@ -12,8 +12,7 @@ Export-CbrJsonSpec [-workbook] <String> [-jsonFile] <String> [<CommonParameters>
 
 ## Description
 
-The `Export-CbrJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation
-workbook to deploy and configure Cloud-Based Ransomware Recovery:
+The `Export-CbrJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Cloud-Based Ransomware Recovery:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook
