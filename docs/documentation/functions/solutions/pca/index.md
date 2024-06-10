@@ -74,13 +74,26 @@ Select an option for the solution.
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                                                     | Type      |
-    | ------------------------------------------------------------------------------------------------------------ | --------- |
-    | [`New-vRAvROPSIntegrationItem`](./../../aria-suite/aria-automation/New-vRAvROPSIntegrationItem.md)           | Procedure |
-    | [`Add-vRAUser`](./../../aria-suite/aria-automation/Add-vRAUser.md)                                           | Procedure |
-    | [`Update-vROPSvRAAdapterCredential`](./../../aria-suite/aria-operations/Update-vROPSvRAAdapterCredential.md) | Procedure |
-    | [`Update-vRACloudAccountZone`](./../../aria-suite/aria-automation/Update-vRACloudAccountZone.md)             | Procedure |
-    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                         | Procedure |
-    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)                        | Procedure |
+    | Function                                                                                                     | Type                  |
+    | ------------------------------------------------------------------------------------------------------------ | --------------------- |
+    | [`Export-PcaJsonSpec`](Export-PcaJsonSpec.md)                                                                | End-to-End Deployment |
+    | [`Invoke-PcaSolutionInterop`](Invoke-PcaSolutionInterop.md)                                                  | End-to-End Deployment |
+    | [`New-vRAvROPSIntegrationItem`](./../../aria-suite/aria-automation/New-vRAvROPSIntegrationItem.md)           | Procedure             |
+    | [`Add-vRAUser`](./../../aria-suite/aria-automation/Add-vRAUser.md)                                           | Procedure             |
+    | [`Update-vROPSvRAAdapterCredential`](./../../aria-suite/aria-operations/Update-vROPSvRAAdapterCredential.md) | Procedure             |
+    | [`Update-vRACloudAccountZone`](./../../aria-suite/aria-automation/Update-vRACloudAccountZone.md)             | Procedure             |
+    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                         | Procedure             |
+    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)                        | Procedure             |
+
+=== ":material-transit-connection-variant: &nbsp; Solution Interoperability Removal"
+
+    The following functions can be use for the solution interoperability.
+
+    | Function                                                                                                          | Type                  |
+    | ------------------------------------------------------------------------------------------------------------------| --------------------- |
+    | [`Export-PcaJsonSpec`](Export-PcaJsonSpec.md)                                                                     | End-to-End Removal    |
+    | [`Invoke-UndoPcaSolutionInterop`](Invoke-UndoPcaSolutionInterop.md)                                               | End-to-End Removal    |
+    | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                                    | Procedure             |
+    | [`Undo-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Undo-vRLIAgentGroup.md)                           | Procedure             |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-private-cloud-automation-v1/GUID-33896484-4331-46F1-8875-B487BBEDCE05.html

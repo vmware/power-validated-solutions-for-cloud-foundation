@@ -7,9 +7,7 @@ Creates new VMware Aria Operations integration in VMware Aria Automation
 ## Syntax
 
 ```powershell
-New-vRAvROPSIntegrationItem [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String>
- [-vraPass] <String> [-vropsIntegrationUser] <String> [-vropsIntegrationPass] <String>
- [-vropsIntegrationName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRAvROPSIntegrationItem [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-vropsIntegrationUser] <String> [-vropsIntegrationPass] <String> [-vropsIntegrationName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -29,7 +27,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
+New-vRAvROPSIntegrationItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!  -vraUser configadmin -vraPass VMw@re1! -vropsIntegrationUser svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource -vropsIntegrationPass VMw@re1! -vropsIntegrationName 'VMware Aria Operations'
 ```
 
 This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation.

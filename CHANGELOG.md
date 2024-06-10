@@ -10,6 +10,8 @@
 - Added `Invoke-UndoIomSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Operations Management.
 - Added `Invoke-InvSolutionInterop` cmdlet to perform solution interoperability configuration for Intelligent Network Visibility.
 - Added `Invoke-UndoInvSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Network Visibility.
+- Added `Invoke-PcaSolutionInterop` cmdlet to perform solution interoperability configuration for Private Cloud Automation.
+- Added `Invoke-UndoPcaSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Private Cloud Automation.
 - Added `Invoke-CbwSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-UndoCbwSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-CbrSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Ransomware Recovery.
@@ -22,6 +24,7 @@
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
 - Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet to check for stretched cluster to be enabled and configure Anti-Affinity rule.
+- Fixed `Get-vRAIntegrationDetail` cmdlet where by it was passing output incorrectly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
@@ -29,6 +32,9 @@
 - Enhanced `Export-vROPsJsonSpec` cmdlet for automatic placement of the VMware Aria Operations virtual appliances into the defined folder.
 - Enhanced `Export-InvJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Networks virtual appliances into the defined folder.
 - Enhanced `Export-vRAJsonSpec` cmdlet for automatic placement of the VMware Aria Automation virtual appliances into the defined folder.
+- Enhanced `New-vRAvROPSIntegrationItem` cmdlet for better error checking and message handling.
+- Enhanced `Undo-vRAvROPsIntegrationItem` cmdlet for better error checking and message handling.
+- Enhanced `Update-vROPSvRAAdapterCredential` cmdlet to reduce the number of inputs required.
 
 ## v2.10.0
 
