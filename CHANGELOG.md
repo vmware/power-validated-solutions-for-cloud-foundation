@@ -14,6 +14,8 @@
 - Added `Invoke-UndoCbwSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-CbrSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Ransomware Recovery.
 - Added `Invoke-UndoCbrSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cloud-Based Ransomware Recovery.
+- Added `Invoke-CcmSolutionInterop` cmdlet to perform solution interoperability configuration for Cross Cloud Mobility.
+- Added `Invoke-UndoCcmSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cross Cloud Mobility.
 - Added `Remove-AriaNetworksDataSource` cmdlet to remove a data source from VMware Aria Operations for Networks.
 - Added `New-AriaNetworksvCenterDataSource` cmdlet to add a vCenter Server in VMware Aria Operations for Networks.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.

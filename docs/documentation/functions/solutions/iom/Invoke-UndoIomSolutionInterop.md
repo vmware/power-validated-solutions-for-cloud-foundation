@@ -12,8 +12,7 @@ Invoke-UndoIomSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoIomSolutionInterop` cmdlet is a single function to remove the solution interoperability of the
-Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+The `Invoke-UndoIomSolutionInterop` cmdlet is a single function to remove the solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation validated solution for:
 
 - Logging
 

@@ -12,8 +12,7 @@ Export-CbwJsonSpec [-workbook] <String> [-jsonFile] <String> [<CommonParameters>
 
 ## Description
 
-The `Export-CbwJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation
-workbook to deploy and configure Cloud-Based Workload Protection:
+The `Export-CbwJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Cloud-Based Workload Protection:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

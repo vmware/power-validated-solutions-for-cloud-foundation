@@ -12,8 +12,7 @@ Invoke-UndoCcmDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoCcmDeployment` cmdlet is a single function to removal the configuration of the Cross Cloud
-Mobility for VMware Cloud Foundation validated solution.
+The `Invoke-UndoCcmDeployment` cmdlet is a single function to removal the configuration of the Cross Cloud Mobility for VMware Cloud Foundation validated solution.
 
 ## Examples
 

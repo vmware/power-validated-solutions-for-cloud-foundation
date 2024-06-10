@@ -12,8 +12,7 @@ Export-CcmJsonSpec [-workbook] <String> [-jsonFile] <String> [<CommonParameters>
 
 ## Description
 
-The `Export-CcmJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation
-workbook to deploy and configure Cross Cloud Mobility:
+The `Export-CcmJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Cross Cloud Mobility:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

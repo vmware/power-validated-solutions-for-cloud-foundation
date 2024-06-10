@@ -12,8 +12,7 @@ Invoke-CcmDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-CcmDeployment` cmdlet is a single function to implement the configuration of the Cross Cloud
-Mobility for VMware Cloud Foundation validated solution.
+The `Invoke-CcmDeployment` cmdlet is a single function to implement the configuration of the Cross Cloud Mobility for VMware Cloud Foundation validated solution.
 
 ## Examples
 

@@ -12,8 +12,7 @@ Invoke-CbrDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-CbrDeployment` cmdlet is a single function to implement the configuration of the Cloud-Based
-Ransomware Recovery for VMware Cloud Foundation validated solution.
+The `Invoke-CbrDeployment` cmdlet is a single function to implement the configuration of the Cloud-Based Ransomware Recovery for VMware Cloud Foundation validated solution.
 
 ## Examples
 

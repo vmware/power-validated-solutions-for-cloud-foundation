@@ -1,18 +1,18 @@
-# Invoke-UndoIlaSolutionInterop
+# Invoke-UndoCcmSolutionInterop
 
 ## Synopsis
 
-Remove solution interoperability for Intelligent Logging and Analytics.
+Remove solution interoperability for Cross Cloud Mobility.
 
 ## Syntax
 
 ```powershell
-Invoke-UndoIlaSolutionInterop [-jsonFile] <String> [<CommonParameters>]
+Invoke-UndoCcmSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Invoke-UndoIlaSolutionInterop` cmdlet is a single function to remove the solution interoperability of the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
+The Invoke-UndoCcmSolutionInterop cmdlet is a single function to remove the solution interoperability of the Cross Cloud Mobility for VMware Cloud Foundation validated solution for:
 
 - Monitoring and Alerting
 
@@ -21,10 +21,10 @@ The `Invoke-UndoIlaSolutionInterop` cmdlet is a single function to remove the so
 ### Example 1
 
 ```powershell
-Invoke-UndoIlaSolutionInterop -jsonFile .\ilaDeploySpec.json
+Invoke-UndoCcmSolutionInterop -jsonFile .\ccmDeploySpec.json
 ```
 
-This example removes solution interoperability of the Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied.
+This example removes solution interoperability of the Cross Cloud Mobility for VMware Cloud Foundation using the JSON spec supplied.
 
 ## Parameters
 

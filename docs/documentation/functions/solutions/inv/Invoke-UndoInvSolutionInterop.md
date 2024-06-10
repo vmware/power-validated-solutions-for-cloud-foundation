@@ -12,10 +12,9 @@ Invoke-UndoInvSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoInvSolutionInterop` cmdlet is a single function to remove the solution interoperability of the
-Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
+The `Invoke-UndoInvSolutionInterop` cmdlet is a single function to remove the solution interoperability of the Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
 
-- Montitoring and Alerting
+- Monitoring and Alerting
 
 ## Examples
 

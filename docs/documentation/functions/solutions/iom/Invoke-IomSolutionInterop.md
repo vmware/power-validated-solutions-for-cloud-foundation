@@ -12,8 +12,7 @@ Invoke-IomSolutionInterop [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-IomSolutionInterop` cmdlet is a single function to configure the solution interoperability of the
-Intelligent Operations Management for VMware Cloud Foundation validated solution for:
+The `Invoke-IomSolutionInterop` cmdlet is a single function to configure the solution interoperability of the Intelligent Operations Management for VMware Cloud Foundation validated solution for:
 
 - Logging
 

@@ -12,8 +12,7 @@ Invoke-UndoIomDeployment [-jsonFile] <String> [-ProgressAction <ActionPreference
 
 ## Description
 
-The `Invoke-UndoIomDeployment` cmdlet is a single function to remove the configuration of the Intelligent
-Operations and Management for VMware Cloud Foundation validated solution.
+The `Invoke-UndoIomDeployment` cmdlet is a single function to remove the configuration of the Intelligent Operations and Management for VMware Cloud Foundation validated solution.
 
 ## Examples
 

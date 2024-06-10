@@ -13185,7 +13185,7 @@ Function Invoke-IlaSolutionInterop {
         .DESCRIPTION
         The Invoke-IlaSolutionInterop cmdlet is a single function to configure the solution interoperability of the
         Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-IlaSolutionInterop -jsonFile .\ilaDeploySpec.json
@@ -13269,7 +13269,7 @@ Function Invoke-UndoIlaSolutionInterop {
         .DESCRIPTION
         The Invoke-UndoIlaSolutionInterop cmdlet is a single function to remove the solution interoperability of the
         Intelligent Logging and Analytics for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-UndoIlaSolutionInterop -jsonFile .\ilaDeploySpec.json
@@ -21423,7 +21423,7 @@ Function Invoke-InvSolutionInterop {
         .DESCRIPTION
         The Invoke-InvSolutionInterop cmdlet is a single function to configure the solution interoperability of the
         Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-InvSolutionInterop -jsonFile .\invDeploySpec.json
@@ -21503,7 +21503,7 @@ Function Invoke-UndoInvSolutionInterop {
         .DESCRIPTION
         The Invoke-UndoInvSolutionInterop cmdlet is a single function to remove the solution interoperability of the
         Intelligent Network Visibility for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-UndoInvSolutionInterop -jsonFile .\invDeploySpec.json
@@ -25724,7 +25724,7 @@ Function Invoke-CbwSolutionInterop {
         .DESCRIPTION
         The Invoke-CbwSolutionInterop cmdlet is a single function to configure the solution interoperability of the
         Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-CbwSolutionInterop -jsonFile .\cbwDeploySpec.json
@@ -25798,7 +25798,7 @@ Function Invoke-UndoCbwSolutionInterop {
         .DESCRIPTION
         The Invoke-UndoCbwSolutionInterop cmdlet is a single function to remove the solution interoperability of the
         Cloud-Based Workload Protection for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-UndoCbwSolutionInterop -jsonFile .\cbwDeploySpec.json
@@ -26109,7 +26109,7 @@ Function Invoke-CbrSolutionInterop {
         .DESCRIPTION
         The Invoke-CbrSolutionInterop cmdlet is a single function to configure the solution interoperability of the
         Cloud-Based Ransomware Recovery for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-CbrSolutionInterop -jsonFile .\cbrDeploySpec.json
@@ -26183,7 +26183,7 @@ Function Invoke-UndoCbrSolutionInterop {
         .DESCRIPTION
         The Invoke-UndoCbrSolutionInterop cmdlet is a single function to remove the solution interoperability of the
         Cloud-Based Ransomware Recovery for VMware Cloud Foundation validated solution for:
-        - Montitoring and Alerting
+        - Monitoring and Alerting
 
         .EXAMPLE
         Invoke-UndoCbrSolutionInterop -jsonFile .\cbrDeploySpec.json
@@ -26322,6 +26322,12 @@ Function Export-CcmJsonSpec {
                 'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "cross-cloud-proxies"
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["ccm_hcx_cdp_ip"].Value)"
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -26594,6 +26600,154 @@ Function Invoke-UndoCcmDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoCcmDeployment
+
+Function Invoke-CcmSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Cross Cloud Mobility.
+
+        .DESCRIPTION
+        The Invoke-CcmSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Cross Cloud Mobility for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+
+        .EXAMPLE
+        Invoke-CcmSolutionInterop -jsonFile .\ccmDeploySpec.json
+        This example configures solution interoperability of the Cross Cloud Mobility for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cross Cloud Mobility for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware HCX"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Add a Ping Adapter for the $productName Collector for $solutionName"
+                                        $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipList -adapterName $jsonInput.pingAdapterName -collectorGroupName $jsonInput.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $productName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-CcmSolutionInterop
+
+Function Invoke-UndoCcmSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Cross Cloud Mobility.
+
+        .DESCRIPTION
+        The Invoke-UndoCcmSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Cross Cloud Mobility for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+
+        .EXAMPLE
+        Invoke-UndoCcmSolutionInterop -jsonFile .\ccmDeploySpec.json
+        This example removes solution interoperability of the Cross Cloud Mobility for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cross Cloud Mobility for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware HCX"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                if (Get-VCFvROPS) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $productName Integration with $operationsProductName"
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Remove a Ping Adapter for $productName for $solutionName"
+                                        $StatusMsg = Undo-vROPSAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -adapterName $jsonInput.pingAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $productName Integration with $operationsProductName"
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoCcmSolutionInterop
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -58192,6 +58346,10 @@ Function Start-CcmMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Configuration"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -58219,6 +58377,10 @@ Function Start-CcmMenu {
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
+
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
             $menuInput = $MenuInput -replace "`t|`n|`r", ""
@@ -58242,6 +58404,16 @@ Function Start-CcmMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoCcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CcmSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoCcmSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {

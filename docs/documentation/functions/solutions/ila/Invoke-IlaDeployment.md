@@ -13,8 +13,7 @@ Invoke-IlaDeployment -jsonFile <String> -certificates <String> -binaries <String
 
 ## Description
 
-The `Invoke-IlaDeployment` cmdlet is a single function to implement the configuration of the Intelligent Logging
-and Analytics for VMware Cloud Foundation validated solution.
+The `Invoke-IlaDeployment` cmdlet is a single function to implement the configuration of the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
 ## Examples
 
