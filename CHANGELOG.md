@@ -12,6 +12,8 @@
 - Added `Invoke-UndoInvSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Network Visibility.
 - Added `Invoke-PcaSolutionInterop` cmdlet to perform solution interoperability configuration for Private Cloud Automation.
 - Added `Invoke-UndoPcaSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Private Cloud Automation.
+- Added `Invoke-PdrSolutionInterop` cmdlet to perform solution interoperability configuration for Site Protection and Disaster Recovery.
+- Added `Invoke-UndoPdrSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Site Protection and Disaster Recovery.
 - Added `Invoke-CbwSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-UndoCbwSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cloud-Based Workload Protection.
 - Added `Invoke-CbrSolutionInterop` cmdlet to perform solution interoperability configuration for Cloud-Based Ransomware Recovery.
@@ -20,6 +22,7 @@
 - Added `Invoke-UndoCcmSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cross Cloud Mobility.
 - Added `Remove-AriaNetworksDataSource` cmdlet to remove a data source from VMware Aria Operations for Networks.
 - Added `New-AriaNetworksvCenterDataSource` cmdlet to add a vCenter Server in VMware Aria Operations for Networks.
+- Added `Undo-SsoUser` cmdlet to support removing a user from vCenter Single Sign-On.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
 - Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
