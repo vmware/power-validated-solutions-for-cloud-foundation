@@ -2597,6 +2597,19 @@ Function Export-PdrJsonSpec {
                     'cluster'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value
                 }
 
+                if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                    $protectedObject | Add-Member -notepropertyname 'ssoServiceAccountSrmUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_srm_sso_username"].Value
+                    $protectedObject | Add-Member -notepropertyname 'ssoServiceAccountSrmPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_srm_sso_password"].Value
+                    $protectedObject | Add-Member -notepropertyname 'ssoServiceAccountVrmsUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vrms_sso_username"].Value
+                    $protectedObject | Add-Member -notepropertyname 'ssoServiceAccountVrmsPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vrms_sso_password"].Value
+                    $protectedObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                }
+
+                if ($pnpProtectedWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
+                    $protectedObject | Add-Member -notepropertyname 'agentGroupName' -notepropertyvalue "Photon OS (DR) - Appliance Agent Group"
+                    $protectedObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpProtectedWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_fqdn"].Value)"
+                }
+
                 $recoveryObject = @()
                 $recoveryObject += [pscustomobject]@{
                     'sddcManagerFqdn'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_sddc_manager_fqdn"].Value
@@ -2642,6 +2655,19 @@ Function Export-PdrJsonSpec {
                     'srmLicenseKey'            = $pnpRecoveryWorkbook.Workbook.Names["srm_license"].Value
                     'networkSegment'           = $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
                     'cluster'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_cluster"].Value
+                }
+
+                if ($pnpRecoveryWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                    $recoveryObject | Add-Member -notepropertyname 'ssoServiceAccountSrmUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vrops_srm_sso_username"].Value
+                    $recoveryObject | Add-Member -notepropertyname 'ssoServiceAccountSrmPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vrops_srm_sso_password"].Value
+                    $recoveryObject | Add-Member -notepropertyname 'ssoServiceAccountVrmsUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vrops_vrms_sso_username"].Value
+                    $recoveryObject | Add-Member -notepropertyname 'ssoServiceAccountVrmsPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vrops_vrms_sso_password"].Value
+                    $recoveryObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                }
+
+                if ($pnpRecoveryWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
+                    $recoveryObject | Add-Member -notepropertyname 'agentGroupName' -notepropertyvalue "Photon OS (DR) - Appliance Agent Group"
+                    $recoveryObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_fqdn"].Value)"
                 }
 
                 $jsonObject = @()
@@ -2851,12 +2877,12 @@ Function Invoke-PdrDeployment {
                     if ((Test-Path -Path ($certificates + $jsonInput.protected.vrmsCertificateFile)) -or (Test-Path -Path ($certificates + $jsonInput.recovery.vrmsCertificateFile)) -or (Test-Path -Path ($certificates + $jsonInput.protected.srmCertificateFile)) -or (Test-Path -Path ($certificates + $jsonInput.recovery.srmCertificateFile))) {
                         if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
                             if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                                if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
+                                if (Get-VCFvRA) { $ariaAutomationPresent = $true } else { $ariaAutomationPresent = $false }
                                 if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
                                     if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
                                         if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass) {
                                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                                if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
-                                                if (Get-VCFvRA) { $ariaAutomationPresent = $true } else { $ariaAutomationPresent = $false }
                                                 $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
                                                 $wsaVmNames = @()
                                                 foreach ($productVM in $productVMs) {
@@ -3071,7 +3097,9 @@ Function Invoke-PdrDeployment {
                                                 }
 
                                                 if (!$failureDetected) {
-                                                    $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa), $($jsonInput.vmfolderOperations), $($jsonInput.vmfolderAutomation))
+                                                    $allVmFolders = @($($jsonInput.vmfolderLifecycle), $($jsonInput.vmfolderWsa))
+                                                    if ($ariaOperationsPresent) { $allVmFolders += $($jsonInput.vmfolderOperations) }
+                                                    if ($ariaAutomationPresent) { $allVmFolders += $($jsonInput.vmfolderAutomation) }
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
                                                     Show-PowerValidatedSolutionsOutput -message "Configuring Folder Mappings between the Protected and the Recovery VMware Cloud Foundation Instances"
                                                     foreach ($vmFolder in $allVmFolders) {
@@ -3582,6 +3610,362 @@ Function Invoke-UndoPdrDeployment {
     }
 }
 Export-ModuleMember -Function Invoke-UndoPdrDeployment
+
+Function Invoke-PdrSolutionInterop {
+    <#
+        .SYNOPSIS
+        Configure solution interoperability for Site Protection and Disaster Recovery.
+
+        .DESCRIPTION
+        The Invoke-PdrSolutionInterop cmdlet is a single function to configure the solution interoperability of the
+        Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+        - Logging
+
+        .EXAMPLE
+        Invoke-PdrSolutionInterop -jsonFile .\pdrDeploySpec.json -binaries .\binaries\
+        This example configures solution interoperability of the Site Protection and Disaster Recovery for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Site Protection and Disaster Recovery for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Aria Automation"
+    $logsProductName = "VMware Aria Operations for Logs"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass)) {
+                            if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
+                            if (Get-VCFvRLI) { $ariaLogsPresent = $true } else { $ariaLogsPresent = $false }
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $srmNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-srm.csv"
+                                $sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                                $failureDetected = $false
+
+                                if (!$failureDetected) {
+                                    if ($ariaOperationsPresent) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $solutionName Integration with $operationsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Create vSphere Single Sign-On Users for Integration of $operationsProductName with $solutionName"
+                                            foreach ($site in $sites) {
+                                                $ssoServiceAccounts = '[
+                                                    {"user": "'+ $site.ssoServiceAccountSrmUser +'", "password": "'+ $site.ssoServiceAccountSrmPass +'"},
+                                                    {"user": "'+ $site.ssoServiceAccountVrmsUser +'", "password": "'+ $site.ssoServiceAccountVrmsPass +'"}
+                                                ]' | ConvertFrom-Json
+                                                foreach ( $ssoServiceAccount in $ssoServiceAccounts ) {
+                                                    $StatusMsg = Add-SsoUser -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -ssoUser $ssoServiceAccount.user -ssoPass $ssoServiceAccount.password -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configure Service Account Permissions in vSphere for the Integration of $operationsProductName with $solutionName"
+                                            foreach ($site in $sites) {
+                                                if (Test-VCFAuthentication -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass) {
+                                                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                                                    foreach ($sddcDomain in $allWorkloadDomains) {
+                                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                                            $StatusMsg = Add-vCenterGlobalPermission -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $sddcDomain.name -domain vsphere.local -principal $site.ssoServiceAccountSrmUser -role "ReadOnly" -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                            $StatusMsg = Add-vCenterGlobalPermission -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $sddcDomain.name -domain vsphere.local -principal $site.ssoServiceAccountVrmsUser -role "HmsReplicationUser" -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Install the $operationsProductName Management Pack for Site Recovery Manager for $solutionName"
+                                            $srmPak = (Get-ChildItem $binaries | Where-Object { $_.name -match "VMware-srm-vrops-mp-" }).name
+                                            $srmPakPath = $binaries + $srmPak
+                                            if ($srmPak) {
+                                                Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for Site Recovery Manager"
+                                                $StatusMsg = Enable-vROPSManagementPack -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -packType SrmAdapter -pakfile $srmPakPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            } else {
+                                                Show-PowerValidatedSolutionsOutput -type ERROR -message "$operationsProductName Management Pack for Site Recovery Manager File Not Found: PRE_VALIDATION_FAILED"
+                                                $failureDetected = $true
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Install the $operationsProductName Management Pack for vSphere Replication for $solutionName"
+                                            $vrsmPak = (Get-ChildItem $binaries | Where-Object { $_.name -match "VrAdapter-" }).name
+                                            $vrmsPakPath = $binaries + $vrsmPak
+                                            if ($vrsmPak) {
+                                                Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for vSphere Replication"
+                                                $StatusMsg = Enable-vROPSManagementPack -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -packType VrAdapter -pakfile $vrmsPakPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            } else {
+                                                Show-PowerValidatedSolutionsOutput -type ERROR -message "$operationsProductName Management Pack for vSphere Replication File Not Found: PRE_VALIDATION_FAILED"
+                                                $failureDetected = $true
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add Site Recovery Manager Adapter Instances to $operationsProductName for $solutionName"
+                                            $StatusMsg = Add-vROPSAdapterSrm -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -srmFqdn $jsonInput.protected.srmFqdn -srmUser ($jsonInput.protected.ssoServiceAccountSrmUser + "@vsphere.local") -srmPass $jsonInput.protected.ssoServiceAccountSrmPass -collectorGroupName $jsonInput.protected.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Add-vROPSAdapterSrm -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -srmFqdn $jsonInput.recovery.srmFqdn -srmUser ($jsonInput.recovery.ssoServiceAccountSrmUser + "@vsphere.local") -srmPass $jsonInput.recovery.ssoServiceAccountSrmPass -collectorGroupName $jsonInput.recovery.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add vSphere Replciation Adapter Instances to $operationsProductName for $solutionName"
+                                            $StatusMsg = Add-vROPSAdapterVr -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vrFqdn $jsonInput.protected.vrmsFqdn -vrUser ($jsonInput.protected.ssoServiceAccountVrmsUser + "@vsphere.local") -vrPass $jsonInput.protected.ssoServiceAccountVrmsPass -collectorGroupName $jsonInput.protected.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Add-vROPSAdapterVr -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vrFqdn $jsonInput.recovery.vrmsFqdn -vrUser ($jsonInput.recovery.ssoServiceAccountVrmsUser + "@vsphere.local") -vrPass $jsonInput.recovery.ssoServiceAccountVrmsPass -collectorGroupName $jsonInput.recovery.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Create Notifications in $operationsProductName for $solutionName"
+                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -csvPath $srmNotifications -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $solutionName Integration with $operationsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    if ($ariaLogsPresent) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $solutionName Integration with $logsProductName"
+
+                                        if (!$failureDetected) {
+                                            $systems = '[
+                                                {"vmName": "'+ $jsonInput.protected.srmVmName +'", "vmRootPass": "'+ $jsonInput.protected.srmRootPassword +'"},
+                                                {"vmName": "'+ $jsonInput.protected.vrmsVmName +'", "vmRootPass": "'+ $jsonInput.protected.vrmsRootPassword +'"}
+                                            ]' | ConvertFrom-Json
+                                            Show-PowerValidatedSolutionsOutput -message "Upgrade and Configure the $logsProductName Agent on the Site Recovery Manager and vSphere Replication Appliances for $solutionName"
+                                            foreach ( $system in $systems ) {
+                                                $StatusMsg = Install-vRLIPhotonAgent -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vmName $system.vmName -vmRootPass $system.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Create a $logsProductName Photon OS Agent Group for Site Recovery Manager and the vSphere Replication for $solutionName"
+                                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -agentGroupType photon -agentGroupName $jsonInput.agentGroupName -criteria $jsonInput.vmListFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $solutionName Integration with $logsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of Solution Interoperability for $solutionName"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-PdrSolutionInterop
+
+Function Invoke-UndoPdrSolutionInterop {
+    <#
+        .SYNOPSIS
+        Remove solution interoperability for Site Protection and Disaster Recovery.
+
+        .DESCRIPTION
+        The Invoke-UndoPcaSolutionInterop cmdlet is a single function to remove the solution interoperability of the
+        Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution for:
+        - Monitoring and Alerting
+        - Logging
+
+        .EXAMPLE
+        Invoke-UndoPcaSolutionInterop -jsonFile .\pdrDeploySpec.json
+        This example removes solution interoperability of the Site Protection and Disaster Recovery for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Site Protection and Disaster Recovery for VMware Cloud Foundation"
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $operationsProductName = "VMware Aria Operations"
+    $productName = "VMware Aria Automation"
+    $logsProductName = "VMware Aria Operations for Logs"
+
+    Try {
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of Solution Interoperability for $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.protected.sddcManagerFqdn -username $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass)) {
+                            if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
+                            if (Get-VCFvRLI) { $ariaLogsPresent = $true } else { $ariaLogsPresent = $false }
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $srmNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-srm.csv"
+                                $sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                                $failureDetected = $false
+
+                                if (!$failureDetected) {
+                                    if ($ariaOperationsPresent) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName Integration with $operationsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Site Recovery Manager Adapter Instances from $operationsProductName for $solutionName"
+                                            $StatusMsg = Undo-vROPSAdapter -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -adapterName $jsonInput.protected.srmFqdn -adapterType SrmAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Undo-vROPSAdapter -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -adapterName $jsonInput.recovery.srmFqdn -adapterType SrmAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Site Recovery Manager Adapter Credentials from $operationsProductName for $solutionName"
+                                            $StatusMsg = Undo-vROPSCredential -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -credentialName $jsonInput.protected.srmFqdn -credentialType SrmAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Undo-vROPSCredential -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -credentialName $jsonInput.recovery.srmFqdn -credentialType SrmAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove vSphere Replciation Adapter Instances from $operationsProductName for $solutionName"
+                                            $StatusMsg = Undo-vROPSAdapter -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -adapterName $jsonInput.protected.vrmsFqdn -adapterType VrAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Undo-vROPSAdapter -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -adapterName $jsonInput.recovery.vrmsFqdn -adapterType VrAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Site Recovery Manager Adapter Credentials from $operationsProductName for $solutionName"
+                                            $StatusMsg = Undo-vROPSCredential -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -credentialName $jsonInput.protected.vrmsFqdn -credentialType VrAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            $StatusMsg = Undo-vROPSCredential -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -credentialName $jsonInput.recovery.vrmsFqdn -credentialType VrAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove Service Account Permissions from vSphere for the Integration of $operationsProductName with $solutionName"
+                                            foreach ($site in $sites) {
+                                                if (Test-VCFAuthentication -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass) {
+                                                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                                                    foreach ($sddcDomain in $allWorkloadDomains) {
+                                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                                            $StatusMsg = Undo-vCenterGlobalPermission -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $sddcDomain.name -domain vsphere.local -principal $site.ssoServiceAccountSrmUser -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                            $StatusMsg = Undo-vCenterGlobalPermission -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $sddcDomain.name -domain vsphere.local -principal $site.ssoServiceAccountVrmsUser -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove vSphere Single Sign-On Users for Integration of $operationsProductName with $solutionName"
+                                            foreach ($site in $sites) {
+                                                $ssoServiceAccounts = '[
+                                                    {"user": "'+ $site.ssoServiceAccountSrmUser +'"},
+                                                    {"user": "'+ $site.ssoServiceAccountVrmsUser +'"}
+                                                ]' | ConvertFrom-Json
+                                                foreach ( $ssoServiceAccount in $ssoServiceAccounts ) {
+                                                    $StatusMsg = Undo-SsoUser -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -ssoUser $ssoServiceAccount.user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName Integration with $operationsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$operationsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    if ($ariaLogsPresent) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName Integration with $logsProductName"
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Remove $logsProductName Photon OS Agent Group for Site Recovery Manager and the vSphere Replication for $solutionName"
+                                            $StatusMsg = Undo-vRLIAgentGroup -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -agentGroupName $jsonInput.protected.agentGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            $systems = '[
+                                                {"vmName": "'+ $jsonInput.protected.srmVmName +'", "vmRootPass": "'+ $jsonInput.protected.srmRootPassword +'"},
+                                                {"vmName": "'+ $jsonInput.protected.vrmsVmName +'", "vmRootPass": "'+ $jsonInput.protected.vrmsRootPassword +'"}
+                                            ]' | ConvertFrom-Json
+                                            Show-PowerValidatedSolutionsOutput -message "Un-Configure the $logsProductName Agent on the Site Recovery Manager and vSphere Replication Appliances for $solutionName"
+                                            foreach ( $system in $systems ) {
+                                                $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vmName $system.vmName -vmRootPass $system.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName Integration with $logsProductName"
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of Solution Interoperability for $solutionName"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find configuration file ($pvsModulePath\$configFile)"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoPdrSolutionInterop
 
 Function Install-SiteRecoveryManager {
     <#
@@ -22461,9 +22845,9 @@ Function Invoke-PcaDeployment {
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
                                                     } else {
-                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$automationProductName OVA for version ($ariaAutomationVersion) File Not Found: PRE_VALIDATION_FAILED"
-                                                    $failureDetected = $true
-                                                }
+                                                        Show-PowerValidatedSolutionsOutput -type ERROR -message "$automationProductName OVA for version ($ariaAutomationVersion) File Not Found: PRE_VALIDATION_FAILED"
+                                                        $failureDetected = $true
+                                                    }
                                                 }
                                                 $allDatacenters = Get-vRSLCMDatacenter
                                                 foreach ($datacenter in $allDatacenters) {
@@ -23043,6 +23427,7 @@ Function Invoke-UndoPcaSolutionInterop {
         The Invoke-UndoPcaSolutionInterop cmdlet is a single function to remove the solution interoperability of the
         Private Cloud Automation for VMware Cloud Foundation validated solution for:
         - Monitoring and Alerting
+        - Logging
 
         .EXAMPLE
         Invoke-UndoPcaSolutionInterop -jsonFile .\pcaDeploySpec.json
@@ -23116,7 +23501,7 @@ Function Invoke-UndoPcaSolutionInterop {
 
                                 if (!$failureDetected) {
                                     if (Get-VCFvRLI) {
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Configuration of $productName Integration with $logsProductName"
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $productName Integration with $logsProductName"
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Remove a $logsProductName Photon OS Agent Group for the $operationsProductName Nodes for $solutionName"
@@ -23124,7 +23509,7 @@ Function Invoke-UndoPcaSolutionInterop {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Configuration of $logsProductName Integration with $logsProductName"
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $logsProductName Integration with $logsProductName"
                                     } else {
                                         Show-PowerValidatedSolutionsOutput -type ADVISORY -message "$logsProductName in $lcmProductName not found: SKIPPED"
                                     }
@@ -30444,7 +30829,7 @@ Export-ModuleMember -Function Undo-SsoPermission
 Function Add-SsoUser {
     <#
 		.SYNOPSIS
-        Assign vCenter Single Sign-On Group to user/group.
+        Assign vCenter Single Sign-On Group to user.
 
         .DESCRIPTION
         The Add-SsoUser cmdlet adds a user to the vCenter Single Sign-On domain The cmdlet connects to SDDC Manager
@@ -30509,6 +30894,72 @@ Function Add-SsoUser {
     }
 }
 Export-ModuleMember -Function Add-SsoUser
+
+Function Undo-SsoUser {
+    <#
+		.SYNOPSIS
+        Remove a user from vCenter Single Sign-On Group to user.
+
+        .DESCRIPTION
+        The Undo-SsoUser cmdlet removes a user to the vCenter Single Sign-On domain The cmdlet connects to SDDC Manager
+        using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that the user exist
+        - Removes the user to the vCenter Single Sign-On domain
+
+        .EXAMPLE
+        Undo-SsoUser -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -ssoUser svc-vrops-srm@vsphere.local
+        This example removes the user svc-vrops-srm from the vCenter Single Sign-On domain vsphere.local.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER ssoUser
+        The vCenter Single Sign-On user name.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-SsoPersonUser -Domain vsphere.local -Name $ssoUser -Server $ssoConnectionDetail) {
+                                $myUser = Get-SsoPersonUser -Domain vsphere.local -Name $ssoUser -Server $ssoConnectionDetail
+                                Remove-SsoPersonUser -User $myUser | Out-Null
+                                if (-Not (Get-SsoPersonUser -Domain vsphere.local -Name $ssoUser -Server $ssoConnectionDetail)) {
+                                    Write-Output "Removing Single Sign-On User from vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Single Sign-On User from vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Single Sign-On User from vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser), does not exist: SKIPPED"
+                            }
+                            Disconnect-SsoAdminServer $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SsoUser
 
 Function Add-vSphereRole {
     <#
@@ -58146,7 +58597,6 @@ Function Start-PcaMenu {
         $headingItem03 = "Solution Interoperability"
         $menuitem07 = "Configuration"
         $menuitem08 = "Remove from Environment"
-
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -58245,6 +58695,10 @@ Function Start-PdrMenu {
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
 
+        $headingItem03 = "Solution Interoperability"
+        $menuitem07 = "Configuration"
+        $menuitem08 = "Remove from Environment"
+
         Do {
             if (!$headlessPassed) { Clear-Host }
             if ($headlessPassed) {
@@ -58272,6 +58726,10 @@ Function Start-PdrMenu {
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -58306,6 +58764,16 @@ Function Start-PdrMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PdrSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoPdrSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {

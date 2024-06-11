@@ -757,6 +757,7 @@ nav:
       - documentation/functions/vsphere/Undo-IdentitySource.md
       - documentation/functions/vsphere/Undo-ResourcePool.md
       - documentation/functions/vsphere/Undo-SsoPermission.md
+      - documentation/functions/vsphere/Undo-SsoUser.md
       - documentation/functions/vsphere/Undo-StoragePolicy.md
       - documentation/functions/vsphere/Undo-vCenterGlobalPermission.md
       - documentation/functions/vsphere/Undo-VdsPortGroup.md
@@ -951,7 +952,9 @@ nav:
       - Site Protection and Disaster Recovery:
         - documentation/functions/solutions/pdr/Export-PdrJsonSpec.md
         - documentation/functions/solutions/pdr/Invoke-PdrDeployment.md
+        - documentation/functions/solutions/pdr/Invoke-PdrSolutionInterop.md
         - documentation/functions/solutions/pdr/Invoke-UndoPdrDeployment.md
+        - documentation/functions/solutions/pdr/Invoke-UndoPdrSolutionInterop.md
         - documentation/functions/solutions/pdr/Test-PdrPrerequisite.md
       - Health Reporting and Monitoring:
         - documentation/functions/solutions/hrm/Export-HrmJsonSpec.md
