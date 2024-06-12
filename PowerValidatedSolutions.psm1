@@ -3737,7 +3737,6 @@ Function Invoke-PdrSolutionInterop {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-vROPSAdapterVr -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -vrFqdn $jsonInput.recovery.vrmsFqdn -vrUser ($jsonInput.recovery.ssoServiceAccountVrmsUser + "@vsphere.local") -vrPass $jsonInput.recovery.ssoServiceAccountVrmsPass -collectorGroupName $jsonInput.recovery.collectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            
                                         }
 
                                         if (!$failureDetected) {
@@ -51244,7 +51243,7 @@ Function Get-AriaNetworksNodes {
                 (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
             }
         } else {
-            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
         }
         } Catch {
         Write-Error $_.Exception.Message
@@ -51296,7 +51295,7 @@ Function Get-AriaNetworksDataSource {
                 (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
             }
         } else {
-            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -51307,7 +51306,7 @@ Export-ModuleMember -Function Get-AriaNetworksDataSource
 Function Remove-AriaNetworksDataSource {
     <#
         .SYNOPSIS
-        Remove a data source from a VMware Aria Operations for Networks deployment.
+        Remove a data source from a VMware Aria Operations for Networks.
 
         .DESCRIPTION
         The Remove-AriaNetworksDataSource cmdlet removes a data source from a VMware Aria Operations for Networks deployment.
@@ -51316,12 +51315,11 @@ Function Remove-AriaNetworksDataSource {
         The type of the data source, in one of nsxt or vcenter.
 
         .PARAMETER id
-        The id of the data source in the VMware Aria Operations for Networks deployment.
+        The id of the data source in the VMware Aria Operations for Networks.
 
         .EXAMPLE
         Remove-AriaNetworksDataSource -dataSourceType vcenter -id 15832:902:2623605245375371420
         This example removes the vCenter Server which is configured as a data source in a VMware Aria Operations for Networks deployment with a specific ID.
-
     #>
 
 	Param (
@@ -51334,11 +51332,11 @@ Function Remove-AriaNetworksDataSource {
             if ($dataSourceType -eq 'vcenter') {
                 $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters/$id"
                 (Invoke-RestMethod -Method 'DEL' -Uri $uri -Headers $ariaNetworksHeader).results
-            } elseif($dataSourceType -eq 'nsxt') {
+            } elseif ($dataSourceType -eq 'nsxt') {
                 $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers/$id"
                 (Invoke-RestMethod -Method 'DEL' -Uri $uri -Headers $ariaNetworksHeader).results
 			} else {
-            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again"
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
 			}
 		}
     } Catch {
@@ -51360,7 +51358,7 @@ Function New-AriaNetworksvCenterDataSource {
         This example adds a vCenter Server as a new data source in VMware Aria Operations for Networks.
 
         .PARAMETER fqdn
-        The fqdn of the vCenter Server to add as a data source.
+        The fully quailified domain name of the vCenter Server to add as a data source.
 
         .PARAMETER username
         The username to use for authentication.
@@ -51372,53 +51370,147 @@ Function New-AriaNetworksvCenterDataSource {
         The nickname to use for this data source in VMware Aria Operations for Networks.
 
         .PARAMETER collectorId
-        The id of the VMware Aria Operations for Networks collector node where the vCenter data source will be connected.
+        The id of the VMware Aria Operations for Networks collector node where the vCenter Server data source will be connected.
 
         .PARAMETER enabled
-        The parameter to enable the datasource.
+        The parameter to enable the data source.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nickname,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorId,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$enabled
+		[Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$enabled
     )
 
-		if ( -not $PsBoundParameters.ContainsKey("fqdn") -or ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password") -or ( -not $PsBoundParameters.ContainsKey("nickname") -or ( -not $PsBoundParameters.ContainsKey("collectorId") -or ( -not $PsBoundParameters.ContainsKey("enabled"))))))){
-			Write-Error "Please Provide the necessary parameters and try again"
-		}
+    Try {
+        if ($ariaNetworksAppliance) {
+            $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
+            $body = @{
+                fqdn = $fqdn
+                proxy_id = $collectorId
+                nickname = $nickname
+                enabled = $enabled
+                credentials = @{
+                    username = $username
+                    password = $password
+                }
+                ipfix_request = @{
+                    "enable_all"= $true
+                }
+            } | ConvertTo-Json
+            Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+
+Function New-AriaNetworksNsxtDataSource {
+    <#
+        .SYNOPSIS
+        Add a new NSX-T data source to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The New-AriaNetworksNsxtDataSource cmdlet allows a user to add in a NSX Manager as a new data source in VMware Aria Operations for Networks in order to collect network flow data.
+
+        .EXAMPLE
+        New-AriaNetworksNsxtDataSource -fqdn sfo-m01-nsx01.sfo.rainpole.io -certificate F:\certs\sfo-m01-nsx01.cer -privatekey F:\certs\sfo-m01-nsx01.key -nickname "sfo-m01-nsx01 - Management Domain NSX Manager" -CollectorId 15832:901:1711011916294613031 -enabled true
+        This example adds a NSX Manager as a new data source in VMware Aria Operations for Networks by using a NSX principal identity user.
+
+        .EXAMPLE
+        New-AriaNetworksNsxtDataSource -fqdn sfo-m01-nsx01.sfo.rainpole.io -username svc-inv-vsphere -password VMw@re1!VMw@re1! -nickname "sfo-m01-nsx01 - Management Domain NSX Manager" -CollectorId 15832:901:1711011916294613031 -enabled true
+        This example adds a NSX Manager as a new data source in VMware Aria Operations for Networks by using a NSX service account user with a password.
+
+        .PARAMETER fqdn
+        The NSX Manager to add as a data source.
+
+        .PARAMETER certificate
+        The principal identity certificate to use for authentication.
+
+        .PARAMETER privatekey
+        The principal identity private key to use for authentication.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+
+        .PARAMETER nickname
+        The nickname to use for this data source in VMware Aria Operations for Networks.
+
+        .PARAMETER collectorId
+        The id of the VMware Aria Operations for Networks collector node where the NSX Manager data source will be connected.
+
+        .PARAMETER enabled
+        The parameter to enable the data source.
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "credentials")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+		[Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$certificate,
+		[Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$privatekey,
+		[Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$password,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nickname,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorId,
+		[Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$enabled
+    )
 
     Try {
-        $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
-        $body = '{
-		"fqdn": "'+ $fqdn +'",
-		"proxy_id": "'+ $collectorId +'",
-		"nickname": "'+ $nickname +'",
-		"enabled": '+ $enabled +',
-		"credentials": {
-			"username": "'+ $username +'",
-			"password": "'+ $password +'"
-		},
-		  "ipfix_request": {
-			"enable_all": true
-		  }
-		}'
-
-        if ($PSEdition -eq 'Core') {
-            $DataSourceResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-		} else {
-				$DataSourceResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body
-				Write-Output "Successfully added $vcenter to VMware Aria Operations for Networks as a Data Source"
-		}
-  } Catch {
+        if ($ariaNetworksAppliance) {
+            $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers"
+            if ($PSBoundParameters.ContainsKey('certificate') -and $PSBoundParameters.ContainsKey('privatekey')) {
+                if (Test-Path -Path $certificate) {
+                    $cert = (Get-Content -Path $certificate) -join "`n"
+                } else {
+                    Write-Error "Unable to find certificate file ($certificate)."
+                }
+                if (Test-Path -Path $privatekey) {
+                    $key = (Get-Content -Path $privatekey) -join "`n"
+                } else {
+                    Write-Error "Unable to find key file ($privatekey)."
+                }
+                $body = @{
+                    fqdn = $fqdn
+                    proxy_id = $collectorId
+                    nickname = $nickname
+                    enabled = $enabled
+                    ipfix_enabled = $true
+                    latency_enabled = $true
+                    cred_type = "CERTIFICATE"
+                    client_certificate = $cert
+                    client_private_key = $key
+                } | ConvertTo-Json
+            } elseif ($PSBoundParameters.ContainsKey('username') -and $PSBoundParameters.ContainsKey('password')) {
+                $body = @{
+                    fqdn = $fqdn
+                    proxy_id = $collectorId
+                    nickname = $nickname
+                    enabled = $enabled
+                    ipfix_enabled = $true
+                    latency_enabled = $true
+                    credentials = @{
+                        username = $username
+                        password = $password
+                    }
+                } | ConvertTo-Json
+            }
+            Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
+        }
+    } Catch {
         Write-Error $_.Exception.Message
-  }
+    }
 }
-Export-ModuleMember -Function New-AriaNetworksvCenterDataSource
-
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
 
