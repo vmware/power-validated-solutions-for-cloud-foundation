@@ -57749,6 +57749,20 @@ Function Test-PrereqServiceAccount {
 #######################################################################################################################
 #Region                                             M E N U S                                               ###########
 
+Function Write-MenuHeader {
+    if ($commonObject) {
+        $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel)"
+        Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+        Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+        Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+        $vvsTitle = "Version $powerValidatedSolutionsVersion | $submenuTitle"
+        Write-Host " $vvsTitle" -ForegroundColor Cyan
+    } else {
+        $vvsTitle = "Version $powerValidatedSolutionsVersion | $submenuTitle"
+        Write-Host ""; Write-Host " $vvsTitle" -ForegroundColor Cyan
+    }
+}
+
 Function Start-ValidatedSolutionMenu {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
@@ -57766,6 +57780,7 @@ Function Start-ValidatedSolutionMenu {
         $Script:binaryPath = $binaryPath
         $Script:protectedWorkbook = $protectedWorkbook
         $Script:recoveryWorkbook = $recoveryWorkbook
+        $script:powerValidatedSolutionsVersion = (Get-InstalledModule -Name PowerValidatedSolutions).Version
         if ($PsBoundParameters.ContainsKey("logPath")) {
             $Script:logPath = $logPath
             New-PowerValidatedSolutionsLogFile -logPath $logPath
@@ -57800,17 +57815,7 @@ Function Start-ValidatedSolutionMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -57921,17 +57926,7 @@ Function Start-AriaSuiteLifecycleMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -57999,17 +57994,7 @@ Function Start-WorkspaceOneAccessMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58103,17 +58088,7 @@ Function Start-IamMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Cyan
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
@@ -58218,17 +58193,7 @@ Function Start-DriMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58300,17 +58265,7 @@ Function Start-IlaMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58402,17 +58357,7 @@ Function Start-IomMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58504,17 +58449,7 @@ Function Start-InvMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58605,17 +58540,7 @@ Function Start-PcaMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58809,17 +58734,7 @@ Function Start-HrmMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58890,17 +58805,7 @@ Function Start-CbwMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -58985,17 +58890,7 @@ Function Start-CbrMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
@@ -59080,17 +58975,7 @@ Function Start-CcmMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
-            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
