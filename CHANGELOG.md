@@ -22,6 +22,7 @@
 - Added `Invoke-UndoCcmSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Cross Cloud Mobility.
 - Added `Remove-AriaNetworksDataSource` cmdlet to remove a data source from VMware Aria Operations for Networks.
 - Added `New-AriaNetworksvCenterDataSource` cmdlet to add a vCenter Server in VMware Aria Operations for Networks.
+- Added `New-AriaNetworksNsxtDataSource` cmdlet to add a NSX Manager in VMware Aria Operations for Networks.
 - Added `Undo-SsoUser` cmdlet to support removing a user from vCenter Single Sign-On.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.

@@ -1,6 +1,6 @@
 # New-AriaNetworksvCenterDataSource
 
-## Syynopsis
+## Synopsis
 
 Add a new vCenter Server data source to VMware Aria Operations for Networks.
 
@@ -8,8 +8,7 @@ Add a new vCenter Server data source to VMware Aria Operations for Networks.
 
 ```powershell
 New-AriaNetworksvCenterDataSource [-fqdn] <String> [-username] <String> [-password] <String>
- [-nickname] <String> [-collectorId] <String> [-enabled] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-nickname] <String> [-collectorId] <String> [-enabled] <String> [<CommonParameters>]
 ```
 
 ## Description
@@ -30,7 +29,7 @@ This example adds a vCenter Server as a new data source in VMware Aria Operation
 
 ### -fqdn
 
-The fqdn of the vCenter Server to add as a data source.
+The fully qualified domain name of the vCenter Server to add as a data source.
 
 ```yaml
 Type: String
@@ -110,7 +109,7 @@ Accept wildcard characters: False
 
 ### -enabled
 
-The parameter to enable the datasource.
+The parameter to enable the data source.
 
 ```yaml
 Type: String
@@ -119,22 +118,6 @@ Aliases:
 
 Required: True
 Position: 6
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress action.
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

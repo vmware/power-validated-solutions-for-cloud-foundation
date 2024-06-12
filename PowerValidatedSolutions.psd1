@@ -8,10 +8,10 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule        = 'PowerValidatedSolutions.psm1'
+    RootModule = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '2.11.0.1017'
+    ModuleVersion = '2.11.0.1017'
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
