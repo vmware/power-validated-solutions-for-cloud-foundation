@@ -51215,14 +51215,14 @@ Function Request-AriaNetworksToken {
         $ariaNetworksHeader.Add("Accept", "application/json")
         $ariaNetworksHeader.Add("Content-Type", "application/json")
         $uri = "https://$ariaNetworksAppliance/api/ni/auth/token"
-        $body = '{
-            "username": "'+ $username +'",
-            "password": "'+ $password +'",
-            "domain": {
-                "domain_type": "LOCAL",
-                "value": "local"
+        $body = @{
+            username = $username
+            password = $password
+            domain = @{
+                "domain_type" = "LOCAL"
+                "value" = "local"
             }
-        }'
+        } | ConvertTo-Json
         if ($PSEdition -eq 'Core') {
             $ariaNetworksResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         } else {
@@ -51445,6 +51445,7 @@ Function New-AriaNetworksvCenterDataSource {
         Write-Error $_.Exception.Message
     }
 }
+Export-ModuleMember -Function New-AriaNetworksvCenterDataSource
 
 Function New-AriaNetworksNsxtDataSource {
     <#
@@ -51463,7 +51464,7 @@ Function New-AriaNetworksNsxtDataSource {
         This example adds a NSX Manager as a new data source in VMware Aria Operations for Networks by using a NSX service account user with a password.
 
         .PARAMETER fqdn
-        The NSX Manager to add as a data source.
+        The fully qualified domain name of the NSX Manager to add as a data source.
 
         .PARAMETER certificate
         The principal identity certificate to use for authentication.
@@ -51547,6 +51548,7 @@ Function New-AriaNetworksNsxtDataSource {
         Write-Error $_.Exception.Message
     }
 }
+Export-ModuleMember -Function New-AriaNetworksNsxtDataSource
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
 
