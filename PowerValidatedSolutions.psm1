@@ -17285,14 +17285,6 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Moving the $operationsProductName Appliances to the Dedicated Folders"
-                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmListOperations -folder $jsonInput.vmFolderOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmListProxies -folder $jsonInput.vmFolderProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Configuring vSphere DRS Anti-Affinity Rules for the $operationsProductName Appliances"
                                             $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameProxies -antiAffinityVMs $jsonInput.vmListProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -17317,7 +17309,7 @@ Function Invoke-IomDeployment {
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmListAll -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -17835,6 +17827,7 @@ Function Export-vROPsJsonSpec {
                                 if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                     if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $folderDetail = ((Get-Folder -Server $vcfVcenterDetails.fqdn -Name $jsonInput.vmFolderOperations).ExtensionData)
+                                        $proxyFolderDetail = ((Get-Folder -Server $vcfVcenterDetails.fqdn -Name $jsonInput.vmFolderProxies).ExtensionData)
                                         $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                         if ($PsBoundParameters.ContainsKey("outputPath")) {
                                             $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "operationsDeploySpec.json")
@@ -18002,6 +17995,7 @@ Function Export-vROPsJsonSpec {
                                                                         'cluster'      = ($jsonInput.vcenterDatacenter + "#" + $jsonInput.vcenterCluster)
                                                                         'network'      = $jsonInput.networkProxies
                                                                         'storage'      = $jsonInput.vcenterDatastore
+                                                                        'folderName'   = $proxyFolderDetail.MoRef.Value
                                                                         'diskMode'     = "thin"
                                                                         'vCenterName'  = ($jsonInput.vcenterFqdn).Split(".")[0]
                                                                         'vcUsername'   = $vcCredentials.userName
@@ -18024,6 +18018,7 @@ Function Export-vROPsJsonSpec {
                                                                         'cluster'      = ($jsonInput.vcenterDatacenter + "#" + $jsonInput.vcenterCluster)
                                                                         'network'      = $jsonInput.networkProxies
                                                                         'storage'      = $jsonInput.vcenterDatastore
+                                                                        'folderName'   = $proxyFolderDetail.MoRef.Value
                                                                         'diskMode'     = "thin"
                                                                         'vCenterName'  = ($jsonInput.vcenterFqdn).Split(".")[0]
                                                                         'vcUsername'   = $vcCredentials.userName
@@ -22825,7 +22820,7 @@ Function Invoke-PcaDeployment {
 
                                             if (!$failureDetected) {
                                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                                                    Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management for $solutionName"
                                                     $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -Domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
@@ -22839,7 +22834,7 @@ Function Invoke-PcaDeployment {
                                                         if ((([regex]::Match(((Split-Path $automationOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vra))) {
                                                             Show-PowerValidatedSolutionsOutput -type ERROR -message "$automationProductName version ($ariaAutomationVersion) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
                                                         } else {
-                                                            Show-PowerValidatedSolutionsOutput -message "Importing $automationProductName OVA ($automationOva) into vSphere Content Library"
+                                                            Show-PowerValidatedSolutionsOutput -message "Importing $automationProductName OVA ($automationOva) into vSphere Content Library for $solutionName"
                                                             $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $automationOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
@@ -22855,7 +22850,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Defining Custom Roles in vSphere for $automationProductName and $orchestratorProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Defining Custom Roles in vSphere for $automationProductName and $orchestratorProductName for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                                         $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameAutomation -template $automationVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22867,7 +22862,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName and $orchestratorProductName Integrations to vSphere"
+                                                Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName and $orchestratorProductName Integrations to vSphere for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                                         $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.serviceAccountAutomation -role $jsonInput.vsphereRoleNameAutomation -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22879,19 +22874,19 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName License to $lcmProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName License to $lcmProductName for $solutionName"
                                                 $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $automationProductName to $lcmProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $automationProductName to $lcmProductName for $solutionName"
                                                 $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $automationPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName Password to $lcmProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName Password to $lcmProductName for $solutionName"
                                                 $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -password $jsonInput.rootPassword -userName $jsonInput.rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -password $jsonInput.xintPassword -userName $jsonInput.xintUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22899,13 +22894,13 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the $automationProductName Cluster Appliances"
+                                                Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the $automationProductName Cluster Appliances for $solutionName"
                                                 $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Deploying $automationProductName by Using $lcmProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Deploying $automationProductName by Using $lcmProductName for $solutionName"
                                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                                     $StatusMsg = New-vRADeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 } else {
@@ -22918,7 +22913,7 @@ Function Invoke-PcaDeployment {
                                             if (!$failureDetected) {
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
-                                                        Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder and a Resource Pool for the $automationProductName-Managed Workloads"
+                                                        Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder and a Resource Pool for the $automationProductName-Managed Workloads for $solutionName"
                                                         $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -folderName ($sddcDomain.name + $jsonInput.folderSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         Foreach ($cluster in $sddcDomain.clusters) {
@@ -22930,13 +22925,13 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $automationProductName in Workspace ONE Access"
+                                                Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $automationProductName in Workspace ONE Access for $solutionName"
                                                 $StatusMsg = Add-WorkspaceOneDirectoryGroup -server $jsonInput.wsaFqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUserWsa -bindPass $jsonInput.domainBindPassWsa -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -type INFO -Message "Creating a VM Group and Define the Startup Order of the $automationProductName Cluster Appliances"
+                                                Show-PowerValidatedSolutionsOutput -type INFO -Message "Creating a VM Group and Define the Startup Order of the $automationProductName Cluster Appliances for $solutionName"
                                                 $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameVra -drsGroupVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 $StatusMsg = Add-VmStartupRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameWsa -vmGroup $jsonInput.drsGroupNameVra -dependOnVmGroup $jsonInput.drsGroupNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22945,20 +22940,20 @@ Function Invoke-PcaDeployment {
 
                                             if (!$failureDetected) {
                                                 if ($jsonInput.stretchedCluster -eq "Include") {
-                                                    Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName Cluster Appliances to the First Availability Zone VM Group"
+                                                    Show-PowerValidatedSolutionsOutput -message "Adding the $automationProductName Cluster Appliances to the First Availability Zone VM Group for $solutionName"
                                                     $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring the Organization Name for $automationProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Configuring the Organization Name for $automationProductName for $solutionName"
                                                 $StatusMsg = Update-vRAOrganizationDisplayName -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -displayName $jsonInput.displayName -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Assigning Organization and Service Roles to the Groups for $automationProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Assigning Organization and Service Roles to the Groups for $automationProductName for $solutionName"
                                                 $StatusMsg = Add-vRAGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -displayName $jsonInput.orgOwner -orgRole org_owner -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 $StatusMsg = Add-vRAGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -displayName $jsonInput.cloudAssemblyAdmins -orgRole org_member -serviceRole automationservice:cloud_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22982,7 +22977,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Restricting the $automationProductName and $orchestratorProductName Service Accounts Access to the Management Domain"
+                                                Show-PowerValidatedSolutionsOutput -message "Restricting the $automationProductName and $orchestratorProductName Service Accounts Access to the Management Domain for $solutionName"
                                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $jsonInput.mgmtSddcDomainName -principal $jsonInput.serviceAccountAutomation -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $jsonInput.mgmtSddcDomainName -principal $jsonInput.serviceAccountOrchestrator -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22990,7 +22985,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the $automationProductName Workload Virtual Machines"
+                                                Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the $automationProductName Workload Virtual Machines for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the $automationProductName Workload Virtual Machines for Workload Domain ($($sddcDomain.name))"
@@ -23001,21 +22996,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Creating Local Storage Folders for the $automationProductName Workload Virtual Machines"
-                                                foreach ($sddcDomain in $allWorkloadDomains) {
-                                                    if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
-                                                        Show-PowerValidatedSolutionsOutput -message "Creating a Local Storage Folder for the $automationProductName Workload Virtual Machines for Workload Domain ($($sddcDomain.name))"
-                                                        $StatusMsg = Add-StorageFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -foldername ($sddcDomain.name + $jsonInput.localDatastoreFolderSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        Show-PowerValidatedSolutionsOutput -message "Creating a Read-Only Storage Folder for the $automationProductName Workload Virtual Machines for Workload Domain ($($sddcDomain.name))"
-                                                        $StatusMsg = Add-StorageFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -foldername ($sddcDomain.name + $jsonInput.readOnlyDatastoreFolder) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                    }
-                                                }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName to NSX-T Data Center Integration on the VI Workload Domain NSX Manager Cluster"
+                                                Show-PowerValidatedSolutionsOutput -message "Configure Service Account Permissions for $automationProductName to NSX Integration on the VI Workload Domain NSX Manager Cluster for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName to NSX-T Data Center Integration on the Workload Domain ($($sddcDomain.name))"
@@ -23026,7 +23007,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding Cloud Accounts for the VI Workload Domains to $automationProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Adding Cloud Accounts for the VI Workload Domains to $automationProductName for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         Show-PowerValidatedSolutionsOutput -message "Adding Cloud Accounts for the Workload Domains ($($sddcDomain.name)) to $automationProductName"
@@ -23037,7 +23018,7 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configuring the Cloud Zones in $automationProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Configuring the Cloud Zones in $automationProductName for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring the Cloud Zones in $automationProductName for Workload Domain ($($sddcDomain.name))"
@@ -23048,43 +23029,22 @@ Function Invoke-PcaDeployment {
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Configure Email Alerts in Service Broker"
+                                                Show-PowerValidatedSolutionsOutput -message "Configure Email Alerts in $automationProductName Service Broker for $solutionName"
                                                 $StatusMsg = Add-vRANotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -smtpServer $jsonInput.smtpServer -emailAddress $jsonInput.emailAddress -sender $jsonInput.senderName -connection NONE -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Import the Trusted Certificates into $orchestratorProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Import the Trusted Certificates into $orchestratorProductName for $solutionName"
                                                 $StatusMsg = Add-vROTrustedCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -certFile $rootCer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
                                             if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Attempting to Add the VI Workload Domain vCenter Server to $orchestratorProductName"
+                                                Show-PowerValidatedSolutionsOutput -message "Attempting to Add the VI Workload Domain vCenter Server to $orchestratorProductName for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         $StatusMsg = Add-vROvCenterServer -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -vcUser ($jsonInput.serviceAccountOrchestrator + "@" + $jsonInput.domainFqdn) -vcPass $jsonInput.serviceAccountOrchestratorPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                    }
-                                                }
-                                            }
-
-                                            if (!$failureDetected) {
-                                                Show-PowerValidatedSolutionsOutput -message "Restricting the $automationProductName and $orchestratorProductName Service Accounts Access to Virtual Machine and Datastore Folders in the VI Workload Domain"
-                                                foreach ($sddcDomain in $allWorkloadDomains) {
-                                                    if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
-                                                        Show-PowerValidatedSolutionsOutput -message "Restricting the $automationProductName and $orchestratorProductName Service Accounts Access to Virtual Machine and Datastore Folders in Workload Domain ($($sddcDomain.name))"
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountAutomation -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.nsxEdgeVmFolderSuffix) -folderType "VM" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountAutomation -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.localDatastoreFolderSuffix) -folderType "Datastore" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountAutomation -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.readOnlyDatastoreFolder) -folderType "Datastore" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountOrchestrator -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.nsxEdgeVmFolderSuffix) -folderType "VM" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountOrchestrator -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.localDatastoreFolderSuffix) -folderType "Datastore" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                                        $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainAlias -workloadDomain $sddcDomain.name -principal $jsonInput.serviceAccountOrchestrator -role "NoAccess" -folderName ($sddcDomain.name + $jsonInput.readOnlyDatastoreFolder) -folderType "Datastore" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
                                                 }
