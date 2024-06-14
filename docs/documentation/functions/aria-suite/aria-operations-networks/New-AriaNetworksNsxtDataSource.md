@@ -46,7 +46,7 @@ This example adds a NSX Manager as a new data source in VMware Aria Operations f
 
 ### -fqdn
 
-The NSX Manager to add as a data source.
+The fully qualified domain name of the NSX Manager to add as a data source.
 
 ```yaml
 Type: String

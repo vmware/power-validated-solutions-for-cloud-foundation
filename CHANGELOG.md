@@ -40,6 +40,7 @@
 - Enhanced `New-vRAvROPSIntegrationItem` cmdlet for better error checking and message handling.
 - Enhanced `Undo-vRAvROPsIntegrationItem` cmdlet for better error checking and message handling.
 - Enhanced `Update-vROPSvRAAdapterCredential` cmdlet to reduce the number of inputs required.
+- Enhanced `Request-AriaNetworksToken` cmdlet for better readability and consistency with other cmdlets.
 
 ## v2.10.0
 
