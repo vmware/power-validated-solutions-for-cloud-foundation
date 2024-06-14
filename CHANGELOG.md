@@ -5,6 +5,7 @@
 > Release Date: 2024-06-14
 
 - Fixed `Invoke-IamDeployment` cmdlet where reduced privileges are applied to the incorrect service account.
+- Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
 
 ## v2.10.0
 
