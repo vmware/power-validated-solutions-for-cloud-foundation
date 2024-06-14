@@ -1,5 +1,11 @@
 # Release History
 
+## v2.10.1
+
+> Release Date: 2024-06-14
+
+- Fixed `Invoke-IamDeployment` cmdlet where reduced privileges are applied to the incorrect service account.
+
 ## v2.10.0
 
 > Release Date: 2024-05-28
