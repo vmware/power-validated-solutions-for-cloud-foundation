@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.26">
     
     
       
@@ -191,7 +191,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -21429,11 +21429,11 @@
 <div class="tabbed-block">
 <p>For environments connected to the Internet, you can install the <a href="../#module-dependencies">module dependencies</a> from the PowerShell Gallery by running the following commands in the PowerShell console:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Set-PSRepository</span> <span class="n">-Name</span> <span class="n">PSGallery</span> <span class="n">-InstallationPolicy</span> <span class="n">Trusted</span>
-<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">PowerCLI</span> <span class="n">-MinimumVersion</span> <span class="n">13</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">1</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-Scope</span> <span class="n">AllUsers</span>
-<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">vSphere</span><span class="p">.</span><span class="n">SsoAdmin</span> <span class="n">-MinimumVersion</span> <span class="n">1</span><span class="p">.</span><span class="n">3</span><span class="p">.</span><span class="n">9</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-Scope</span> <span class="n">AllUsers</span>
-<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">PowerVCF</span> <span class="n">-MinimumVersion</span> <span class="n">2</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">1</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-Scope</span> <span class="n">AllUsers</span>
-<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">ImportExcel</span> <span class="n">-MinimumVersion</span> <span class="n">7</span><span class="p">.</span><span class="n">8</span><span class="p">.</span><span class="n">5</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-Scope</span> <span class="n">AllUsers</span>
-<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">PowerValidatedSolutions</span> <span class="n">-MinimumVersion</span> <span class="n">2</span><span class="p">.</span><span class="n">10</span><span class="p">.</span><span class="n">0</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-Scope</span> <span class="n">AllUsers</span>
+<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">PowerCLI</span> <span class="n">-MinimumVersion</span> <span class="n">13</span><span class="p">.</span><span class="n">2</span><span class="p">.</span><span class="n">1</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-AllUsers</span>
+<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">vSphere</span><span class="p">.</span><span class="n">SsoAdmin</span> <span class="n">-MinimumVersion</span> <span class="n">1</span><span class="p">.</span><span class="n">3</span><span class="p">.</span><span class="n">9</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-AllUsers</span>
+<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">PowerVCF</span> <span class="n">-MinimumVersion</span> <span class="n">2</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">1</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-AllUsers</span>
+<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">ImportExcel</span> <span class="n">-MinimumVersion</span> <span class="n">7</span><span class="p">.</span><span class="n">8</span><span class="p">.</span><span class="n">5</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-AllUsers</span>
+<span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">PowerValidatedSolutions</span> <span class="n">-MinimumVersion</span> <span class="n">2</span><span class="p">.</span><span class="n">10</span><span class="p">.</span><span class="n">0</span> <span class="n">-Repository</span> <span class="n">PSGallery</span> <span class="n">-AllUsers</span>
 </code></pre></div>
 <p>Import the modules before proceeding:</p>
 <p>For example:</p>
@@ -21450,11 +21450,11 @@
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>From a system with an Internet connection, save the module dependencies from the PowerShell Gallery by running the following commands in the PowerShell console:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Save-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">PowerCLI</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
-<span class="nb">Save-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">vSphere</span><span class="p">.</span><span class="n">SsoAdmin</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
-<span class="nb">Save-Module</span> <span class="n">-Name</span> <span class="n">PowerVCF</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
-<span class="nb">Save-Module</span> <span class="n">-Name</span> <span class="n">PowerValidatedSolutions</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
-<span class="nb">Save-Module</span> <span class="n">-Name</span> <span class="n">ImportExcel</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Import-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">PowerCLI</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
+<span class="nb">Import-Module</span> <span class="n">-Name</span> <span class="n">VMware</span><span class="p">.</span><span class="n">vSphere</span><span class="p">.</span><span class="n">SsoAdmin</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
+<span class="nb">Import-Module</span> <span class="n">-Name</span> <span class="n">PowerVCF</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
+<span class="nb">Import-Module</span> <span class="n">-Name</span> <span class="n">PowerValidatedSolutions</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
+<span class="nb">Import-Module</span> <span class="n">-Name</span> <span class="n">ImportExcel</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\</span> <span class="n">-Repository</span> <span class="n">PSGallery</span>
 </code></pre></div>
 <p>From the system with the Internet connection, copy the module dependencies to a target system by running the following commands in the PowerShell console:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Copy-Item</span> <span class="n">-Path</span> <span class="n">F</span><span class="p">:\</span><span class="n">Module</span><span class="p">\*</span> <span class="n">-Destination</span> <span class="s1">&#39;\\&lt;destination_host&gt;\C$\Program Files\WindowsPowerShell\Modules\&#39;</span> <span class="n">-Recurse</span>
@@ -21659,7 +21659,7 @@ The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.<br/><br
     <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer", "navigation.header", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
       
         <script src="../js/timeago.min.js"></script>
       
