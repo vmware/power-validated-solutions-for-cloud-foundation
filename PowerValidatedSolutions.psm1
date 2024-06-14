@@ -12963,7 +12963,6 @@ Function Export-IlaJsonSpec {
                 'ipNodeC'                     = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
                 'vmFolder'                    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
                 'vmList'                      = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-                'drsVmGroupNameAz'            = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'smtpServer'                  = $pnpWorkbook.Workbook.Names["smtp_server"].Value
                 'port'                        = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
                 'sender'                      = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
@@ -13004,6 +13003,10 @@ Function Export-IlaJsonSpec {
                 'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -13083,6 +13086,9 @@ Function Test-IlaPrerequisite {
                         Test-PrereqApplicationVirtualNetwork -regionType REGION_A # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                        if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                         Test-PrereqBinary -searchCriteria "Log-Insight-$ariaLogsVersion" -productMessage "VMware Aria Operations for Logs" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Logs" # Verify a license key is present
                         Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
@@ -16860,7 +16866,6 @@ Function Export-IomJsonSpec {
                 'drsGroupNameOperations'              = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
                 'drsGroupNameIdentity'                = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
                 'drsGroupNameProxies'                 = $pnpWorkbook.Workbook.Names["region_vropsrc_vm_group_name"].Value
-                'drsGroupNameAz'                      = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'vmToVmRuleNameWsa'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
                 'vmToVmRuleNameOperations'            = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
                 'vmToVmRuleNameProxies'               = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
@@ -16910,6 +16915,10 @@ Function Export-IomJsonSpec {
                 'certificateTemplate'                 = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'                      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
@@ -16988,6 +16997,9 @@ Function Test-IomPrerequisite {
                         Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
+                        if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                         Test-PrereqBinary -searchCriteria "Operations-Cloud-Proxy-$ariaOperationsVersion" -productMessage "VMware Aria Operations Cloud Proxy" # Verify that the required binaries are available
                         Test-PrereqBinary -searchCriteria "Operations-Manager-Appliance-$ariaOperationsVersion" -productMessage "VMware Aria Operations" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations" # Verify a license key is present
@@ -17309,7 +17321,7 @@ Function Invoke-IomDeployment {
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmListAll -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmListAll -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -21258,8 +21270,11 @@ Function Export-InvJsonSpec {
                 'serviceAccountNetworksVspherePass'  = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_password"].Value
                 'adGroups'                           = "$($pnpWorkbook.Workbook.Names["gg_vrni_admin_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_member_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_auditor_group"].Value)"
                 'vsphereRoleNameNetworks'            = $pnpWorkbook.Workbook.Names["inv_vsphere_role"].Value
-                'drsGroupNameAz'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'stretchedCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -21338,6 +21353,9 @@ Function Test-InvPrerequisite {
                         Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                        if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                         Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Networks" # Verify a license key is present
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
@@ -21622,7 +21640,7 @@ Function Invoke-InvDeployment {
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
                                                 Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
-                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -22498,7 +22516,6 @@ Function Export-PcaJsonSpec {
                 'antiAffinityRuleName'           = $pnpWorkbook.Workbook.Names["xreg_vra_anti_affinity_rule"].Value
                 'drsGroupNameWsa'                = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
                 'drsGroupNameVra'                = $pnpWorkbook.Workbook.Names["xreg_vra_vm_group_name"].Value
-                'drsVmGroupNameAz'               = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'vmToVmRuleNameWsa'              = $pnpWorkbook.Workbook.Names["xreg_vra_vm_vm_rule"].Value
                 'folderSuffix'                   = "-fd-workload"
                 'resourcePoolSuffix'             = "-rp-workload"
@@ -22557,6 +22574,10 @@ Function Export-PcaJsonSpec {
                 'certificateTemplate'            = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                     = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'                 = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -22648,6 +22669,9 @@ Function Test-PcaPrerequisite {
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                         Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                         Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                        if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                         Test-PrereqBinary -searchCriteria "Prelude_VA-$ariaAutomationVersion" -productMessage "VMware Aria Automation" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Automation" # Verify a license key is present
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
@@ -25521,13 +25545,16 @@ Function Export-HrmJsonSpec {
                 'rootPassword'                 = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
                 'ova'                          = "vvs_appliance_v0.0.1.ova"
                 'stretchedCluster'             = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'drsVmGroupNameAz'             = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'domainFqdn'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindUser'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
                 'domainBindPass'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
                 'domainControllerMachineName'  = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'hrmVcfServiceAccount'         = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
                 'hrmVcfServiceAccountPassword' = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -25590,6 +25617,9 @@ Function Test-HrmPrerequisite {
                     Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
                     Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
+                    if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                     Test-PrereqBinary -searchCriteria $jsonInput.ova -productMessage "Virtual Host Machine" # Verify that the required binaries are available
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     Test-PrereqServiceAccount -user ($jsonInput.hrmVcfServiceAccount + "@" + $jsonInput.domainFqdn) -password $jsonInput.hrmVcfServiceAccountPassword -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
@@ -26067,6 +26097,10 @@ Function Export-CbwJsonSpec {
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
 
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            }
+
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
                 $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
                 $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "workload-protection-proxies"
@@ -26526,6 +26560,10 @@ Function Export-CbrJsonSpec {
                 'caUserPassword'      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
             }
 
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            }
+
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
                 $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
                 $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "workload-protection-proxies"
@@ -26920,6 +26958,10 @@ Function Export-CcmJsonSpec {
                 'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -27409,6 +27451,12 @@ Function Export-vRSLCMJsonSpec {
                 'organization'            = $pnpWorkbook.Workbook.Names["ca_organization"].Value
                 'organizationUnit'        = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
                 'state'                   = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'vmList'                  = $pnpWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
+                'stretchedCluster'        = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -27469,6 +27517,9 @@ Function Test-VrslcmPrerequisite {
                     }
                     Test-PrereqEdgeCluster -workloadDomain $jsonInput.mgmtSddcDomainName # Verify that an NSX Edge Cluster is deployed to Management Domain
                     Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
+                    if ($jsonInput.stretchedCluster -eq "Include") {
+                        Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                    }
                 }
             }
         } else {
@@ -27548,6 +27599,14 @@ Function Invoke-vRSLCMDeployment {
                             Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
                             $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            if ($jsonInput.stretchedCluster -eq "Include") {
+                                Show-PowerValidatedSolutionsOutput -message "Adding the $lcmProductName Cluster Appliances to the First Availability Zone VM Group"
+                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
                         }
 
                         if (Get-VCFvRSLCM) {
@@ -28954,7 +29013,6 @@ Function Export-GlobalWsaJsonSpec {
                 'antiAffinityRuleName'        = "anti-affinity-rule-wsa" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
                 'drsGroupNameWsa'             = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
                 'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'drsVmGroupNameAz'            = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
                 'ntpServer'                   = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                 'domainFqdn'                  = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindDn'                = $pnpWorkbook.Workbook.Names["child_ad_bind_dn"].Value
@@ -28994,6 +29052,10 @@ Function Export-GlobalWsaJsonSpec {
                 'certificateTemplate'         = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'                  = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'              = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            }
+
+            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -29067,6 +29129,9 @@ Function Test-GlobalWsaPrerequisite {
                         }
                         Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                         Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
+                        if ($jsonInput.stretchedCluster -eq "Include") {
+                            Test-PrereqStretchedCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -vmGroupName $jsonInput.drsVmGroupNameAz # Verify that the VM Group for Availabilty Zones is present
+                        }
                         Test-PrereqBinary -searchCriteria "identity-manager-$wsaVersion" -productMessage "Workspace ONE Access" # Verify that the required binaries are available
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                         Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
@@ -29447,7 +29512,18 @@ Function Invoke-UndoGlobalWsaDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Remove Roles for Active Directory Groups in $lcmProductName"
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                    $vrslcmAdminRole = "LCM Admin"
+                                    $vrslcmReleaseManagerRole = "Content Release Manager"
+                                    $vrslcmContentDeveloperRole = "Content Developer"
+                                    Show-PowerValidatedSolutionsOutput -message "Attempting to Remove the ($vrslcmAdminRole) Role from ($($jsonInput.aslcmAdminGroup))"
+                                    $StatusMsg = Undo-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmAdminGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    Show-PowerValidatedSolutionsOutput -message "Attempting to Remove the ($vrslcmReleaseManagerRole) Role from ($($jsonInput.aslcmReleaseManagersGroup))"
+                                    $StatusMsg = Undo-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmReleaseManagersGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    Show-PowerValidatedSolutionsOutput -message "Attempting to Remove the ($vrslcmContentDeveloperRole) Role from ($($jsonInput.aslcmContentDevelopersGroup))"
+                                    $StatusMsg = Undo-vRSLCMGroupRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -group $jsonInput.aslcmContentDevelopersGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
@@ -29650,17 +29726,17 @@ Function Export-WsaJsonSpec {
                                                         }
                                                         $productPropertiesObject = @()
                                                         $productPropertiesObject += [pscustomobject]@{
-                                                            'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
-                                                            'syncGroupMembers'             = $true
-                                                            'nodeSize'                     = ($jsonInput.wsaNodeSize).ToLower()
-                                                            'defaultConfigurationEmail'    = $jsonInput.configAdminUserEmail
-                                                            'defaultConfigurationUsername' = $jsonInput.configAdminUserName
-                                                            'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
-                                                            'defaultTenantAlias'           = ""
-                                                            'vidmDomainName'               = ""
-                                                            'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                            'contentLibraryItemId'         = $contentLibraryItemId
-                                                            'fipsMode'                     = "false"
+                                                            'vidmAdminPassword'             = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
+                                                            'syncGroupMembers'              = $true
+                                                            'nodeSize'                      = ($jsonInput.wsaNodeSize).ToLower()
+                                                            'defaultConfigurationEmail'     = $jsonInput.configAdminUserEmail
+                                                            'defaultConfigurationUsername'  = $jsonInput.configAdminUserName
+                                                            'defaultConfigurationPassword'  = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
+                                                            'defaultTenantAlias'            = ""
+                                                            'vidmDomainName'                = ""
+                                                            'certificate'                   = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                            'contentLibraryItemId'          = $contentLibraryItemId
+                                                            'fipsMode'                      = "false"
                                                         }
 
                                                         #### Generate Workspace ONE Access Details
@@ -57663,6 +57739,36 @@ Function Test-PrereqActiveDirectoryIntegration {
                     }
                 }
                 Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Test-PrereqStretchedCluster {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmGroupName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $password) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $password -domainType "MANAGEMENT")) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-DrsClusterGroup -Server $vcfVcenterDetails.fqdn -Name $vmGroupName -ErrorAction Ignore) {
+                                Show-PowerValidatedSolutionsOutput -message "Verify that Stretched Cluster VM Group ($vmGroupName) exists: SUCCESSFUL"
+                            } else {
+                                Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that Stretched Cluster VM Group ($vmGroupName) exists: PRE_VALIDATION_FAILED"
+                            }
+                        }
+                        Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                    }
+                }
             }
         }
     } Catch {
