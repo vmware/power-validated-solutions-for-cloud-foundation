@@ -9965,6 +9965,8 @@ Function Invoke-DriDeployment {
                             $vcenterVersion = ([regex]::Match($vcenter, $patternVersion)).value
                             if ($vcenterVersion -le "8.0.0") {
                                 [String]$distributionVersion = "v1.23"
+                            } elseif ($vcenterVersion -ge "8.0.3") {
+                                [String]$distributionVersion = "v1.26"
                             } else {
                                 [String]$distributionVersion = "v1.24"
                             }

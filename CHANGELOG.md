@@ -46,6 +46,7 @@
 - Enhanced `Invoke-UndoPdrDeployment` cmdlet to perform the removal of recovery instance configuration tasks.
 - Enhanced `New-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
 - Enhanced `Import-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
+- Enhanced `Invoke-DriDeployment` cmdlet to support v1.26 for Tanzu distribution.
 - Converted `aria-operations-notifications-vcf.csv` to 'aria-operations-notifications-vcf.json'.
 - Converted `aria-operations-notifications-srm.csv' to 'aria-operations-notifications-srm.json'.
 
