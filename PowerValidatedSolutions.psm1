@@ -57963,9 +57963,8 @@ Function Start-ValidatedSolutionMenu {
         $menuitem10 = "(HRM) Health Reporting and Monitoring"
 
         $headingItem03 = "Hybrid Cloud Validated Solutions"
-        $menuitem11 = "(CBW) Cloud-Based Workload Protection"
-        $menuitem12 = "(CBR) Cloud-Based Ransomware Recovery"
-        $menuitem13 = "(CCM) Cross Cloud Mobility"
+        $menuitem11 = "(CBR) Cloud-Based Ransomware Recovery"
+        $menuitem12 = "(CCM) Cross Cloud Mobility"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -57993,7 +57992,6 @@ Function Start-ValidatedSolutionMenu {
             Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 11. $menuItem11" -ForegroundColor White
             Write-Host -Object " 12. $menuItem12" -ForegroundColor White
-            Write-Host -Object " 13. $menuItem13" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -58042,13 +58040,9 @@ Function Start-ValidatedSolutionMenu {
                 }
                 11 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-CbwMenu
-                }
-                12 {
-                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CbrMenu
                 }
-                13 {
+                12 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CcmMenu
                 }
