@@ -1,0 +1,178 @@
+[
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupNotConfiguredRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group is Not Configured Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupNotConfiguredHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group is Not Configured Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupPartiallyRecoveredRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Partially Recovered Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupPartiallyRecoveredHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Partially Recovered Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupRecoveringRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Recovering Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupRecoveringHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Recovering Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupTestingRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Testing Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-ProtectionGroupTestingHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Protection Groups",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Protection Group Is Testing Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-RecoveryPlanErrorRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Recovery Plans",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Recovery Plan Has Errors Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-RecoveryPlanErrorHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Recovery Plans",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Recovery Plan Has Errors Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-RecoveryPlanRunningRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Recovery Plans",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Recovery Plan Has Warnings Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-RecoveryPlanRunningHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "Recovery Plans",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Recovery Plan Has Warnings Affecting the Health Status of the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-PairSiteNotConnected",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "SRM Site",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Is Pair Site Not Connected"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-SiteNotPaired",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "SRM Site",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Site Not Paired"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-SiteIssuesRisk",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "SRM Site",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Site recovery Manager Site Has Object(s) With Issues Affecting the Risk for the System"
+    },
+    {
+        "alertDefinition": "AlertDefinition-SrmAdapter-SiteIssuesHealth",
+        "adapterKindKey": "SrmAdapter",
+        "resourceKindKey": "SRM Site",
+        "alertPluginName": "!!plugInName!!",
+        "emailAddress": "!!email!!",
+        "maxNotify": "3",
+        "delay": "15",
+        "resend": "15",
+        "alertName": "Site recovery Manager Site Has Object(s) With Issues Affecting the Health Status of the System"
+    }
+]

@@ -2,12 +2,12 @@
 
 ## Synopsis
 
-Adds notifications to VMware Aria Operations
+Adds notifications to VMware Aria Operations.
 
 ## Syntax
 
 ```powershell
-Import-vROPSNotification [-server] <String> [-user] <String> [-pass] <String> [[-csvPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vROPSNotification [-server] <String> [-user] <String> [-pass] <String> [[-jsonPath] <String>] [-alertPluginName] <String> [-emailAddress] <String> [<CommonParameters>]
 ```
 
 ## Description
@@ -18,18 +18,18 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
-- Validates that the .csv provided exists
-- Adds notifications based on a .csv file into VMware Aria Operations.
+- Validates that the .json provided exists
+- Adds notifications based on a .json file into VMware Aria Operations
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
+Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
 ```
 
-This example adds notifications based on the comma seperated value file provided to VMware Aria Operations.
+This example adds notifications based on the comma separated value file provided to VMware Aria Operations.
 
 ## Parameters
 
@@ -81,9 +81,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -csvPath
+### -jsonPath
 
-The path to the .csv file.
+The path to the JSON file containing the notifications to add.
 
 ```yaml
 Type: String
@@ -97,17 +97,33 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ProgressAction
+### -alertPluginName
 
-Progress Action
+The name of the alert plugin in VMware Aria Operations.
 
 ```yaml
-Type: ActionPreference
+Type: String
 Parameter Sets: (All)
-Aliases: proga
+Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 5
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -emailAddress
+
+The email address to be configured on the alert.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

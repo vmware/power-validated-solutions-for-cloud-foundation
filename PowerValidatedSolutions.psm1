@@ -2713,6 +2713,8 @@ Function Export-PdrJsonSpec {
                     'certificateTemplate'         = $pnpProtectedWorkbook.Workbook.Names["ca_template_name"].Value
                     'caUsername'                  = $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                     'caUserPassword'              = $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                    'alertPluginInstanceName'     = $pnpProtectedWorkbook.Workbook.Names["smtp_server"].Value
+                    'alertReceiverEmail'          = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_smtp_receiver_email_address"].Value
                 }
 
                 if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -3778,7 +3780,7 @@ Function Invoke-PdrSolutionInterop {
                             if (Get-VCFvROPS) { $ariaOperationsPresent = $true } else { $ariaOperationsPresent = $false }
                             if (Get-VCFvRLI) { $ariaLogsPresent = $true } else { $ariaLogsPresent = $false }
                             if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                $srmNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-srm.csv"
+                                $srmNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-srm.json"
                                 $sites = $jsonInput.protected; $sites += $jsonInput.recovery
                                 $failureDetected = $false
 
@@ -3864,7 +3866,7 @@ Function Invoke-PdrSolutionInterop {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Create Notifications in $operationsProductName for $solutionName"
-                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -csvPath $srmNotifications -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -jsonPath $srmNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -17010,6 +17012,8 @@ Function Export-IomJsonSpec {
                 'wsaBindPass'                         = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
                 'baseDnGroup'                         = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
                 'adGroups'                            = "$($pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value)"
+                'alertPluginInstanceName'             = $pnpWorkbook.Workbook.Names["smtp_server"].Value
+                'alertReceiverEmail'                  = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_receiver_email_address"].Value
                 'smtpServer'                          = $pnpWorkbook.Workbook.Names["smtp_server"].Value
                 'smtpPort'                            = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
                 'smtpAuthUser'                        = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
@@ -17289,7 +17293,7 @@ Function Invoke-IomDeployment {
                                             }
                                         }
                                         $operationsVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-operations-vsphere-integration.role"
-                                        $operationsNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-vcf.csv"
+                                        $operationsNotifications = $pvsModulePath + "\SampleNotifications\" + "aria-operations-notifications-vcf.json"
 
                                         if (!$failureDetected) {
                                             if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
@@ -17463,7 +17467,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Configuring Email Alert Plug-in Settings for $operationsProductName"
-                                            $StatusMsg = Add-vROPSAlertPluginEmail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -pluginName "Email-Alert-Plugin" -smtpServer $jsonInput.smtpServer -smtpPort $jsonInput.smtpPort -senderAddress $jsonInput.senderAddress -secureConnection true -protocol TLS -authentication false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Add-vROPSAlertPluginEmail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -pluginName $jsonInput.alertPluginInstanceName -smtpServer $jsonInput.smtpServer -smtpPort $jsonInput.smtpPort -senderAddress $jsonInput.senderAddress -secureConnection true -protocol TLS -authentication false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -17545,7 +17549,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Creating Notifications in $operationsProductName for VMware Cloud Foundation Issues"
-                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -csvPath $operationsNotifications -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonPath $operationsNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -17560,7 +17564,7 @@ Function Invoke-IomDeployment {
                         }
                     }
                 } else {
-                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $logsProductName ($operationsForLogsPem): File Not Found"
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $operationsProductName ($operationsPem): File Not Found"
                 }
             } else {
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
@@ -20686,12 +20690,12 @@ Function Import-vROPSNotification {
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to VMware Aria Operations
-        - Validates that the .csv provided exists
-        - Adds notifications based on a .csv file into VMware Aria Operations
+        - Validates that the json provided exists
+        - Adds notifications based on a .json file into VMware Aria Operations
 
         .EXAMPLE
-        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
-        This example adds notifications based on the comma seperated value file provided to VMware Aria Operations.
+        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
+        This example adds notifications based on the comma separated value file provided to VMware Aria Operations.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -20702,41 +20706,49 @@ Function Import-vROPSNotification {
         .PARAMETER pass
         The password to authenticate to the SDDC Manager.
 
-        .PARAMETER csvPath
-        The path to the .csv file.
+        .PARAMETER jsonPath
+        The path to the JSON file containing the notifications to add.
+
+        .PARAMETER alertPluginName
+        The name of the alert plugin in VMware Aria Operations.
+
+        .PARAMETER emailAddress
+        The email address to be configured on the alert.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$csvPath
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertPluginName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
     )
 
-    if (!$PsBoundParameters.ContainsKey("csvPath")) {
-        $csvPath = Get-ExternalFileName -title "Select the Comma Seperated Value (.csv) File" -fileType "csv" -location "default"
-    }
-    if (!(Test-Path -Path $csvPath)) {
-        Write-Error "Comma Seperated Value (.csv) File ($csvPath) File Not Found"
-        Break
+    if (!$PsBoundParameters.ContainsKey("jsonPath")) {
+        $jsonPath = Get-ExternalFileName -title "Select the JSON (.json) File" -fileType "json" -location "default"
     }
 
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
-                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            $StatusMsg = New-vROPSNotification $csvPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ( $ErrorMsg ) {
-                                Write-Error "$ErrorMsg"
-                            } else {
-                                Write-Output "Adding Notifications to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Separated Value File ($csvPath): SUCCESSFUL"
+        if (Test-Path -Path $jsonPath) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                            if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                                $StatusMsg = New-vROPSNotification $jsonPath -alertPluginName $alertPluginName -emailAddress $emailAddress -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ( $ErrorMsg ) {
+                                    Write-Error "$ErrorMsg"
+                                } else {
+                                    Write-Output "Adding Notifications to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) using JSON File ($(Split-Path -Path $jsonPath -Leaf)): SUCCESSFUL"
+                                }
                             }
                         }
                     }
                 }
             }
+        } else {
+            Write-Error "JSON (.json) File ($jsonPath) File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -49701,25 +49713,37 @@ Function New-vROPSNotification {
         The New-vROPSNotification cmdlet creates notifications in VMware Aria Operations
 
         .EXAMPLE
-        New-vROPSNotification -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
-        This example adds all the notifications in the csv file to VMware Aria Operations.
+        New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
+        This example adds all the notifications in the json file to VMware Aria Operations using an email based alert plugin.
 
-        .PARAMETER csvPath
-        The path to the csv file containing the notifications to add.
+        .PARAMETER jsonPath
+        The path to the JSON file containing the notifications to add.
+
+        .PARAMETER alertPluginName
+        The name of the alert plugin in VMware Aria Operations.
+
+        .PARAMETER emailAddress
+        The email address to be configured on the alert.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$csvPath
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertPluginName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
     )
 
     Try {
-        if ($PsBoundParameters.ContainsKey("csvPath")) {
-            if (!(Test-Path $csvPath)) {
-                Throw "CSV File Not Found"
+        if ($PsBoundParameters.ContainsKey("jsonPath")) {
+            if (!(Test-Path $jsonPath)) {
+                Throw "JSON File Not Found"
             } else {
-                $alerts = Import-CSV $csvPath | Where-Object -FilterScript { $_.alertName }
+                $templateAlerts = (Get-Content -path $jsonPath -Raw)
+                $templateAlerts = $templateAlerts -replace '!!plugInName!!', $alertPluginName
+                $templateAlerts = $templateAlerts -replace '!!email!!', $emailAddress
+                [Array]$alerts = $templateAlerts | ConvertFrom-Json
             }
         }
+
         Foreach ($alert in $alerts) {
             if ((Get-vROPSAlertPlugin | Where-Object { $_.name -eq $($alert.alertPluginName) })) {
                 $body = '{
