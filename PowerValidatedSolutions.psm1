@@ -2675,8 +2675,6 @@ Function Export-PdrJsonSpec {
                     'protected'                   = $protectedObject
                     'recovery'                    = $recoveryObject
                     'vmFolderWsa'                 = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_folder"].Value
-                    'vmFolderOperations'          = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
-                    'vmFolderAutomation'          = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_folder"].Value
                     'vmFolderLifecycle'           = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_vm_folder"].Value
                     'vmListLifecycle'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
                     'serviceInterfaceIp'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_t1_si_ip"].Value
@@ -2684,27 +2682,19 @@ Function Export-PdrJsonSpec {
                     'dns'                         = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + " " + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
                     'searchDomain'                = $pnpProtectedWorkbook.Workbook.Names["parent_dns_zone"].Value
                     'environmentName'             = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                    'automationUser'              = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
-                    'automationPassword'          = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
                     'recoveryPointObjective'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value -as [Int]
                     'instancesPerDay'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value -as [Int]
                     'days'                        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value -as [Int]
                     'protectionGroupWsa'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_pg"].Value
                     'recoveryPlanWsa'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_rp"].Value
-                    'protectionGroupOperations'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
-                    'recoveryPlanOperations'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_rp"].Value
-                    'protectionGroupAutomation'   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_pg"].Value
-                    'recoveryPlanAutomation'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_rp"].Value
                     'vmNameLifecycle'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
                     'vmNameWsaNodeA'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
                     'vmNameWsaNodeB'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
                     'vmNameWsaNodeC'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                    'vmNameOperationsNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                    'vmNameOperationsNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
-                    'vmNameOperationsNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                    'vmNameAutomationNodeA'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
-                    'vmNameAutomationNodeB'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
-                    'vmNameAutomationNodeC'       = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                    'vmListIdentity'              = ($pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value)
+                    'antiAffinityRuleIdentity'    = "anti-affinity-rule-wsa"
+                    'drsGroupNameIdentity'        = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
+                    'vmToVmRuleNameIdentity'      = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
                     'domainBindUserVsphere'       = ($pnpProtectedWorkbook.Workbook.Names["iam_vsphere_ad_bind_username"].Value -Split ("@"))[0]
                     'domainBindPassVsphere'       = $pnpProtectedWorkbook.Workbook.Names["iam_vsphere_ad_bind_password"].Value
                     'domainBindUserNsx'           = ($pnpProtectedWorkbook.Workbook.Names["iam_nsx_ad_bind_username"].Value -Split ("@"))[0]
@@ -2724,6 +2714,36 @@ Function Export-PdrJsonSpec {
                     'caUsername'                  = $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                     'caUserPassword'              = $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
                 }
+
+                if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
+                    $jsonObject | Add-Member -notepropertyname 'vmFolderOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                    
+                    $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmListOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value)
+                    $jsonObject | Add-Member -notepropertyname 'protectionGroupOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
+                    $jsonObject | Add-Member -notepropertyname 'recoveryPlanOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_rp"].Value
+                    $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleOperations' -notepropertyvalue "anti-affinity-rule-operations"
+                    $jsonObject | Add-Member -notepropertyname 'drsGroupNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+                }
+
+                if ($pnpProtectedWorkbook.Workbook.Names["private_cloud_result"].Value -eq "Included") {
+                    $jsonObject | Add-Member -notepropertyname 'automationUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
+                    $jsonObject | Add-Member -notepropertyname 'automationPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmFolderAutomation' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_folder"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmNameAutomationNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmNameAutomationNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmNameAutomationNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmListAutomation' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value)
+                    $jsonObject | Add-Member -notepropertyname 'protectionGroupAutomation' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_pg"].Value
+                    $jsonObject | Add-Member -notepropertyname 'recoveryPlanAutomation' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_rp"].Value
+                    $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleAutomation' -notepropertyvalue "anti-affinity-rule-automation"
+                    $jsonObject | Add-Member -notepropertyname 'drsGroupNameAutomation' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_group_name"].Value
+                    $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameAutomation' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_vm_rule"].Value
+                }
+
                 Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
                 $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
@@ -3344,6 +3364,70 @@ Function Invoke-PdrDeployment {
                                                 }
 
                                                 if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Back up OVF Properties of Protected Virtual Machines in the Protected VMware Cloud Foundation Instance"
+                                                    $backupDir = (Split-Path -Parent $jsonFile) + "\ovfBackup"
+                                                    if (-Not (Test-Path -Path $backupDir)) {
+                                                        New-Item -Path (Split-Path -Parent $jsonFile) -Name "ovfBackup" -ItemType "directory" -Confirm:$False | Out-Null
+                                                    }
+                                                    $StatusMsg = Backup-VMOVFProperties -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -fileDir $backupDir -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+
+                                                if (!$failureDetected) {
+                                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Recovery Site Configuration Tasks for $solutionName"
+                                                    
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Create Anti-Affinity Rules for the Placeholder Virtual Machines in the Recovery VMware Cloud Foundation Instance"
+                                                        if (($wsaVmNames).Count -gt 1) {
+                                                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleIdentity -antiAffinityVMs ($wsaVmNames -join ",") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+
+                                                        if ($ariaOperationsPresent) {
+                                                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleOperations -antiAffinityVMs $jsonInput.vmListOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+
+                                                        if ($ariaAutomationPresent) {
+                                                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleAutomation -antiAffinityVMs $jsonInput.vmListAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Create Virtual Machine Groups and Restart Order in the Recovery VMware Cloud Foundation Instance"
+
+                                                        $StatusMsg = Add-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameIdentity -drsGroupVMs ($wsaVmNames -join ",") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                                        if ($ariaOperationsPresent) {
+                                                            $StatusMsg = Add-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName  $jsonInput.drsGroupNameOperations -drsGroupVMs $jsonInput.vmListOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                            $StatusMsg = Add-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameIdentity -vmGroup $jsonInput.drsGroupNameOperations -dependOnVmGroup $jsonInput.drsGroupNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+                                                        
+                                                        if ($ariaAutomationPresent) {
+                                                            $StatusMsg = Add-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameAutomation -drsGroupVMs $jsonInput.vmListAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                            $StatusMsg = Add-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameAutomation -vmGroup $jsonInput.drsGroupNameAutomation -dependOnVmGroup $jsonInput.drsGroupNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                        }
+                                                    }
+
+                                                    if (!$failureDetected) {
+                                                        Show-PowerValidatedSolutionsOutput -message "Restore OVF Properties on Placeholder Virtual Machines in the Recovery VMware Cloud Foundation Instance"
+                                                        $backupDir = (Split-Path -Parent $jsonFile) + "\ovfBackup"
+                                                        if (-Not (Test-Path -Path $backupDir)) {
+                                                            New-Item -Path (Split-Path -Parent $jsonFile) -Name "ovfBackup" -ItemType "directory" -Confirm:$False | Out-Null
+                                                        }
+                                                        Show-PowerValidatedSolutionsOutput -message "Restoring OVF Settings for Placeholder VMs, this will take some time..."
+                                                        $StatusMsg = Restore-VMOVFProperties -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -fileDir $backupDir -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                    }
+                                                }
+
+                                                if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
                                                 }
                                             }
@@ -3409,6 +3493,45 @@ Function Invoke-UndoPdrDeployment {
                             $wsaVmNames = @()
                             foreach ($productVM in $productVMs) {
                                 $wsaVmNames += $productVM.vmName
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine Groups in the Recovery VMware Cloud Foundation Instance"
+
+                                if ($ariaOperationsPresent) {
+                                    $StatusMsg = Undo-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $StatusMsg = Undo-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName  $jsonInput.drsGroupNameOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                                
+                                if ($ariaAutomationPresent) {
+                                    $StatusMsg = Undo-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $StatusMsg = Undo-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                $StatusMsg = Undo-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Create Anti-Affinity Rules for the Placeholder Virtual Machines in the Recovery VMware Cloud Foundation Instance"
+                                if (($wsaVmNames).Count -gt 1) {
+                                    $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if ($ariaOperationsPresent) {
+                                    $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if ($ariaAutomationPresent) {
+                                    $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
                             }
 
                             if (!$failureDetected) {
@@ -5072,7 +5195,6 @@ Function Backup-VMOvfProperties {
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
-
                     }
                 }
             }
@@ -5128,42 +5250,43 @@ Function Restore-VMOvfProperties {
         }
         $fileNames = @()
         $fileNames = Get-ChildItem -File "$($fileDir)\*-property-backup.json" -Recurse
-        # Disconnect all connected vCenter Server instances to ensure only the desired vCenter Server instance is available
-        if ($defaultviservers) {
-            $server = $defaultviservers.Name
-            foreach ($server in $defaultviservers) {
-                Disconnect-VIServer -Server $server -Confirm:$False
-            }
-        }
-        $vCenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-        Foreach ($fileName in $fileNames) {
-            $fileName = $fileName.Name
-            $separator = "-property-backup.json"
-            $restoredVM = ($filename -split $separator)[0]
 
-            $vmSettings = Get-content "$($fileDir)\$($restoredVM)-property-backup.json" | convertfrom-json
-            if ($vmSettings) {
-                $foundVM = Get-VM -Name $restoredVM -ErrorAction SilentlyContinue
-                if ($foundVM) {
-                    Write-Output "Restoring VM OVF Settings for $restoredVM"
-                    Set-VMOvfIPAssignment -vm $foundVM -assignment $vmSettings.IpAssignment
-                    if ($vmSettings.eula) {
-                        Set-VMOvfEULA -vm $foundVM -eula $vmSettings.eula
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Foreach ($fileName in $fileNames) {
+                                $fileName = $fileName.Name
+                                $separator = "-property-backup.json"
+                                $restoredVM = ($filename -split $separator)[0]
+                                $vmSettings = Get-content "$($fileDir)\$($restoredVM)-property-backup.json" | convertfrom-json
+                                if ($vmSettings) {
+                                    $foundVM = Get-VM -Name $restoredVM -ErrorAction SilentlyContinue
+                                    if ($foundVM) {
+                                        Write-Output "Restoring VM OVF Settings for $restoredVM"
+                                        Set-VMOvfIPAssignment -vm $foundVM -assignment $vmSettings.IpAssignment
+                                        if ($vmSettings.eula) {
+                                            Set-VMOvfEULA -vm $foundVM -eula $vmSettings.eula
+                                        }
+                                        Set-VMOvfEnvTransport -vm $foundVM -transport $vmSettings.ovfEnvironmentTransport
+                                        foreach ($product in $vmSettings.product) {
+                                            New-VMOvfProduct -vm $foundVM -product $product
+                                        }
+                                        foreach ($property in $vmSettings.property) {
+                                            New-VMOvfProperty -vm $foundVM -property $property
+                                        }
+                                    } else {
+                                        Write-Error "Placeholder VM ($restoredVM) not found in $($vcenter.fqdn): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
                     }
-                    Set-VMOvfEnvTransport -vm $foundVM -transport $vmSettings.ovfEnvironmentTransport
-                    foreach ($product in $vmSettings.product) {
-                        New-VMOvfProduct -vm $foundVM -product $product
-                    }
-                    foreach ($property in $vmSettings.property) {
-                        New-VMOvfProperty -vm $foundVM -property $property
-                    }
-                } else {
-                    Write-Output "Placeholder $restoredVM not found in $($vcenter.fqdn)"
                 }
             }
         }
-        Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -5194,7 +5317,7 @@ Function Get-VMvAppConfig {
     Try {
         if ($vm.ExtensionData.Config.VAppConfig) {
             $vmVappConfig = $vm.ExtensionData.Config.VAppConfig | ConvertTo-Json | Out-File $targetFile
-            Write-Output "OVF Properties successfully captured"
+            Write-Output "OVF Properties Capture: SUCCESSFUL"
             return $vmVappConfig
         } else {
             Write-Output "No OVF properties were detected on $($vm.name). You may ignore this message if this is correct." -colour magenta

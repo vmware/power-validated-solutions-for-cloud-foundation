@@ -41,6 +41,9 @@
 - Enhanced `Undo-vRAvROPsIntegrationItem` cmdlet for better error checking and message handling.
 - Enhanced `Update-vROPSvRAAdapterCredential` cmdlet to reduce the number of inputs required.
 - Enhanced `Request-AriaNetworksToken` cmdlet for better readability and consistency with other cmdlets.
+- Enhanced `Export-PdrJsonSpec` cmdlet to include additional details for Anti-Affinity rule and Startup Group configuration in the recovery instance.
+- Enhanced `Invoke-PdrDeployment` cmdlet to perform recovery instance configuration tasks.
+- Enhanced `Invoke-UndoPdrDeployment` cmdlet to perform the removal of recovery instance configuration tasks.
 
 ## v2.10.0
 
