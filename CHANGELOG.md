@@ -44,6 +44,10 @@
 - Enhanced `Export-PdrJsonSpec` cmdlet to include additional details for Anti-Affinity rule and Startup Group configuration in the recovery instance.
 - Enhanced `Invoke-PdrDeployment` cmdlet to perform recovery instance configuration tasks.
 - Enhanced `Invoke-UndoPdrDeployment` cmdlet to perform the removal of recovery instance configuration tasks.
+- Enhanced `New-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
+- Enhanced `Import-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
+- Converted `aria-operations-notifications-vcf.csv` to 'aria-operations-notifications-vcf.json'.
+- Converted `aria-operations-notifications-srm.csv' to 'aria-operations-notifications-srm.json'.
 
 ## v2.10.0
 

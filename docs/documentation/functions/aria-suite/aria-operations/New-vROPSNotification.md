@@ -2,12 +2,12 @@
 
 ## Synopsis
 
-Create notifications in VMware Aria Operations
+Create notifications in VMware Aria Operations.
 
-## Syntax
+## SYNTAX
 
 ```powershell
-New-vROPSNotification [-csvPath] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vROPSNotification [-jsonPath] <String> [-alertPluginName] <String> [-emailAddress] <String> [<CommonParameters>]
 ```
 
 ## Description
@@ -19,16 +19,16 @@ The `New-vROPSNotification` cmdlet creates notifications in VMware Aria Operatio
 ### Example 1
 
 ```powershell
-New-vROPSNotification -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
+New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
 ```
 
-This example adds all the notifications in the csv file to VMware Aria Operations.
+This example adds all the notifications in the json file to VMware Aria Operations using an email based alert plugin.
 
 ## Parameters
 
-### -csvPath
+### -jsonPath
 
-The path to the csv file containing the notifications to add.
+The path to the JSON file containing the notifications to add.
 
 ```yaml
 Type: String
@@ -42,17 +42,33 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ProgressAction
+### -alertPluginName
 
-Progress Action
+The name of the alert plugin in VMware Aria Operations.
 
 ```yaml
-Type: ActionPreference
+Type: String
 Parameter Sets: (All)
-Aliases: proga
+Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -emailAddress
+
+The email address to be configured on the alert.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
