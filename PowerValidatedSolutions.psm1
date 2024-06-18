@@ -2720,7 +2720,7 @@ Function Export-PdrJsonSpec {
                 if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
                     $jsonObject | Add-Member -notepropertyname 'vmFolderOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                    
+
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmListOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value)
@@ -3377,7 +3377,7 @@ Function Invoke-PdrDeployment {
 
                                                 if (!$failureDetected) {
                                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Recovery Site Configuration Tasks for $solutionName"
-                                                    
+
                                                     if (!$failureDetected) {
                                                         Show-PowerValidatedSolutionsOutput -message "Create Anti-Affinity Rules for the Placeholder Virtual Machines in the Recovery VMware Cloud Foundation Instance"
                                                         if (($wsaVmNames).Count -gt 1) {
@@ -3408,7 +3408,7 @@ Function Invoke-PdrDeployment {
                                                             $StatusMsg = Add-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameIdentity -vmGroup $jsonInput.drsGroupNameOperations -dependOnVmGroup $jsonInput.drsGroupNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
-                                                        
+
                                                         if ($ariaAutomationPresent) {
                                                             $StatusMsg = Add-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameAutomation -drsGroupVMs $jsonInput.vmListAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -3506,7 +3506,7 @@ Function Invoke-UndoPdrDeployment {
                                     $StatusMsg = Undo-ClusterGroup -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -drsGroupName  $jsonInput.drsGroupNameOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
-                                
+
                                 if ($ariaAutomationPresent) {
                                     $StatusMsg = Undo-VmStartupRule -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass -domain $jsonInput.recovery.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -51698,6 +51698,70 @@ Function New-AriaNetworksNsxtDataSource {
     }
 }
 Export-ModuleMember -Function New-AriaNetworksNsxtDataSource
+
+Function Update-AriaNetworksvCenterDataSourceCredentials {
+    <#
+        .SYNOPSIS
+        Update credentials for a vCenter Server data source credentials in VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Update-AriaNetworksvCenterDataSourceCredentials cmdlet allows a user to update credentials for a vCenter Server data source in VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Update-AriaNetworksvCenterDataSourceCredentials -id 15832:902:2623605245375371420 -CollectorId 15832:901:1711011916294613031 -fqdn sfo-m01-vc01.sfo.rainpole.io -username svc-inv-vsphere -password VMw@re1! -nickname "sfo-m01-vc01 - Management Domain vCenter Server"
+        This example updates the credentials for vCenter Server data source in VMware Aria Operations for Networks.
+
+        .PARAMETER id
+        The id of the vCenter Server to update.
+
+        .PARAMETER collectorId
+        The id of the VMware Aria Operations for Networks collector node where the vCenter Server data source is connected.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the vCenter Server to update.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+
+        .PARAMETER nickname
+        The nickname to use for this data source in VMware Aria Operations for Networks.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorId,
+		[Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nickname,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters/$id"
+            $body = @{
+                entity_id = $id
+                proxy_id = $collectorId
+                fqdn = $fqdn
+                nickname = $nickname
+                credentials = @{
+                    username = $username
+                    password = $password
+                }
+            } | ConvertTo-Json
+            Invoke-RestMethod -Uri $uri -Method 'PUT' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Update-AriaNetworksvCenterDataSourceCredentials
+
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
 

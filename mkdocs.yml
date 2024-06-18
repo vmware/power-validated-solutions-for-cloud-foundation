@@ -415,6 +415,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/Remove-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
+      - documentation/functions/aria-suite/aria-operations-networks/Update-AriaNetworksvCenterDataSourceCredentials.md
     - Aria Suite Lifecycle:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenter.md
