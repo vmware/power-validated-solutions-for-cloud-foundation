@@ -51762,6 +51762,109 @@ Function Update-AriaNetworksvCenterDataSourceCredentials {
 }
 Export-ModuleMember -Function Update-AriaNetworksvCenterDataSourceCredentials
 
+Function Update-AriaNetworksNsxtDataSourceCredentials {
+    <#
+        .SYNOPSIS
+        Update credentials for a NSX Manager data source in VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Update-AriaNetworksNsxtDataSourceCredentials cmdlet allows a user to update credentials for a NSX Manager data source in VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Update-AriaNetworksNsxtDataSourceCredentials -fqdn sfo-m01-nsx01.sfo.rainpole.io -id 15832:904:7312957441829059413 -CollectorId 15832:901:1711011916294613031 -nickname "sfo-m01-vc01 - Management Domain vCenter Server" -certificate F:\certs\sfo-m01-nsx01.cer -privatekey F:\certs\sfo-m01-nsx01.key
+        This example updates the credentials for the NSX Manager data source in VMware Aria Operations for Networks to use a new certificate and private key for a NSX principal identity user.
+
+        .EXAMPLE
+        Update-AriaNetworksNsxtDataSourceCredentials -fqdn sfo-m01-nsx01.sfo.rainpole.io -id 15832:904:7312957441829059413 -CollectorId 15832:901:1711011916294613031 -nickname "sfo-m01-vc01 - Management Domain vCenter Server" -username svc-inv-vsphere -password VMw@re1!VMw@re1!
+        This example updates the credentials for the NSX Manager data source in VMware Aria Operations for Networks to use a new NSX service account user with a password.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager to update.
+
+        .PARAMETER id
+        The id of the NSX Manager to update.
+
+        .PARAMETER collectorId
+        The id of the VMware Aria Operations for Networks collector node where the NSX-T Manager data source is connected.
+
+        .PARAMETER nickname
+        The nickname to use for this data source in VMware Aria Operations for Networks.
+
+        .PARAMETER certificate
+        The principal identity certificate to use for authentication.
+
+        .PARAMETER privatekey
+        The principal identity private key to use for authentication.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "credentials")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nickname,
+		[Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$certificate,
+		[Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$privatekey,
+		[Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers/$id"
+            if ($PSBoundParameters.ContainsKey('certificate') -and $PSBoundParameters.ContainsKey('privatekey')) {
+                if (Test-Path -Path $certificate) {
+                    $cert = (Get-Content -Path $certificate) -join "`n"
+                } else {
+                    Write-Error "Unable to find certificate file ($certificate)"
+                }
+                if (Test-Path -Path $privatekey) {
+                    $key = (Get-Content -Path $privatekey) -join "`n"
+                } else {
+                    Write-Error "Unable to find key file ($privatekey)"
+                }
+                $body = @{
+                    fqdn = $fqdn
+                    entity_id = $id
+                    proxy_id = $collectorId
+                    nickname = $nickname
+                    ipfix_enabled = $true
+                    latency_enabled = $true
+                    cred_type = "CERTIFICATE"
+                    client_certificate = $cert
+                    client_private_key = $key
+                } | ConvertTo-Json
+            } elseif ($PSBoundParameters.ContainsKey('username') -and $PSBoundParameters.ContainsKey('password')) {
+                $body = @{
+                    fqdn = $fqdn
+                    entity_id = $id
+                    proxy_id = $collectorId
+                    nickname = $nickname
+                    ipfix_enabled = $true
+                    latency_enabled = $true
+                    credentials = @{
+                        username = $username
+                        password = $password
+                    }
+                } | ConvertTo-Json
+            }
+            Invoke-RestMethod -Uri $uri -Method 'PUT' -Headers $ariaNetworksHeader -Body $body -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Update-AriaNetworksNsxtDataSourceCredentials
+
 #EndRegion  End VMware Aria Operations for Networks Functions                ######
 ###################################################################################
 
