@@ -9880,21 +9880,6 @@ Function Invoke-DriDeployment {
                             Show-PowerValidatedSolutionsOutput -message "Replacing the Supervisor Kubernetes API Endpoint Certificate for $solutionName"
                             $StatusMsg = Install-TanzuSignedCertificate -jsonFile $jsonFile -certificates $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            # if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
-                            #     Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
-                            #     $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                            #     Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
-                            #     $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                            #     Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
-                            #     $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            #     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                            # } else {
-                            #     Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
-                            # }
                         }
 
                         if (!$failureDetected) {
