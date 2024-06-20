@@ -29166,7 +29166,8 @@ Function Export-GlobalWsaJsonSpec {
                 'aslcmReleaseManagersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'aslcmContentDevelopersGroup' = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'clusterFqdn'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                'clusterIp'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                'clusterIp'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value
+                'databaseIp'                  = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
                 'vmNameNodeA'                 = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
                 'hostNameNodeA'               = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
                 'ipNodeA'                     = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
@@ -29682,7 +29683,7 @@ Function Invoke-UndoGlobalWsaDeployment {
                                                 }
                                             }
                                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                            Show-PowerValidatedSolutionsOutput -message "Deleting $automationProductName from $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Deleting $lcmProductName from $lcmProductName"
                                             $StatusMsg = Undo-WsaDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environmentName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
@@ -29798,179 +29799,188 @@ Function Export-WsaJsonSpec {
                                         if ($defaultPassword = Get-vRSLCMLockerPassword -alias $jsonInput.globalPasswordAlias) {
                                             if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $jsonInput.configAdminPasswordAlias) {
                                                 if ($wsaPassword = Get-vRSLCMLockerPassword -alias $jsonInput.adminPasswordAlias) {
-                                                    if ($vcfVersion -ge "4.5.0") {
-                                                        $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($jsonInput.vcFqdn).Split(".")[0] + "@vsphere.local") }
-                                                    } else {
-                                                        $vcCredentials = Get-vRSLCMLockerPassword -alias (($jsonInput.vcFqdn).Split(".")[0] + "-" + $jsonInput.vcDatacenter)
-                                                    }
-                                                    if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.xintDatacenter }) {
-                                                        $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
+                                                    if ($wsaRootPassword = Get-vRSLCMLockerPassword -alias $jsonInput.rootPasswordAlias) {
+                                                        if ($vcfVersion -ge "4.5.0") {
+                                                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($jsonInput.vcFqdn).Split(".")[0] + "@vsphere.local") }
+                                                        } else {
+                                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($jsonInput.vcFqdn).Split(".")[0] + "-" + $jsonInput.vcDatacenter)
+                                                        }
+                                                        if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.xintDatacenter }) {
+                                                            $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
 
-                                                        #### Generate the Workspace ONE Properties Section
-                                                        if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                            $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                                                            foreach ($vcfVersion in $moduleConfig.vcfVersion) {
-                                                                if ($vcfVersion.$actualVcfVersion) {
-                                                                    $wsaVersion = ($vcfVersion.$actualVcfVersion | Where-Object { $_.AriaComponent -eq "WorkspaceONE" }).Version
+                                                            #### Generate the Workspace ONE Properties Section
+                                                            if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                                $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                                                                foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                                                                    if ($vcfVersion.$actualVcfVersion) {
+                                                                        $wsaVersion = ($vcfVersion.$actualVcfVersion | Where-Object { $_.AriaComponent -eq "WorkspaceONE" }).Version
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                $wsaVersion = $customVersion
+                                                            }
+
+                                                            $infrastructurePropertiesObject = @()
+                                                            $infrastructurePropertiesObject += [pscustomobject]@{
+                                                                'acceptEULA'        = "true"
+                                                                'enableTelemetry'   = "true"
+                                                                'regionName'        = ""
+                                                                'zoneName'          = ""
+                                                                'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                                'vCenterName'       = ($jsonInput.vcFqdn).Split(".")[0]
+                                                                'vCenterHost'       = $jsonInput.vcFqdn
+                                                                'vcUsername'        = $vcCredentials.userName
+                                                                'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                                'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                                'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                                'cluster'           = ($jsonInput.vcDatacenter + "#" + $jsonInput.vcCluster)
+                                                                'storage'           = $jsonInput.vcDatastore
+                                                                'diskMode'          = "thin"
+                                                                'network'           = $jsonInput.xintNetwork
+                                                                'masterVidmEnabled' = "false"
+                                                                'dns'               = $jsonInput.xintNetworkDns
+                                                                'domain'            = $jsonInput.xintNetworkDomain
+                                                                'gateway'           = $jsonInput.xintNetworkGateway
+                                                                'netmask'           = $jsonInput.xintNetworkMask
+                                                                'searchpath'        = $jsonInput.xintNetworkSearch
+                                                                'timeSyncMode'      = "ntp"
+                                                                'ntp'               = $jsonInput.xintNetworkNtp
+                                                                'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $jsonInput.sddcManagerFqdn + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                                            }
+
+                                                            $infrastructureObject = @()
+                                                            $infrastructureObject += [pscustomobject]@{
+                                                                'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                                                            }
+
+                                                            ### Generate the Properties Details
+                                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                                $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($jsonInput.vcFqdn).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $jsonInput.contentLibraryName }).contentLibraryItems
+                                                                if ($contentLibraryItems) {
+                                                                    $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
+                                                                } else {
+                                                                    Write-Error "Unable to find vSphere Content Library ($($jsonInput.contentLibraryName)) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                                    Break
                                                                 }
                                                             }
+                                                            $productPropertiesObject = @()
+                                                            $productPropertiesObject += [pscustomobject]@{
+                                                                'vidmAdminPassword'             = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
+                                                                'syncGroupMembers'              = $true
+                                                                'nodeSize'                      = ($jsonInput.wsaNodeSize).ToLower()
+                                                                'defaultConfigurationEmail'     = $jsonInput.configAdminUserEmail
+                                                                'defaultConfigurationUsername'  = $jsonInput.configAdminUserName
+                                                                'defaultConfigurationPassword'  = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
+                                                                'defaultTenantAlias'            = ""
+                                                                'vidmDomainName'                = ""
+                                                                'certificate'                   = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                                'contentLibraryItemId'          = $contentLibraryItemId
+                                                                'fipsMode'                      = "false"
+                                                                'monitorWithvROps'              = "false"
+                                                                'vROpsEnvironmentId'            = ""
+                                                            }
+
+                                                            #### Generate Workspace ONE Access Details
+                                                            if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                                $clusterLbProperties = @()
+                                                                $clusterLbProperties += [pscustomobject]@{
+                                                                    'controllerType'    = "NSX_T"
+                                                                    'hostName'          = $jsonInput.clusterFqdn
+                                                                    'lockerCertificate' = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                                }
+
+                                                                $clusterDelegateObject = @()
+                                                                $clusterDelegateObject += [pscustomobject]@{
+                                                                    'ip' = $jsonInput.databaseIp
+                                                                }
+
+                                                                $clusterVipsObject = @()
+                                                                $clusterVipsObject += [pscustomobject]@{
+                                                                    'type'       = "vidm-lb"
+                                                                    'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
+                                                                }
+                                                                $clusterVipsObject += [pscustomobject]@{
+                                                                    'type'       = "vidm-delegate"
+                                                                    'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
+                                                                }
+
+                                                                $clusterObject = @()
+                                                                $clusterObject += [pscustomobject]@{
+                                                                    'clusterVips'	= $clusterVipsObject
+                                                                }
+                                                            }
+
+                                                            #### Generate Worspace ONE Access Node Details
+                                                            $wsaPrimaryProperties = @()
+                                                            $wsaPrimaryProperties += [pscustomobject]@{
+                                                                'hostName'         = $jsonInput.hostNameNodeA
+                                                                'vmName'           = $jsonInput.vmNameNodeA
+                                                                'ip'               = $jsonInput.ipNodeA
+                                                                'vidmRootPassword' = ("locker:password:" + $($wsaRootPassword.vmid) + ":" + $($wsaRootPassword.alias))
+                                                            }
+
+                                                            $wsaSecondary1Properties = @()
+                                                            $wsaSecondary1Properties += [pscustomobject]@{
+                                                                'hostName'         = $jsonInput.hostNameNodeB
+                                                                'vmName'           = $jsonInput.vmNameNodeB
+                                                                'ip'               = $jsonInput.ipNodeB
+                                                                'vidmRootPassword' = ("locker:password:" + $($wsaRootPassword.vmid) + ":" + $($wsaRootPassword.alias))
+                                                            }
+
+                                                            $wsaSecondary2Properties = @()
+                                                            $wsaSecondary2Properties += [pscustomobject]@{
+                                                                'hostName'         = $jsonInput.hostNameNodeC
+                                                                'vmName'           = $jsonInput.vmNameNodeC
+                                                                'ip'               = $jsonInput.ipNodeC
+                                                                'vidmRootPassword' = ("locker:password:" + $($wsaRootPassword.vmid) + ":" + $($wsaRootPassword.alias))
+                                                            }
+
+                                                            $nodesObject = @()
+                                                            $nodesobject += [pscustomobject]@{
+                                                                'type'       = "vidm-primary"
+                                                                'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
+                                                            }
+                                                            if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                                $nodesobject += [pscustomobject]@{
+                                                                    'type'       = "vidm-secondary"
+                                                                    'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
+                                                                }
+                                                                $nodesobject += [pscustomobject]@{
+                                                                    'type'       = "vidm-secondary"
+                                                                    'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
+                                                                }
+                                                            }
+
+                                                            $productsObject = @()
+                                                            $productsObject += [pscustomobject]@{
+                                                                'id'         = "vidm"
+                                                                'version'    = $wsaVersion
+                                                                'properties' = ($productPropertiesObject | Select-Object -Skip 0)
+                                                                'clusterVIP' = ($clusterObject | Select-Object -Skip 0)
+                                                                'nodes'      = $nodesObject
+                                                            }
+
+                                                            $wsaDeploymentObject = @()
+                                                            $wsaDeploymentObject += [pscustomobject]@{
+                                                                'environmentId'   = $jsonInput.environmentName
+                                                                'environmentName' = $jsonInput.environmentName
+                                                                'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
+                                                                'products'        = $productsObject
+                                                            }
+
+                                                            $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
+                                                            Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
                                                         } else {
-                                                            $wsaVersion = $customVersion
+                                                            Write-Error "Datacenter Provided in the JSON Specification File ($($jsonInput.xintDatacenter)) does not exist, create and retry"
                                                         }
-
-                                                        $infrastructurePropertiesObject = @()
-                                                        $infrastructurePropertiesObject += [pscustomobject]@{
-                                                            'acceptEULA'        = "true"
-                                                            'enableTelemetry'   = "true"
-                                                            'regionName'        = "default"
-                                                            'zoneName'          = "default"
-                                                            'dataCenterVmid'    = $datacenterName.dataCenterVmid
-                                                            'vCenterName'       = ($jsonInput.vcFqdn).Split(".")[0]
-                                                            'vCenterHost'       = $jsonInput.vcFqdn
-                                                            'vcUsername'        = $vcCredentials.userName
-                                                            'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                            'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                            'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                            'cluster'           = ($jsonInput.vcDatacenter + "#" + $jsonInput.vcCluster)
-                                                            'storage'           = $jsonInput.vcDatastore
-                                                            'diskMode'          = "thin"
-                                                            'network'           = $jsonInput.xintNetwork
-                                                            'masterVidmEnabled' = "false"
-                                                            'dns'               = $jsonInput.xintNetworkDns
-                                                            'domain'            = $jsonInput.xintNetworkDomain
-                                                            'gateway'           = $jsonInput.xintNetworkGateway
-                                                            'netmask'           = $jsonInput.xintNetworkMask
-                                                            'searchpath'        = $jsonInput.xintNetworkSearch
-                                                            'timeSyncMode'      = "ntp"
-                                                            'ntp'               = $jsonInput.xintNetworkNtp
-                                                            'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $jsonInput.sddcManagerFqdn + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
-                                                        }
-
-                                                        $infrastructureObject = @()
-                                                        $infrastructureObject += [pscustomobject]@{
-                                                            'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
-                                                        }
-
-                                                        ### Generate the Properties Details
-                                                        if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                            $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($jsonInput.vcFqdn).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $jsonInput.contentLibraryName }).contentLibraryItems
-                                                            if ($contentLibraryItems) {
-                                                                $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
-                                                            } else {
-                                                                Write-Error "Unable to find vSphere Content Library ($($jsonInput.contentLibraryName)) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
-                                                                Break
-                                                            }
-                                                        }
-                                                        $productPropertiesObject = @()
-                                                        $productPropertiesObject += [pscustomobject]@{
-                                                            'vidmAdminPassword'             = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
-                                                            'syncGroupMembers'              = $true
-                                                            'nodeSize'                      = ($jsonInput.wsaNodeSize).ToLower()
-                                                            'defaultConfigurationEmail'     = $jsonInput.configAdminUserEmail
-                                                            'defaultConfigurationUsername'  = $jsonInput.configAdminUserName
-                                                            'defaultConfigurationPassword'  = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
-                                                            'defaultTenantAlias'            = ""
-                                                            'vidmDomainName'                = ""
-                                                            'certificate'                   = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                            'contentLibraryItemId'          = $contentLibraryItemId
-                                                            'fipsMode'                      = "false"
-                                                        }
-
-                                                        #### Generate Workspace ONE Access Details
-                                                        if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                            $clusterLbProperties = @()
-                                                            $clusterLbProperties += [pscustomobject]@{
-                                                                'controllerType'    = "NSX_T"
-                                                                'hostName'          = $jsonInput.clusterFqdn
-                                                                'lockerCertificate' = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                            }
-
-                                                            $clusterDelegateObject = @()
-                                                            $clusterDelegateObject += [pscustomobject]@{
-                                                                'ip' = $jsonInput.clusterIp
-                                                            }
-
-                                                            $clusterVipsObject = @()
-                                                            $clusterVipsObject += [pscustomobject]@{
-                                                                'type'       = "vidm-lb"
-                                                                'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
-                                                            }
-                                                            $clusterVipsObject += [pscustomobject]@{
-                                                                'type'       = "vidm-delegate"
-                                                                'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
-                                                            }
-
-                                                            $clusterObject = @()
-                                                            $clusterObject += [pscustomobject]@{
-                                                                'clusterVips'	= $clusterVipsObject
-                                                            }
-                                                        }
-
-                                                        #### Generate Worspace ONE Access Node Details
-                                                        $wsaPrimaryProperties = @()
-                                                        $wsaPrimaryProperties += [pscustomobject]@{
-                                                            'hostName' = $jsonInput.hostNameNodeA
-                                                            'vmName'   = $jsonInput.vmNameNodeA
-                                                            'ip'       = $jsonInput.ipNodeA
-                                                        }
-
-                                                        $wsaSecondary1Properties = @()
-                                                        $wsaSecondary1Properties += [pscustomobject]@{
-                                                            'hostName' = $jsonInput.hostNameNodeB
-                                                            'vmName'   = $jsonInput.vmNameNodeB
-                                                            'ip'       = $jsonInput.ipNodeB
-                                                        }
-
-                                                        $wsaSecondary2Properties = @()
-                                                        $wsaSecondary2Properties += [pscustomobject]@{
-                                                            'hostName' = $jsonInput.hostNameNodeC
-                                                            'vmName'   = $jsonInput.vmNameNodeC
-                                                            'ip'       = $jsonInput.ipNodeC
-                                                        }
-
-                                                        $nodesObject = @()
-                                                        $nodesobject += [pscustomobject]@{
-                                                            'type'       = "vidm-primary"
-                                                            'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
-                                                        }
-                                                        if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                            $nodesobject += [pscustomobject]@{
-                                                                'type'       = "vidm-secondary"
-                                                                'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
-                                                            }
-                                                            $nodesobject += [pscustomobject]@{
-                                                                'type'       = "vidm-secondary"
-                                                                'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
-                                                            }
-                                                        }
-
-                                                        $productsObject = @()
-                                                        $productsObject += [pscustomobject]@{
-                                                            'id'         = "vidm"
-                                                            'version'    = $wsaVersion
-                                                            'properties'	= ($productPropertiesObject | Select-Object -Skip 0)
-                                                            'clusterVIP'	= ($clusterObject | Select-Object -Skip 0)
-                                                            'nodes'      = $nodesObject
-                                                        }
-
-                                                        $wsaDeploymentObject = @()
-                                                        $wsaDeploymentObject += [pscustomobject]@{
-                                                            'environmentId'   = $jsonInput.environmentName
-                                                            'environmentName' = $jsonInput.environmentName
-                                                            'infrastructure'  = ($infrastructureObject | Select-Object -Skip 0)
-                                                            'products'        = $productsObject
-                                                        }
-
-                                                        $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
-                                                        Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
                                                     } else {
-                                                        Write-Error "Datacenter Provided in the JSON Specification File ($($jsonInput.xintDatacenter)) does not exist, create and retry"
+                                                        Write-Error "Root Password with alias ($($jsonInput.rootPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                                     }
                                                 } else {
-                                                    Write-Error "Root Password with alias ($($jsonInput.adminPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                                    Write-Error "Admin Password with alias ($($jsonInput.adminPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                                 }
                                             } else {
-                                                Write-Error "Admin Password with alias ($($jsonInput.globalPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                                Write-Error "Global Admin Password with alias ($($jsonInput.globalPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                             }
                                         } else {
                                             Write-Error "Certificate with alias ($($jsonInput.configAdminPasswordAlias)) not found in the VMware Aria Suite Lifecycle Locker, add and retry"
