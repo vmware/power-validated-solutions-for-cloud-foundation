@@ -11,7 +11,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion = '2.11.0.1027'
+    ModuleVersion = '2.11.0.1028'
     # ID used to uniquely identify this module
     GUID              = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
 
@@ -111,10 +111,6 @@
     # HelpInfo URI of this module
     # HelpInfoURI = ''
 
-    # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
-    # DefaultCommandPrefix = ''
-
-}
     # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
     # DefaultCommandPrefix = ''
 
