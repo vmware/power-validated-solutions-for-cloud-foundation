@@ -1,5 +1,13 @@
 # Release History
 
+## v2.10.2
+
+> Release Date: 2024-06-20
+
+- Fixed `Export-WsaJsonSpec` cmdlet where the cluster IP was being used for the database IP.
+- Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where incorrect message output was being displayed.
+- Enhanced `Export-GlobalWsaJsonSpec` cmdlet to include the export from Planning and Preparations Workbook the Workspace ONE Access database IP.
+
 ## v2.10.1
 
 > Release Date: 2024-06-14
