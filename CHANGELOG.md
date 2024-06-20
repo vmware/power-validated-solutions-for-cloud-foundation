@@ -32,6 +32,8 @@
 - Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet to check for stretched cluster to be enabled and configure Anti-Affinity rule.
 - Fixed `Get-vRAIntegrationDetail` cmdlet where by it was passing output incorrectly.
+- Fixed `Export-WsaJsonSpec` cmdlet where the cluster IP was being used for the database IP.
+- Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where incorrect message output was being displayed.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
@@ -49,6 +51,7 @@
 - Enhanced `New-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
 - Enhanced `Import-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
 - Enhanced `Invoke-DriDeployment` cmdlet to support v1.26 for Tanzu distribution.
+- Enhanced `Export-GlobalWsaJsonSpec` cmdlet to include the export from Planning and Preparations Workbook the Workspace ONE Access database IP.
 - Converted `aria-operations-notifications-vcf.csv` to 'aria-operations-notifications-vcf.json'.
 - Converted `aria-operations-notifications-srm.csv' to 'aria-operations-notifications-srm.json'.
 
