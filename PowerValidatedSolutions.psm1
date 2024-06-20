@@ -19281,19 +19281,20 @@ Function Register-vROPSManagementPack {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if ($packType -eq "VCF") {$packTypeUrl = "$packType-"} else {$packTypeUrl = "$packType"}
                             # Connect to VMware Aria Operations and extract the Management Pack Details
                             $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $($vcfVropsDetails.adminUser), $($vcfVropsDetails.adminPass)))) # Create Basic Authentication Encoded Credentials
                             $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
                             $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
                             $vropsBasicHeaders.Add("Content-Type", "application/json")
-                            $uri = ((Get-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass | Where-Object { $_.links -match $packType }).links | Where-Object { $_.rel -eq "pak_information" }).href
-                            $adapterDetails = Invoke-RestMethod -Method GET -Uri $uri -Headers $vropsBasicHeaders
-                            $uri = ((Get-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass | Where-Object { $_.links -match $packType }).links | Where-Object { $_.rel -eq "pak_cluster_status" }).href
+                            $uri = ((Get-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass | Where-Object { $_.links -match $packTypeUrl }).links | Where-Object { $_.rel -eq "pak_information" }).href
+                            $adapterDetails = Invoke-RestMethod -Method GET -Uri $uri -Headers $vropsBasicHeaders -SkipCertificateCheck -UseBasicParsing
+                            $uri = ((Get-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass | Where-Object { $_.links -match $packTypeUrl }).links | Where-Object { $_.rel -eq "pak_cluster_status" }).href
                             if ($state -eq "enable") {
                                 if (!(Get-vROPSSolution | Where-Object { $_.id -match $packType })) {
                                     Set-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass -pakId ((($adapterDetails.pak_id) -Split ("-"))[0]) -version $adapterDetails.version -status enable | Out-Null
                                     Do {
-                                        $status = Invoke-RestMethod -Method GET -Uri $uri -Headers $vropsBasicHeaders
+                                        $status = Invoke-RestMethod -Method GET -Uri $uri -Headers $vropsBasicHeaders -SkipCertificateCheck -UseBasicParsing
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
                                         Write-Output "Activating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
