@@ -14,35 +14,37 @@ Select an option for the solution.
 
     The following functions can be use to perform the solution deployment.
 
-    | Function                                                                                | Type                  |
-    | --------------------------------------------------------------------------------------- | --------------------- |
-    | [`Test-InvPrerequisite`](Test-InvPrerequisite.md)                                       | Prerequisites         |
-    | [`Request-InvMscaSignedCertificate`](Request-InvMscaSignedCertificate.md)               | Prerequisites         |
-    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                           | End-to-End Deployment |
-    | [`Invoke-InvDeployment`](Invoke-InvDeployment.md)                                       | End-to-End Deployment |
-    | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md) | Procedure             |
-    | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                           | Procedure             |
-    | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                                 | Procedure             |
-    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)         | Procedure             |
-    | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                       | Procedure             |
-    | [`Add-NsxtPrincipalIdentity`](./../../nsx/Add-NsxtPrincipalIdentity.md)                 | Procedure             |
-    | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                       | Procedure             |
-    | [`Add-VmGroup`](./../../vsphere/Add-VmGroup.md)                                         | Procedure             |
+    | Function                                                                                                                | Type                  |
+    | ----------------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-InvPrerequisite`](Test-InvPrerequisite.md)                                                                       | Prerequisites         |
+    | [`Request-InvMscaSignedCertificate`](Request-InvMscaSignedCertificate.md)                                               | Prerequisites         |
+    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                                                           | End-to-End Deployment |
+    | [`Invoke-InvDeployment`](Invoke-InvDeployment.md)                                                                       | End-to-End Deployment |
+    | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                                 | Procedure             |
+    | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                           | Procedure             |
+    | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                                                                 | Procedure             |
+    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)                                         | Procedure             |
+    | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                                                       | Procedure             |
+    | [`Add-NsxtPrincipalIdentity`](./../../nsx/Add-NsxtPrincipalIdentity.md)                                                 | Procedure             |
+    | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                                                       | Procedure             |
+    | [`Add-VmGroup`](./../../vsphere/Add-VmGroup.md)                                                                         | Procedure             |
+    | [`Add-AriaNetworksVcenterDataSource`](./../../aria-suite/aria-operations-networks/Add-AriaNetworksVcenterDataSource.md) | Procedure             |
 
 === ":material-location-exit: &nbsp; Solution Removal"
 
     The following functions can be use to remove the solution deployment.
 
-    | Function                                                                                | Type                  |
-    | --------------------------------------------------------------------------------------- | --------------------- |
-    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                           | End-to-End Removal    |
-    | [`Invoke-UndoInvDeployment`](Invoke-UndoInvDeployment.md)                               | End-to-End Removal    |
-    | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                         | Procedure             |
-    | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                               | Procedure             |
-    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md)       | Procedure             |
-    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                                     | Procedure             |
-    | [`Undo-NsxtPrincipalIdentity`](./../../nsx/Undo-NsxtPrincipalIdentity.md)               | Procedure             |
-    | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)                     | Procedure             |
+    | Function                                                                                                                  | Type                  |
+    | ------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-InvJsonSpec`](Export-InvJsonSpec.md)                                                                             | End-to-End Removal    |
+    | [`Invoke-UndoInvDeployment`](Invoke-UndoInvDeployment.md)                                                                 | End-to-End Removal    |
+    | [`Undo-AriaNetworksVcenterDataSource`](./../../aria-suite/aria-operations-networks/Undo-AriaNetworksVcenterDataSource.md) | Procedure             |
+    | [`Undo-ContentLibrary`](./../../vsphere/Undo-ContentLibrary.md)                                                           | Procedure             |
+    | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                                                                 | Procedure             |
+    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md)                                         | Procedure             |
+    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                                                                       | Procedure             |
+    | [`Undo-NsxtPrincipalIdentity`](./../../nsx/Undo-NsxtPrincipalIdentity.md)                                                 | Procedure             |
+    | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)                                                       | Procedure             |
 
 === ":material-transit-connection-variant: &nbsp; Solution Interoperability"
 
