@@ -22568,13 +22568,13 @@ Function Add-AriaNetworksVcenterDataSource {
         for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers vCenter Server details for each Workload Domain within the SDDC Manager instance
         - Adds a new vCenter Server data source for each Workload Domain
 
         .EXAMPLE
         Add-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
-        This example create a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided
+        This example create a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
@@ -22636,7 +22636,7 @@ Function Undo-AriaNetworksVcenterDataSource {
         for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Removes a vCenter Server data source for each Workload Domain
 
         .EXAMPLE

@@ -17,7 +17,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
-- Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks
+- Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Removes a vCenter Server data source for each Workload Domain
 
 ## Examples
