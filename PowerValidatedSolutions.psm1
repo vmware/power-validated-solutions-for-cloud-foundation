@@ -21768,6 +21768,17 @@ Function Invoke-InvDeployment {
                                             }
                                         }
 
+                                        # TODO:
+                                        # if (!$failureDetected) {
+                                        #     Show-PowerValidatedSolutionsOutput -message "Configure Role-Based Access for $networksProductName for $solutionName"
+                                        # }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add vCenter Server Data Sources for $solutionName"
+                                            $StatusMsg = Add-AriaNetworksVcenterDataSource -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
+
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
                                         }
@@ -22546,6 +22557,142 @@ Function Undo-AriaNetworksDeployment {
     }
 }
 Export-ModuleMember -Function Undo-AriaNetworksDeployment
+
+Function Add-AriaNetworksVcenterDataSource {
+    <#
+        .SYNOPSIS
+        Adds a new vCenter Server data source to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Add-AriaNetworksVcenterDataSource cmdlet adds a new vCenter Server data source to VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Gathers vCenter Server details for each Workload Domain within the SDDC Manager instance
+        - Adds a new vCenter Server data source for each Workload Domain
+
+        .EXAMPLE
+        Add-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
+        This example create a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $jsonInput.ariaNetworksPlatformNodeaFqdn) {
+                                        if (Test-AriaNetworksAuthentication -server $jsonInput.ariaNetworksPlatformNodeaFqdn -user admin@local -pass $jsonInput.ariaNetworksAdminPassword) {
+                                            $workloadDomains = Get-VCFWorkloadDomain
+                                            foreach ($sddcDomain in $workloadDomains) {
+                                                if (-Not (Get-AriaNetworksDataSource -dataSourceType vcenter -fqdn $sddcDomain.vcenters.fqdn -entityId)) {
+                                                    New-AriaNetworksvCenterDataSource -fqdn $sddcDomain.vcenters.fqdn -username $jsonInput.serviceAccountNetworksVsphere -password $jsonInput.serviceAccountNetworksVspherePass -nickname "$($sddcDomain.vcenters.fqdn) - Management Domain vCenter Server" -CollectorId (Get-AriaNetworksNodes).id -enabled true | Out-Null
+                                                    if (Get-AriaNetworksDataSource -dataSourceType vcenter -fqdn $sddcDomain.vcenters.fqdn -entityId) {
+                                                        Write-Output "Adding vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Adding vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
+                                                    }
+                                                } else {
+                                                    Write-Warning "Adding vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), already exists: SKIPPED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                } 
+            }
+        } else {
+            Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Undo-AriaNetworksVcenterDataSource {
+    <#
+        .SYNOPSIS
+        Removes a vCenter Server data source from VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Undo-AriaNetworksVcenterDataSource cmdlet removes a vCenter Server data source from VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Removes a vCenter Server data source for each Workload Domain
+
+        .EXAMPLE
+        Undo-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
+        This example removes the vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided
+        
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $jsonInput.ariaNetworksPlatformNodeaFqdn) {
+                                        if (Test-AriaNetworksAuthentication -server $jsonInput.ariaNetworksPlatformNodeaFqdn -user admin@local -pass $jsonInput.ariaNetworksAdminPassword) {
+                                            $workloadDomains = Get-VCFWorkloadDomain
+                                            foreach ($sddcDomain in $workloadDomains) {
+                                                if (Get-AriaNetworksDataSource -dataSourceType vcenter -fqdn $sddcDomain.vcenters.fqdn -entityId) {
+                                                    Remove-AriaNetworksDataSource -dataSourceType vcenter -id (Get-AriaNetworksDataSource -dataSourceType vcenter -fqdn $sddcDomain.vcenters.fqdn -entityId).entity_id
+                                                    if (-Not (Get-AriaNetworksDataSource -dataSourceType vcenter -fqdn $sddcDomain.vcenters.fqdn -entityId)) {
+                                                        Write-Output "Removing vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILED"
+                                                    }
+                                                } else {
+                                                    Write-Warning "Removing vCenter Server ($($sddcDomain.vcenters.fqdn)) Data Source to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), does not exist: SKIPPED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                } 
+            }
+        } else {
+            Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-AriaNetworksVcenterDataSource
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -51457,12 +51604,27 @@ Function Get-AriaNetworksDataSource {
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter(Mandatory = $false)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType
+        [Parameter(Mandatory = $false)] [ValidateSet('vcenter', 'nsxt')] [ValidateNotNullOrEmpty()] [String]$dataSourceType,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$entityId
     )
 
     Try {
         if ($ariaNetworksAppliance) {
-            if ($PsBoundParameters.ContainsKey("fqdn")) {
+            if ($PsBoundParameters.ContainsKey("entityId") -and $dataSourceType -eq 'vcenter' -and $PsBoundParameters.ContainsKey("fqdn")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters"
+                $response = (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+                foreach ($entity in $response) {
+                    $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/vcenters/$($entity.entity_id)"
+                    (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader) | Where-Object {$_.fqdn -eq $fqdn}
+                }
+            } elseif ($PsBoundParameters.ContainsKey("entityId") -and $dataSourceType -eq 'nsxt' -and $PsBoundParameters.ContainsKey("fqdn")) {
+                $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers"
+                $response = (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results
+                foreach ($entity in $response) {
+                    $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/nsxt-managers/$($entity.entity_id)"
+                    (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader) | Where-Object {$_.fqdn -eq $fqdn}
+                }
+            } elseif ($PsBoundParameters.ContainsKey("fqdn")) {
                 $uri = "https://$ariaNetworksAppliance/api/ni/data-sources/"
                 (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $ariaNetworksHeader).results | Where-Object {$_.fqdn -eq $fqdn}
             } elseif ($dataSourceType -eq 'vcenter') {
@@ -57111,6 +57273,99 @@ Function Test-WSAAuthentication {
 }
 Export-ModuleMember -Function Test-WSAAuthentication
 
+Function Test-AriaNetworksConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a VMware Aria Operations for Networks instance.
+
+        .DESCRIPTION
+        The Test-AriaNetworksConnection cmdlet checks the network connectivity to a VMware Aria Operations for Networks
+        instance. Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-AriaNetworksConnection -server xint-net01a.rainpole.io
+        This example checks network connectivity with a VMware Aria Operations for Networks instance on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-AriaNetworksConnection -server xint-net01a.rainpole.io -port 443
+        This example checks network connectivity with a VMware Aria Operations for Networks instance on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-AriaNetworksConnection -server xint-net01a.rainpole.io -port 22
+        This example checks network connectivity with a VMware Aria Operations for Networks instance on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a VMware Aria Operations for Networks instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
+    )
+
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else {
+            Write-Error "Unable to communicate with VMware Aria Operations for Networks instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        }
+    } Catch {
+        $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-AriaNetworksConnection
+
+Function Test-AriaNetworksAuthentication {
+    <#
+        .SYNOPSIS
+        Check authentication to a VMware Aria Operations for Networks instance.
+
+        .DESCRIPTION
+        The Test-AriaNetworksAuthentication cmdlet checks authentication to a VMware Aria Operations for Networks
+        instance.
+
+        .EXAMPLE
+        Test-AriaNetworksAuthentication -server xint-net01a.rainpole.io -user admin@local -pass VMw@re1!
+        This example checks authentication with a VMware Aria Operations for Networks instance.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the VMware Aria Operations for Networks instance.
+
+        .PARAMETER user
+        The username to authenticate to the VMware Aria Operations for Networks instance.
+
+        .PARAMETER pass
+        The password to authenticate to the VMware Aria Operations for Networks instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Item variable:ariaNetworksHeader -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        Request-AriaNetworksToken -fqdn $server -username $user -password $pass | Out-Null
+        if ($ariaNetworksHeader.Authorization) {
+            $ariaNetworksAuthentication = $True
+            Return $ariaNetworksAuthentication
+        } else {
+            Write-Error "Unable to obtain access token from VMware Aria Operations for Networks ($server), check credentials: PRE_VALIDATION_FAILED"
+            $ariaNetworksAuthentication = $False
+            Return $ariaNetworksAuthentication
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Test-AriaNetworksAuthentication
+
 Function Test-VrmsVamiConnection {
     <#
         .SYNOPSIS
@@ -58174,6 +58429,7 @@ Function Test-PrereqOpenSsl {
         Debug-ExceptionWriter -object $_
     }
 }
+
 Function Test-PrereqDomainController {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
