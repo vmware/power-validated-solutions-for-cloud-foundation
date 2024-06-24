@@ -12,24 +12,27 @@
 
 if ($PSEdition -eq 'Core') {
     $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck", $true)
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+    Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 }
 
 if ($PSEdition -eq 'Desktop') {
-    # Enable communication with self signed certs when using Windows Powershell
+    # Allow communication with self-signed certificates when using Windows PowerShell
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+    Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 
     if ("TrustAllCertificatePolicy" -as [type]) {} else {
         Add-Type @"
-	using System.Net;
+    using System.Net;
     using System.Security.Cryptography.X509Certificates;
     public class TrustAllCertificatePolicy : ICertificatePolicy {
         public TrustAllCertificatePolicy() {}
-		public bool CheckValidationResult(
+        public bool CheckValidationResult(
             ServicePoint sPoint, X509Certificate certificate,
             WebRequest wRequest, int certificateProblem) {
             return true;
         }
-	}
+    }
 "@
         [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertificatePolicy
     }
