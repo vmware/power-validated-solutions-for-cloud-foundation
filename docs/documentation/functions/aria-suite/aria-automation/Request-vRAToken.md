@@ -7,8 +7,7 @@ Connects to the specified VMware Aria Automation and obtains authorization token
 ## Syntax
 
 ```powershell
-Request-vRAToken [-fqdn] <String> [-username] <String> [-password] <String> [[-tenant] <String>]
- [-displayToken] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vRAToken [-fqdn] <String> [-username] <String> [-password] <String> [[-tenant] <String>] [-displayToken] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

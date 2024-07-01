@@ -15,8 +15,7 @@ Get-vRAIntegrationDetail -integrationType <String> [-integrationName <String>] [
 ### ID
 
 ```powershell
-Get-vRAIntegrationDetail -integrationType <String> [-integrationName <String>] [-getVCID] [-getIntegrationID]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRAIntegrationDetail -integrationType <String> [-integrationName <String>] [-getVCID] [-getIntegrationID] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

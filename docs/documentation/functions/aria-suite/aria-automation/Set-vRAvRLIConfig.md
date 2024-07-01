@@ -7,16 +7,13 @@ Sets the VMware Aria Operations for Logs logging configuration (CFAPI) on VMware
 ## Syntax
 
 ```powershell
-Set-vRAvRLIConfig [-server] <String> [-user] <String> [-pass] <String> [-rootPass] <String>
- [-protocol] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRAvRLIConfig [-server] <String> [-user] <String> [-pass] <String> [-rootPass] <String> [-protocol] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRAvRLIConfig` cmdlet sets the VMware Aria Operations for Logs logging configuration for VMware Aria
-Automation.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects
-to the first VMware Aria Automation appliance using the -rootPass value.
+The `Set-vRAvRLIConfig` cmdlet sets the VMware Aria Operations for Logs logging configuration for VMware Aria Automation.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first VMware Aria Automation appliance using the -rootPass value.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

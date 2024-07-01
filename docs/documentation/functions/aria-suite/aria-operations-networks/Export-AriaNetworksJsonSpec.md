@@ -7,9 +7,7 @@ Create VMware Aria Operations for Networks Deployment JSON specification.
 ## Syntax
 
 ```powershell
-Export-AriaNetworksJsonSpec -server <String> -user <String> -pass <String> -jsonFile <String>
--outputPath <String> [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>]
-[-ProgressAction <ActionPreference>] [<CommonParameters>]
+Export-AriaNetworksJsonSpec -server <String> -user <String> -pass <String> -jsonFile <String> -outputPath <String> [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,10 +17,8 @@ Network Visibility JSON specification file generated from the Planning and Prepa
 deploy VMware Aria Operations for Networks using VMware Aria Suite Lifecycle:
 
 - Validates that network connectivity is available to VMware Aria Suite Lifecycle.
-- Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication
-  possible.
-- Generates the JSON specification file using the Planning and Preparation workbook and details from
-  VMware Aria Suite Lifecycle.
+- Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible.
+- Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle.
 
 ## Examples
 

@@ -12,7 +12,7 @@ Remove-vRANotification
 
 ## Description
 
-The `Remove-vRANotification` cmdlet removes the notification configuation from VMware Aria Automation.
+The `Remove-vRANotification` cmdlet removes the notification configuration from VMware Aria Automation.
 
 ## Examples
 

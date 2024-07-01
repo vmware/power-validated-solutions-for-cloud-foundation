@@ -7,8 +7,7 @@ Remove the group service role.
 ## Syntax
 
 ```powershell
-Remove-vRAGroupServiceRole [-groupId] <String> [-orgId] <String> [-serviceDefinitionId] <String>
- [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAGroupServiceRole [-groupId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Adds a group in an organization.
 ## Syntax
 
 ```powershell
-New-vRAGroup -groupId <String> -orgId <String> -orgRole <String> [-serviceDefinitionId <String>]
- [-serviceRole <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRAGroup -groupId <String> -orgId <String> -orgRole <String> [-serviceDefinitionId <String>] [-serviceRole <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `New-vRAGroup` cmdlet adds a group in VMware Aria Automation.
 New-vRAGroup -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole-serviceRole $serviceRole
 ```
 
-This example adds a group in VMware Aria Automation by groupId and orgId and assisgnes both the required orgRole and serviceRole.
+This example adds a group in VMware Aria Automation by groupId and orgId and assigns both the required orgRole and serviceRole.
 
 ### Example 2
 
@@ -31,7 +30,7 @@ This example adds a group in VMware Aria Automation by groupId and orgId and ass
 New-vRAGroup -groupId $orgId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole -serviceRole $serviceRole
 ```
 
-This example adds a group in VMware Aria Automation by groupId and orgId and assisgnes the required orgRole only.
+This example adds a group in VMware Aria Automation by groupId and orgId and assigns the required orgRole only.
 
 Note: This cmdlet currently only supports a single serviceRole.
 

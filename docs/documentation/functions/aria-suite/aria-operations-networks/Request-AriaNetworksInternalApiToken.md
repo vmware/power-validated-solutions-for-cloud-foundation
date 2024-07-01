@@ -13,7 +13,7 @@ Request-AriaNetworksInternalApiToken [-fqdn] <String> [[-username] <String>] [[-
 
 ## DESCRIPTION
 
-The Request-AriaNetworksInternalApiToken cmdlet connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token.
+The `Request-AriaNetworksInternalApiToken` cmdlet connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token.
 It is required once per session before running all other cmdlets.
 
 ## Examples

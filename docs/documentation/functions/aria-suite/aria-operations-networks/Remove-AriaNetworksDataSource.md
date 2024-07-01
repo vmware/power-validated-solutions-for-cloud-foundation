@@ -7,8 +7,7 @@ Remove a data source from a VMware Aria Operations for Networks deployment.
 ## Syntax
 
 ```powershell
-Remove-AriaNetworksDataSource [-id] <String> [-dataSourceType] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-AriaNetworksDataSource [-id] <String> [-dataSourceType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

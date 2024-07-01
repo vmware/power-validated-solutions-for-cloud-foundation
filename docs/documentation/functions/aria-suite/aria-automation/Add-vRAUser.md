@@ -7,15 +7,13 @@ Adds user access in an organization.
 ## Syntax
 
 ```powershell
-Add-vRAUser [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-email] <String> [-orgRole] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRAUser [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-email] <String> [-orgRole] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-vRAUser` cmdlet adds user access in VMware Aria Automation.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details

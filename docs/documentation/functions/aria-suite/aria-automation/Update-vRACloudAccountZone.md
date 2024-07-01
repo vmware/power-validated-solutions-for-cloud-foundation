@@ -7,17 +7,13 @@ Update Cloud Zone Configuration
 ## Syntax
 
 ```powershell
-Update-vRACloudAccountZone [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vraUser] <String> [-vraPass] <String> [[-tagKey] <String>] [[-tagValue] <String>] [[-folder] <String>]
- [[-resourcePool] <String>] [[-placementPolicy] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vRACloudAccountZone [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vraUser] <String> [-vraPass] <String> [[-tagKey] <String>] [[-tagValue] <String>] [[-folder] <String>] [[-resourcePool] <String>] [[-placementPolicy] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Update-vRACloudAccountZone` cmdlet updated the Cloud Zone with folder and tags on the resource pool for a
-Workload Domain in VMware Aria Automation.
-The cmdlet connects to SDDC Manager using the -server, -user,
-and -password values:
+The `Update-vRACloudAccountZone` cmdlet updated the Cloud Zone with folder and tags on the resource pool for a Workload Domain in VMware Aria Automation.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates the Workload Domain is available in the SDDC Manager inventory

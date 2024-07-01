@@ -1,35 +1,34 @@
-# Get-vRAvRLIConfig
+# Undo-vRSLCMLoadBalancer
 
 ## Synopsis
 
-Returns the VMware Aria Operations for Logs logging configuration (CFAPI) on VMware Aria Automation.
+Remove a load balancer from VMware Aria Suite Lifecycle.
 
 ## Syntax
 
 ```powershell
-Get-vRAvRLIConfig [-server] <String> [-user] <String> [-pass] <String> [-rootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMLoadBalancer [-server] <String> [-user] <String> [-pass] <String> [-type] <String> [-loadBalancerFqdn] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Get-vRAvRLIConfig` cmdlet returns the VMware Aria Operations for Logs logging configuration for VMware Aria Automation.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to
-the first VMware Aria Automation appliance using the -rootPass value.
+The `Undo-vRSLCMLoadBalancer` cmdlet removes a load balancer from the VMware Aria Suite Lifecycle.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-- Validates that network connectivity is possible to the first VMware Aria Automation appliance
-- Returns the VMware Aria Operations for Logs configuration in VMware Aria Automation.
+- Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+- Verifies that the load balancer is present in the VMware Aria Suite Lifecycle
+- Removes the load balancer from VMware Aria Suite Lifecycle
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Get-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+Undo-vRSLCMLoadBalancer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -type NSX_T -loadBalancerFqdn xint-vrops01.rainpole.io
 ```
 
-This example returns the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
+This example removes the xint-vrops01.rainpole.io load balancer from VMware Aria Suite Lifecycle.
 
 ## Parameters
 
@@ -51,7 +50,7 @@ Accept wildcard characters: False
 
 ### -user
 
-The username used to authenticate to SDDC Manager.
+The username to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String
@@ -67,7 +66,7 @@ Accept wildcard characters: False
 
 ### -pass
 
-The password used to authenticate to SDDC Manager.
+The password to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String
@@ -81,9 +80,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -rootPass
+### -type
 
-The root password to connect to the first VMware Aria Automation appliance.
+The type of load balancer.
 
 ```yaml
 Type: String
@@ -97,17 +96,17 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ProgressAction
+### -loadBalancerFqdn
 
-Progress Action
+The FQDN of the load balancer.
 
 ```yaml
-Type: ActionPreference
+Type: String
 Parameter Sets: (All)
-Aliases: proga
+Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

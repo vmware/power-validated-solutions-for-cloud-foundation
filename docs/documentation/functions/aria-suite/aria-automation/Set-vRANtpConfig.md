@@ -7,21 +7,17 @@ Configure NTP servers on VMware Aria Automation appliances
 ## Syntax
 
 ```powershell
-Set-vRANtpConfig [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-environmentName] <String> [[-ntpServers] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRANtpConfig [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-environmentName] <String> [[-ntpServers] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRANtpConfig` cmdlet configures the NTP server details of all VMware Aria Automation appliances to the
-values passed as parameters.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password
-values:
+The `Set-vRANtpConfig` cmdlet configures the NTP server details of all VMware Aria Automation appliances to the values passed as parameters.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-- Configures all VMware Aria Automation appliance NTP configuration to the values passed to the function using
--ntpServers.
+- Configures all VMware Aria Automation appliance NTP configuration to the values passed to the function using -ntpServers.
 
 ## Examples
 

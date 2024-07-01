@@ -7,15 +7,13 @@ Configures the organization name
 ## Syntax
 
 ```powershell
-Update-vRAOrganizationDisplayName [-server] <String> [-user] <String> [-pass] <String>
- [[-displayName] <String>] [[-vraUser] <String>] [[-vraPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vRAOrganizationDisplayName [-server] <String> [-user] <String> [-pass] <String> [[-displayName] <String>] [[-vraUser] <String>] [[-vraPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Update-vRAOrganizationDisplayName` cmdlet configures the organization display name in VMware Aria Automation.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details

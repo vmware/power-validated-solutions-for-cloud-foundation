@@ -13,7 +13,6 @@ New-vRADeployment -server <String> -user <String> -pass <String> [-jsonFile <Str
 ## Description
 
 The `New-vRADeployment` cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

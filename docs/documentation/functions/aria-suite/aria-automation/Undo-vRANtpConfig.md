@@ -7,16 +7,12 @@ Configure NTP settings for all VMware Aria Automation appliances to match SDDC M
 ## Syntax
 
 ```powershell
-Undo-vRANtpConfig [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-environmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRANtpConfig [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-environmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-vRANtpServer` cmdlet removes any added NTP server(s) on all VMware Aria Automation appliances by
-returning their configuration to match that of SDDC Manager.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-vRANtpServer` cmdlet removes any added NTP server(s) on all VMware Aria Automation appliances by returning their configuration to match that of SDDC Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

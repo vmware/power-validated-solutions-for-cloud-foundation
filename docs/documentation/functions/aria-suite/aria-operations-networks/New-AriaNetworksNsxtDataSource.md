@@ -9,15 +9,13 @@ Add a new NSX-T data source to VMware Aria Operations for Networks.
 ### credentials (Default)
 
 ```powershell
-New-AriaNetworksNsxtDataSource -fqdn <String> [-username <String>] [-password <String>] -nickname <String>
- -collectorId <String> -enabled <String> [<CommonParameters>]
+New-AriaNetworksNsxtDataSource -fqdn <String> [-username <String>] [-password <String>] -nickname <String> -collectorId <String> -enabled <String> [<CommonParameters>]
 ```
 
 ### certificate
 
 ```powershell
-New-AriaNetworksNsxtDataSource -fqdn <String> [-certificate <String>] [-privatekey <String>] -nickname <String>
- -collectorId <String> -enabled <String> [<CommonParameters>]
+New-AriaNetworksNsxtDataSource -fqdn <String> [-certificate <String>] [-privatekey <String>] -nickname <String> -collectorId <String> -enabled <String> [<CommonParameters>]
 ```
 
 ## Description

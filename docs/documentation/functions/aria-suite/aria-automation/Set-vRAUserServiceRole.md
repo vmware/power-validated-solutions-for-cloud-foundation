@@ -7,8 +7,7 @@ Set the user service role.
 ## Syntax
 
 ```powershell
-Set-vRAUserServiceRole [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String>
- [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRAUserServiceRole [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

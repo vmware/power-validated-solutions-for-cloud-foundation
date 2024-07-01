@@ -497,12 +497,14 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Start-vRSLCMProductNode.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Start-vRSLCMUpgrade.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Stop-vRSLCMProductNode.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Sync-vRSLCMDatacenterVcenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMAuthentication.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMConnection.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDnsConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMGroupRole.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLoadBalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerPassword.md
@@ -728,6 +730,7 @@ nav:
       - documentation/functions/vsphere/Get-VMOvfProperty.md
       - documentation/functions/vsphere/Get-VMvAppConfig.md
       - documentation/functions/vsphere/Get-VsanHealthTest.md
+      - documentation/functions/vsphere/Import-ContentLibraryItem.md
       - documentation/functions/vsphere/Install-VamiCertificate.md
       - documentation/functions/vsphere/Invoke-VcenterCommand.md
       - documentation/functions/vsphere/Move-VMtoFolder.md
