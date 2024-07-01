@@ -34,6 +34,7 @@ This example create a vCenter Server data source for each Workload Domain in the
 ## Parameters
 
 ### -jsonFile
+
 The path to the JSON specification file.
 
 ```yaml

@@ -415,12 +415,14 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/New-AriaNetworksDeployment.md
       - documentation/functions/aria-suite/aria-operations-networks/Remove-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
+      - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksInternalApiToken.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksAuthentication.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksConnection.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksVcenterDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Update-AriaNetworksvCenterDataSourceCredentials.md
       - documentation/functions/aria-suite/aria-operations-networks/Update-AriaNetworksNsxtDataSourceCredentials.md
+      - documentation/functions/aria-suite/aria-operations-networks/New-AriaNetworksLdapConfiguration.md
     - Aria Suite Lifecycle:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMDatacenter.md

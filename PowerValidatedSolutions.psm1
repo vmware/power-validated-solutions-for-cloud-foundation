@@ -22619,7 +22619,7 @@ Function Add-AriaNetworksVcenterDataSource {
                             }
                         }
                     }
-                } 
+                }
             }
         } else {
             Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
@@ -22645,7 +22645,7 @@ Function Undo-AriaNetworksVcenterDataSource {
         .EXAMPLE
         Undo-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
         This example removes the vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided
-        
+
         .PARAMETER jsonFile
         The path to the JSON specification file.
     #>
@@ -22686,7 +22686,7 @@ Function Undo-AriaNetworksVcenterDataSource {
                             }
                         }
                     }
-                } 
+                }
             }
         } else {
             Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
@@ -51533,6 +51533,68 @@ Function Request-AriaNetworksToken {
 }
 Export-ModuleMember -Function Request-AriaNetworksToken
 
+Function Request-AriaNetworksInternalApiToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token.
+
+        .DESCRIPTION
+        The Request-AriaNetworksInternalApiToken cmdlet connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-AriaNetworksInternalApiToken -fqdn xint-net01a.rainpole.io -username admin@local -password VMw@re1!
+        This example shows how to connect to the internal API.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Operations for Networks platform node which hosts the internal API.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $Global:ariaNetworksApplianceInternal = $fqdn
+        $Global:ariaNetworksHeaderInternal = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $uri = "https://$ariaNetworksApplianceInternal/api/auth/login"
+        $body = @{
+            username = $username
+            password = $password
+        } | ConvertTo-Json
+        $ariaNetworksResponseInternal = Invoke-WebRequest -Uri $uri -Method 'POST' -Headers $ariaNetworksHeaderInternal -Body $body -ContentType "application/json" -SkipCertificateCheck -SessionVariable session
+        if (!($ariaNetworksResponseInternal.Content | ConvertFrom-Json).status) {
+            Write-Error "Error logging into Internal API: $ariaNetworksApplianceInternal"
+        } else {
+            $responseContent = ConvertFrom-Json $ariaNetworksResponseInternal.Content
+            $token = $responseContent.csrfToken
+            $cookie = $session.Cookies.GetCookies("https://$ariaNetworksApplianceInternal")[0].Value
+            Write-Output "Successfully connected to VMware Aria Operations for Networks Internal API: $ariaNetworksApplianceInternal"
+        }
+        if ($token) {
+            $ariaNetworksHeaderInternal.Add("x-vrni-csrf-token", $token)
+            $ariaNetworksHeaderInternal.Add("Cookie", "VRNI-JSESSIONID=" + $cookie)
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-AriaNetworksInternalApiToken
+
 Function Get-AriaNetworksNodes {
     <#
         .SYNOPSIS
@@ -51859,6 +51921,97 @@ Function New-AriaNetworksNsxtDataSource {
     }
 }
 Export-ModuleMember -Function New-AriaNetworksNsxtDataSource
+
+Function New-AriaNetworksLdapConfiguration {
+    <#
+        .SYNOPSIS
+        Configure LDAP authentication in VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The New-AriaNetworksLdapConfiguration cmdlet allows a user to configure LDAP authentication in VMware Aria Operations for Networks to be able to log in to the application with an LDAP user.
+
+        .EXAMPLE
+        New-AriaNetworksLdapConfiguration -domain rainpole.io -url ldaps://rpl-ad01.rainpole.io:636 -username svc-inv-iam -password VMw@re1! -userBaseDN "dc=rainpole,dc=io" -memberDN "cn=gg-inv-members,ou=security groups,dc=rainpole,dc=io" -adminDN "cn=gg-inv-admins,ou=security groups,dc=rainpole,dc=io" -auditorDN "cn=gg-inv-auditors,ou=security groups,dc=rainpole,dc=io"
+        This example adds a new LDAP server in VMware Aria Operations for Networks with different active directory groups configured for allowing RBAC based on group membership.
+
+        .PARAMETER domain
+        The domain of the LDAP server.
+
+        .PARAMETER url
+        The url of the LDAP server.
+
+        .PARAMETER username
+        The username to use for authentication to the LDAP domain.
+
+        .PARAMETER password
+        The password to use for authentication to the LDAP domain.
+
+        .PARAMETER userBaseDN
+        The base distinguished name (DN) where the users reside in the LDAP domain.
+
+        .PARAMETER memberDN
+        The group distinguished name (DN) where the members of VMware Aria Operations for Networks reside in the LDAP domain.
+
+        .PARAMETER adminDN
+        The group distinguished name (DN) where the administrators of VMware Aria Operations for Networks reside in the LDAP domain.
+
+        .PARAMETER auditorDN
+        The group distinguished name (DN) where the auditors of VMware Aria Operations for Networks reside in the LDAP domain.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$url,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userBaseDN,
+		[Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$memberDN,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$adminDN,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$auditorDN
+    )
+
+    Try {
+        if ($ariaNetworksApplianceInternal) {
+            $uri = "https://$ariaNetworksApplianceInternal/api/auth/ldapConfiguration"
+
+            $member = New-Object System.Collections.ArrayList
+            [Array]$member = $memberDN
+            $admin = New-Object System.Collections.ArrayList
+            [Array]$admin = $adminDN
+            $auditor = New-Object System.Collections.ArrayList
+            [Array]$auditor = $auditorDN
+
+            $groupDNs = New-Object -TypeName psobject
+            $groupDNs | Add-Member -notepropertyname 'member' -notepropertyvalue $member
+            $groupDNs | Add-Member -notepropertyname 'admin' -notepropertyvalue $admin
+            $groupDNs | Add-Member -notepropertyname 'auditor' -notepropertyvalue $auditor
+
+            $ldapRealmConfig = New-Object -TypeName psobject
+            $ldapRealmConfig | Add-Member -notepropertyname 'url' -notepropertyvalue $url
+            $ldapRealmConfig | Add-Member -notepropertyname 'authenticationType' -notepropertyvalue "simple"
+            $ldapRealmConfig | Add-Member -notepropertyname 'systemUsername' -notepropertyvalue $username
+            $ldapRealmConfig | Add-Member -notepropertyname 'systemPassword' -notepropertyvalue $password
+            $ldapRealmConfig | Add-Member -notepropertyname 'userBaseDN' -notepropertyvalue $userBaseDN
+            $ldapRealmConfig | Add-Member -notepropertyname 'searchField' -notepropertyvalue "sAMAccountName"
+            $ldapRealmConfig | Add-Member -notepropertyname 'restrictedAccess' -notepropertyvalue $false
+            $ldapRealmConfig | Add-Member -notepropertyname 'groupDNs' -notepropertyvalue $groupDNs
+
+            $body = New-Object -TypeName psobject
+            $body | Add-Member -notepropertyname 'domain' -notepropertyvalue $domain
+            $body | Add-Member -notepropertyname 'type' -notepropertyvalue "LDAP_REALM"
+            $body | Add-Member -notepropertyname 'ldapRealmConfig' -notepropertyvalue $ldapRealmConfig
+
+            $jsonBody = $body | ConvertTo-Json -Depth 10
+
+            Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $ariaNetworksHeaderInternal -Body $jsonBody -ContentType "application/json" -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks Internal API, run Request-AriaNetworksInternalApiToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-AriaNetworksLdapConfiguration
 
 Function Update-AriaNetworksvCenterDataSourceCredentials {
     <#
