@@ -22577,7 +22577,7 @@ Function Add-AriaNetworksVcenterDataSource {
 
         .EXAMPLE
         Add-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
-        This example create a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
+        This example creates a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
@@ -51832,7 +51832,7 @@ Function New-AriaNetworksNsxtDataSource {
         This example adds a NSX Manager as a new data source in VMware Aria Operations for Networks by using a NSX principal identity user.
 
         .EXAMPLE
-        New-AriaNetworksNsxtDataSource -fqdn sfo-m01-nsx01.sfo.rainpole.io -username svc-inv-vsphere -password VMw@re1!VMw@re1! -nickname "sfo-m01-nsx01 - Management Domain NSX Manager" -CollectorId 15832:901:1711011916294613031 -enabled true
+        New-AriaNetworksNsxtDataSource -fqdn sfo-m01-nsx01.sfo.rainpole.io -username svc-inv-nsx -password VMw@re1!VMw@re1! -nickname "sfo-m01-nsx01 - Management Domain NSX Manager" -CollectorId 15832:901:1711011916294613031 -enabled true
         This example adds a NSX Manager as a new data source in VMware Aria Operations for Networks by using a NSX service account user with a password.
 
         .PARAMETER fqdn

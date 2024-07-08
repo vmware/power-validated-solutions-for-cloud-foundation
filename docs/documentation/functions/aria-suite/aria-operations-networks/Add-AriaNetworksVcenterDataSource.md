@@ -29,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-AriaNetworksVcenterDataSource -jsonFile .\invDeploySpec.json
 ```
 
-This example create a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
+This example creates a vCenter Server data source for each Workload Domain in the VMware Aria Operations for Networks instance using the JSON file provided.
 
 ## Parameters
 
