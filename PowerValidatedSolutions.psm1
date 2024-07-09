@@ -51595,6 +51595,50 @@ Function Request-AriaNetworksInternalApiToken {
 }
 Export-ModuleMember -Function Request-AriaNetworksInternalApiToken
 
+Function Request-AriaNetworksInternalApi {
+    <#
+        .SYNOPSIS
+        Send a request to the VMware Aria Operations for Networks Internal API endpoint.
+
+        .DESCRIPTION
+        The Request-AriaNetworksInternalApi cmdlet sends a request to the specified path on the VMware Aria Operations for Networks API.
+
+        .EXAMPLE
+        Request-AriaNetworksInternalApi -path "/infra/snmp" -method "GET"
+        This example sends a GET request to the "/infra/snmp" path on the Aria Operations for Networks Internal API.
+
+        .PARAMETER path
+        The path on the Aria Operations for Networks Internal API to send the request to.
+
+        .PARAMETER method
+        The HTTP method to use for the request.
+
+        .PARAMETER body
+        The body of the request, if applicable.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$path,
+        [Parameter (Mandatory = $true)] [ValidateSet("GET", "POST", "PUT", "DELETE")] [String]$method,
+        [Parameter (Mandatory = $false)] [Object]$body
+    )
+
+    Try {
+        if ($ariaNetworksAppliance) {
+            if ($method -in @("POST", "PUT") -and $body) {
+                Invoke-RestMethod -Uri "https://$ariaNetworksAppliance/api/$path" -Method $method -Body $body -Headers $ariaNetworksHeaderInternal -ContentType "application/json" -SkipCertificateCheck
+            } else {
+                Invoke-RestMethod -Uri "https://$ariaNetworksAppliance/api/$path" -Method $method -Headers $ariaNetworksHeaderInternal -ContentType "application/json" -SkipCertificateCheck
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks, run Request-AriaNetworksInternalApiToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-AriaNetworksInternalApi
+
 Function Get-AriaNetworksNodes {
     <#
         .SYNOPSIS
