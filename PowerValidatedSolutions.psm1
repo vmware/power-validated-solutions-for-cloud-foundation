@@ -51922,6 +51922,32 @@ Function New-AriaNetworksNsxtDataSource {
 }
 Export-ModuleMember -Function New-AriaNetworksNsxtDataSource
 
+Function Get-AriaNetworksLdapConfiguration {
+    <#
+        .SYNOPSIS
+        Get the LDAP configuration in VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Get-AriaNetworksLdapConfiguration cmdlet allows a user to get the LDAP configuration in VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Get-AriaNetworksLdapConfiguration
+        This example gets the LDAP configuration in VMware Aria Operations for Networks.
+    #>
+
+    Try {
+        if ($ariaNetworksApplianceInternal) {
+            $uri = "https://$ariaNetworksApplianceInternal/api/auth/ldapConfiguration"
+            Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $ariaNetworksHeaderInternal -ContentType "application/json" -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks Internal API, run Request-AriaNetworksInternalApiToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-AriaNetworksLdapConfiguration
+
 Function New-AriaNetworksLdapConfiguration {
     <#
         .SYNOPSIS

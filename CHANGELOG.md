@@ -25,6 +25,7 @@
 - Added `New-AriaNetworksNsxtDataSource` cmdlet to add a NSX Manager in VMware Aria Operations for Networks.
 - Added `Update-AriaNetworksvCenterDataSourceCredentials` cmdlet to update the credentials for a vCenter Server in VMware Aria Operations for Networks.
 - Added `Request-AriaNetworksInternalApiToken` cmdlet to connect to the Internal API in VMware Aria Operations for Networks.
+- Added `Get-AriaNetworksLdapConfiguration` cmdlet to get the LDAP configuration in VMware Aria Operations for Networks.
 - Added `New-AriaNetworksLdapConfiguration` cmdlet to configure the LDAP authentication in VMware Aria Operations for Networks.
 - Added `Update-AriaNetworksNsxtDataSourceCredentials` cmdlet to update the credentials for a NSX Manager in VMware Aria Operations for Networks.
 - Added `Test-PrereqStretchedCluster` cmdlet to check for the existence of the vSphere VM Group for stretched clusters.
