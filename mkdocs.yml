@@ -416,6 +416,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/Remove-AriaNetworksDataSource.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksInternalApiToken.md
+      - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksInternalApi.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksAuthentication.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksConnection.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
