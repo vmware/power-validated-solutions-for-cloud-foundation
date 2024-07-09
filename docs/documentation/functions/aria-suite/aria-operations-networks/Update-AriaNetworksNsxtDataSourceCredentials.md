@@ -9,15 +9,13 @@ Update credentials for a NSX Manager data source in VMware Aria Operations for N
 ### credentials (Default)
 
 ```powershell
-Update-AriaNetworksNsxtDataSourceCredentials -fqdn <String> -id <String> -collectorId <String>
- -nickname <String> [-username <String>] [-password <String>] [<CommonParameters>]
+Update-AriaNetworksNsxtDataSourceCredentials -fqdn <String> -id <String> -collectorId <String> -nickname <String> [-username <String>] [-password <String>] [<CommonParameters>]
 ```
 
 ### certificate
 
 ```powershell
-Update-AriaNetworksNsxtDataSourceCredentials -fqdn <String> -id <String> -collectorId <String>
- -nickname <String> [-certificate <String>] [-privatekey <String>] [<CommonParameters>]
+Update-AriaNetworksNsxtDataSourceCredentials -fqdn <String> -id <String> -collectorId <String> -nickname <String> [-certificate <String>] [-privatekey <String>] [<CommonParameters>]
 ```
 
 ## Description

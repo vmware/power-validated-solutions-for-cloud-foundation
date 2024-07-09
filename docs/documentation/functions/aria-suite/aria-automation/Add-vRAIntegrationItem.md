@@ -7,8 +7,7 @@ Add external systems to VMware Aria Automation
 ## Syntax
 
 ```powershell
-Add-vRAIntegrationItem [-integrationType] <String> [-integrationName] <String> [-integrationUser] <String>
- [-integrationPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRAIntegrationItem [-integrationType] <String> [-integrationName] <String> [-integrationUser] <String> [-integrationPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +18,7 @@ The `Add-vRAIntegrationItem` cmdlet adds external systems to VMware Aria Automat
 
 ### Example 1
 
-```powwershell
+```powershell
 Add-vRAIntegrationItem -integrationType "vrops" -integrationName "VMware Aria Operations" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
 ```
 

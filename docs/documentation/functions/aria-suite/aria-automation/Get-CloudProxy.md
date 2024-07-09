@@ -20,8 +20,7 @@ Get-CloudProxy -environment <String> [-region <String>] -type <String> [-ovaUrl]
 
 ## Description
 
-The `Get-CloudProxy` cmdlet connects to the VMware Cloud Service and either downloads the OVA or
-supplies the OVA link.
+The `Get-CloudProxy` cmdlet connects to the VMware Cloud Service and either downloads the OVA or supplies the OVA link.
 
 ## Examples
 

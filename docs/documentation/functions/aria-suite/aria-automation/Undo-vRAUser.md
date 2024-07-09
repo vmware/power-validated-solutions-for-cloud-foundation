@@ -7,15 +7,13 @@ Removes user access from an organization.
 ## Syntax
 
 ```powershell
-Undo-vRAUser [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-email] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRAUser [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-email] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-vRAUser` cmdlet removes user access in VMware Aria Automation.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details

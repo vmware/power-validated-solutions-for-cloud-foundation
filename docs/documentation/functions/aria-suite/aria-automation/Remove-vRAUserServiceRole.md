@@ -7,8 +7,7 @@ Remove the user service role.
 ## Syntax
 
 ```powershell
-Remove-vRAUserServiceRole [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String>
- [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAUserServiceRole [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

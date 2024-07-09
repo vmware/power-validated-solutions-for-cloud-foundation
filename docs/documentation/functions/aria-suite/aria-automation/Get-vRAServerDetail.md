@@ -12,8 +12,7 @@ Get-vRAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <Stri
 
 ## Description
 
-The `Get-vRAServerDetail` cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of VMware Aria Automation
-from SDDC Manager.
+The `Get-vRAServerDetail` cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of VMware Aria Automation from SDDC Manager.
 
 ## Examples
 

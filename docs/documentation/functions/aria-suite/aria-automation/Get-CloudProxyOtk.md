@@ -12,8 +12,7 @@ Get-CloudProxyOtk [-environment] <String> [-type] <String> [[-region] <String>] 
 
 ## Description
 
-The `Get-CloudProxyOtk` mdlet connects to the VMware Cloud Service and requests a One Time Key (OTK) which is
-used during the deployment of the OVA.
+The `Get-CloudProxyOtk` mdlet connects to the VMware Cloud Service and requests a One Time Key (OTK) which is used during the deployment of the OVA.
 
 ## Examples
 

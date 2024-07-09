@@ -7,20 +7,18 @@ Creates vSphere and NSX Cloud Accounts
 ## Syntax
 
 ```powershell
-New-vRACloudAccount [-server] <String> [-user] <String> [-pass] <String> [[-domain] <String>]
- [[-vraUser] <String>] [[-vraPass] <String>] [[-capabilityTab] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRACloudAccount [-server] <String> [-user] <String> [-pass] <String> [[-domain] <String>] [[-vraUser] <String>] [[-vraPass] <String>] [[-capabilityTab] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-vRACloudAccount` cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in VMware Aria
-Automation.
+The `New-vRACloudAccount` cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in VMware Aria Automation.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Automation
-- Retrives details from SDDC Manager for the vCenter Server and NSX Manager cluster
+- Retrieves details from SDDC Manager for the vCenter Server and NSX Manager cluster
 - Adds a Cloud Account for vCenter Server and NSX Manager cluster.
 
 ## Examples

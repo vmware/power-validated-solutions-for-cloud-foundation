@@ -7,14 +7,12 @@ Create VMware Aria Automation Deployment JSON specification
 ## Syntax
 
 ```powershell
-Export-vRAJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Export-vRAJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Export-vRAJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy VMware Aria Automation using VMware Aria Suite Lifecycle:
+The `Export-vRAJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook to deploy VMware Aria Automation using VMware Aria Suite Lifecycle:
 
 - Validates that the Planning and Preparation is available
 - Validates that network connectivity is available to VMware Aria Suite Lifecycle

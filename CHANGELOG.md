@@ -35,6 +35,7 @@
 - Added `Test-AriaNetworksAuthentication` cmdlet to test authentication with a VMware Aria Operations for Networks instance.
 - Added `Add-AriaNetworksVcenterDataSource` cmdlet to add vCenter Server data sources to a VMware Aria Operations for Networks instance.
 - Added `Undo-AriaNetworksVcenterDataSource` cmdlet to remove vCenter Server data sources from a VMware Aria Operations for Networks instance.
+- Added `Undo-vRSLCMLoadBalancer` cmdlet to remove a load balancer from VMware Aria Suite Lifecycle.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
 - Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
@@ -42,6 +43,10 @@
 - Fixed `Get-vRAIntegrationDetail` cmdlet where by it was passing output incorrectly.
 - Fixed `Export-WsaJsonSpec` cmdlet where the cluster IP was being used for the database IP.
 - Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where incorrect message output was being displayed.
+- Fixed `Invoke-IomDeployment` cmdlet where it was always using Node A of Workspace ONE Access and not the load balancer when configuring group access.
+- Fixed `Invoke-PcaDeployment` cmdlet where it was always using Node A of Workspace ONE Access and not the load balancer when configuring group access.
+- Fixed `Invoke-GlobalWsaDeployment` cmdlet when standard deployment is selected the cluster FQDN should be used and not Node A for Workspace ONE Access.
+- Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where an error is thrown when the datacenter object is already moved, should handle the scenario cleanly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.

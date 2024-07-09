@@ -7,8 +7,7 @@ Adds a user in an organization.
 ## Syntax
 
 ```powershell
-New-vRAUser [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-orgRole] <String>
- [[-serviceRole] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRAUser [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-orgRole] <String> [[-serviceRole] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `New-vRAUser` cmdlet adds a user in VMware Aria Automation.
 New-vRAUser [-userId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-orgRole] <String> -serviceRole $serviceRole
 ```
 
-This example adds a user to VMware Aria Automation by userId and orgId and assisgnes the required orgRole and serviceRole.
+This example adds a user to VMware Aria Automation by userId and orgId and assigns the required orgRole and serviceRole.
 
 ## Parameters
 

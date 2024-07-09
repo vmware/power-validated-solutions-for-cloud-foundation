@@ -7,21 +7,17 @@ Deploy VMware Aria Operations for Networks using VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-New-AriaNetworksDeployment -server <String> -user <String> -pass <String> -jsonFile <String>
-[-monitor] [-nested] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>]
-[-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-AriaNetworksDeployment -server <String> -user <String> -pass <String> -jsonFile <String> [-monitor] [-nested] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-AriaNetworksDeployment` cmdlet deploys VMware Aria Operations for Networks via VMware Aria
-Suite Lifecycle.
+The `New-AriaNetworksDeployment` cmdlet deploys VMware Aria Operations for Networks via VMware Aria Suite Lifecycle.
 
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its
-  details
+- Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
 - Requests a new deployment of VMware Aria Operations for Networks via VMware Aria Suite Lifecycle

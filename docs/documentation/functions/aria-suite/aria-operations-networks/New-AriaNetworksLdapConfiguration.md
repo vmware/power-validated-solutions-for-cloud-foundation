@@ -7,14 +7,12 @@ Configure LDAP authentication in VMware Aria Operations for Networks.
 ## Syntax
 
 ```powershell
-New-AriaNetworksLdapConfiguration [-domain] <String> [-url] <String> [-username] <String> [-password] <String>
- [-userBaseDN] <String> [[-memberDN] <String>] [[-adminDN] <String>] [[-auditorDN] <String>]
- [<CommonParameters>]
+New-AriaNetworksLdapConfiguration [-domain] <String> [-url] <String> [-username] <String> [-password] <String> [-userBaseDN] <String> [[-memberDN] <String>] [[-adminDN] <String>] [[-auditorDN] <String>] [<CommonParameters>]
 ```
 
 ## Description
 
-The New-AriaNetworksLdapConfiguration cmdlet allows a user to configure LDAP authentication in VMware Aria Operations for Networks to be able to log in to the application with an LDAP user.
+The `New-AriaNetworksLdapConfiguration` cmdlet allows a user to configure LDAP authentication in VMware Aria Operations for Networks to be able to log in to the application with an LDAP user.
 
 ## Examples
 

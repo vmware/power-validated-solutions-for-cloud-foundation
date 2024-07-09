@@ -21,3 +21,5 @@ The `Get-vRAAPIVersion` cmdlet returns the latest version of the API.
 ```powershell
 Get-vRAAPIVersion
 ```
+
+The example retrieves the API version of VMware Aria Automation.

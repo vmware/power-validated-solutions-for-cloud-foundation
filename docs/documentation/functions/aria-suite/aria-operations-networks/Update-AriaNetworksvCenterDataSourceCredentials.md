@@ -13,9 +13,7 @@ Update-AriaNetworksvCenterDataSourceCredentials [-id] <String> [-collectorId] <S
 
 ## Description
 
-The `Update-AriaNetworksvCenterDataSourceCredentials` cmdlet allows a user to
-update credentials for a vCenter Server data source in VMware Aria Operations
-for Networks.
+The `Update-AriaNetworksvCenterDataSourceCredentials` cmdlet allows a user to update credentials for a vCenter Server data source in VMware Aria Operations for Networks.
 
 ## Examples
 
@@ -25,8 +23,7 @@ for Networks.
 Update-AriaNetworksvCenterDataSourceCredentials -id 15832:902:2623605245375371420 -CollectorId 15832:901:1711011916294613031 -fqdn sfo-m01-vc01.sfo.rainpole.io -username svc-inv-vsphere -password VMw@re1! -nickname "sfo-m01-vc01 - Management Domain vCenter Server"
 ```
 
-This example updates a configured vCenter Server with updated credentials as
-supplied in VMware Aria Operations for Networks.
+This example updates a configured vCenter Server with updated credentials as supplied in VMware Aria Operations for Networks.
 
 ### -id
 
@@ -127,8 +124,5 @@ Accept wildcard characters: False
 
 ### Common Parameters
 
-This cmdlet supports the common parameters: `-Debug`, `-ErrorAction`,
-`-ErrorVariable`, `-InformationAction`, `-InformationVariable`, `-OutVariable`,
-`-OutBuffer`, `-PipelineVariable`, `-Verbose`, `-WarningAction`, and
-`-WarningVariable`. For more information, see
-[about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: `-Debug`, `-ErrorAction`, `-ErrorVariable`, `-InformationAction`, `-InformationVariable`, `-OutVariable`,
+`-OutBuffer`, `-PipelineVariable`, `-Verbose`, `-WarningAction`, and `-WarningVariable`. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).

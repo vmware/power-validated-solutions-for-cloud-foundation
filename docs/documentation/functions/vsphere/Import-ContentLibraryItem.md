@@ -1,34 +1,34 @@
-# Set-vRAGroupServiceRole
+# Import-ContentLibraryItem
 
 ## Synopsis
 
-Set the group service role.
+Import an item to a vSphere content library
 
 ## Syntax
 
 ```powershell
-Set-vRAGroupServiceRole [-groupId] <String> [-orgId] <String> [-serviceDefinitionId] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-ContentLibraryItem [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-contentLibrary] <String> [-file] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRAGroupServiceRole` cmdlet adds a group's service role in VMware Aria Automation.
+The `Import-ContentLibraryItem` cmdlet imports an item into a vSphere content library.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Set-vRAGroupServiceRole -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
+Import-ContentLibraryItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -contentLibrary Operations -file <file_name>
 ```
 
-This example adds the group to a service role in VMware Aria Automation by groupId and orgId.
+This example configures Private Cloud Automation using the JSON specification provided.
 
-## Parameters
+## PARAMETERS
 
-### -groupId
+### -server
 
-The group id to be added.
+The fully qualified domain name of the SDDC Manager.
 
 ```yaml
 Type: String
@@ -42,9 +42,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -orgId
+### -user
 
-The organization id to be added.
+The username to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String
@@ -58,9 +58,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -serviceDefinitionId
+### -pass
 
-The service definition id to be added.
+The password to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String
@@ -74,10 +74,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -serviceRole
+### -domain
 
-The service role to be added.
-Valid values are automationservice:cloud_admin, automationservice:user, automationservice:viewer, catalog:admin, catalog:user, catalog:viewer, CodeStream:administrator, CodeStream:developer, CodeStream:executor, CodeStream:user, CodeStream:viewer, migration:admin, migration:viewer, orchestration:admin, orchestration:designer, orchestration:viewer, saltstack:admin.
+The name of the workload Domain.
 
 ```yaml
 Type: String
@@ -91,17 +90,33 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ProgressAction
+### -contentLibrary
 
-Progress Action
+The name of the vSphere content library.
 
 ```yaml
-Type: ActionPreference
+Type: String
 Parameter Sets: (All)
-Aliases: proga
+Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 5
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -file
+
+The name of the file to import.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

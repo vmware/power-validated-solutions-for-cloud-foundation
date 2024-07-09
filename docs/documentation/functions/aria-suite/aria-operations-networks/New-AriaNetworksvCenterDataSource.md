@@ -7,8 +7,7 @@ Add a new vCenter Server data source to VMware Aria Operations for Networks.
 ## Syntax
 
 ```powershell
-New-AriaNetworksvCenterDataSource [-fqdn] <String> [-username] <String> [-password] <String>
- [-nickname] <String> [-collectorId] <String> [-enabled] <String> [<CommonParameters>]
+New-AriaNetworksvCenterDataSource [-fqdn] <String> [-username] <String> [-password] <String> [-nickname] <String> [-collectorId] <String> [-enabled] <String> [<CommonParameters>]
 ```
 
 ## Description

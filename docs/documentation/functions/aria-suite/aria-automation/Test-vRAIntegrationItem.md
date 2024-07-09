@@ -7,8 +7,7 @@ Test an Integration Item in VMware Aria Automation
 ## Syntax
 
 ```powershell
-Test-vRAIntegrationItem [-integrationType] <String> [-integrationName] <String> [-integrationUser] <String>
- [-integrationPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vRAIntegrationItem [-integrationType] <String> [-integrationName] <String> [-integrationUser] <String> [-integrationPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,13 +7,12 @@ Add notification configuration
 ## Syntax
 
 ```powershell
-New-vRANotification -name <String> -serverName <String> -emailAddress <String> -sender <String>
- -trustCert <String> -connection <String> -authentication <String> [-userName <String>] [-password <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRANotification -name <String> -serverName <String> -emailAddress <String> -sender <String> -trustCert <String> -connection <String> -authentication <String> [-userName <String>] [-password <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-vRANotification` cmdlet adds the notification configuation in VMware Aria Automation.
+The `New-vRANotification` cmdlet adds the notification configuration in VMware Aria Automation.
 
 ## Examples
 

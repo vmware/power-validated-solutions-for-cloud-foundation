@@ -7,8 +7,7 @@ Adds notification settings in VMware Aria Automation
 ## Syntax
 
 ```powershell
-Add-vRANotification [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String>
- [-vraPass] <String> [-smtpServer] <String> [-emailAddress] <String> [-sender] <String> [-connection] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRANotification [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-smtpServer] <String> [-emailAddress] <String> [-sender] <String> [-connection] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

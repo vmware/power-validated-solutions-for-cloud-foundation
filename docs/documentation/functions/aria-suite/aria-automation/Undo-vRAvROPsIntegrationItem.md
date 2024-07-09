@@ -7,8 +7,7 @@ Deletes VMware Aria Operations from VMware Aria Automation
 ## Syntax
 
 ```powershell
-Undo-vRAvROPsIntegrationItem [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String>
- [-vraPass] <String> [-vropsIntegrationName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRAvROPsIntegrationItem [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [-vropsIntegrationName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

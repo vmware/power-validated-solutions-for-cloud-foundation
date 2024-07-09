@@ -7,14 +7,12 @@ Remove the VMware Aria Automation from VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-Undo-vRADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>]
- [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>] [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-vRADeployment` cmdlet removes VMware Aria Automation from VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
