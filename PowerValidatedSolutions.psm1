@@ -17008,6 +17008,9 @@ Function Export-IomJsonSpec {
                 'smtpAuthUser'                        = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
                 'smtpAuthPass'                        = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
                 'senderAddress'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
+                'notificationInterval'                = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value
+                'notificationMax'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value
+                'notificationDelay'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value
                 'operationsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
                 'operationsContentAdminGroup'         = $pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
                 'operationsReadOnlyGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
@@ -17330,13 +17333,13 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Assigning SDDC Manager Role to a Service Account"
+                                            Show-PowerValidatedSolutionsOutput -message "Assigning SDDC Manager Role to a Service Account for $solutionName"
                                             $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountOperationsVcf -role ADMIN -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in vSphere"
+                                            Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in vSphere for $solutionName"
                                             foreach ($sddcDomain in $allWorkloadDomains) {
                                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                                     $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameOperations -template $operationsVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17346,7 +17349,7 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for vSphere Integration"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for vSphere Integration for $solutionName"
                                             foreach ($sddcDomain in $allWorkloadDomains) {
                                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                                     $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal ($jsonInput.serviceAccountOperationsVsphere.Split('@'))[-0] -role $jsonInput.vsphereRoleNameOperations -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17356,7 +17359,7 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folders for $operationsProductName Appliances"
+                                            Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folders for $operationsProductName Appliances for $solutionName"
                                             $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17364,7 +17367,7 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration"
+                                            Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration for $solutionName"
                                             foreach ($sddcDomain in $allWorkloadDomains) {
                                                 Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration for Workload Domain ($($sddcDomain.name))"
                                                 $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-iom-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -outputPath $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17373,19 +17376,19 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding $operationsProductName License to $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Adding $operationsProductName License to $lcmProductName for $solutionName"
                                             $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $operationsProductName to $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Importing the Certificate for $operationsProductName to $lcmProductName for $solutionName"
                                             $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $operationsPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Passwords to $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Passwords to $lcmProductName for $solutionName"
                                             $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -password $jsonInput.rootPassword -userName $jsonInput.rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -password $jsonInput.xintPassword -userName $jsonInput.xintUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17393,7 +17396,7 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Deploying $operationsProductName Using $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Deploying $operationsProductName Using $lcmProductName for $solutionName"
                                             if ($PsBoundParameters.ContainsKey("nested")) {
                                                 $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -nested -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             } elseif ($PsBoundParameters.ContainsKey("nested") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
@@ -17408,18 +17411,18 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Activating Data Persistence on VMware Cloud Proxy Appliances for the $operationsProductName Virtual Machines"
+                                            Show-PowerValidatedSolutionsOutput -message "Activating Data Persistence on VMware Cloud Proxy Appliances for the $operationsProductName Virtual Machines for $solutionName"
                                             Show-PowerValidatedSolutionsOutput -type NOTE -message "NO AUTOMATION DUE TO MISSING API"
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring vSphere DRS Anti-Affinity Rules for the $operationsProductName Appliances"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring vSphere DRS Anti-Affinity Rules for the $operationsProductName Appliances for $solutionName"
                                             $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameProxies -antiAffinityVMs $jsonInput.vmListProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a VM Group and Define the Startup Order of the $operationsProductName Analytics Appliances"
+                                            Show-PowerValidatedSolutionsOutput -message "Creating a VM Group and Define the Startup Order of the $operationsProductName Analytics Appliances for $solutionName"
                                             $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameOperations -drsGroupVMs $jsonInput.vmListOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-VmStartupRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameWsa -vmGroup $jsonInput.drsGroupNameOperations -dependOnVmGroup $jsonInput.drsGroupNameIdentity -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17427,7 +17430,7 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating a VM Group and Define the Startup Order of the $operationsProductName Cloud Proxy Appliances"
+                                            Show-PowerValidatedSolutionsOutput -message "Creating a VM Group and Define the Startup Order of the $operationsProductName Cloud Proxy Appliances for $solutionName"
                                             $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameProxies -drsGroupVMs $jsonInput.vmListProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-VmStartupRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.vmToVmRuleNameOperations -vmGroup $jsonInput.drsGroupNameProxies -dependOnVmGroup $jsonInput.drsGroupNameOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17436,38 +17439,38 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Appliances to the First Availability Zone VM Group"
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $operationsProductName Appliances to the First Availability Zone VM Group for $solutionName"
                                                 $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmListAll -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $operationsProductName in Workspace ONE Access"
+                                            Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $operationsProductName in Workspace ONE Access for $solutionName"
                                             $StatusMsg = Add-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Grouping the VMware Cloud Proxy Appliances"
+                                            Show-PowerValidatedSolutionsOutput -message "Grouping the VMware Cloud Proxy Appliances for $solutionName"
                                             $StatusMsg = Add-vROPSGroupRemoteCollectors -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Email Alert Plug-in Settings for $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Email Alert Plug-in Settings for $operationsProductName for $solutionName"
                                             $StatusMsg = Add-vROPSAlertPluginEmail -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -pluginName $jsonInput.alertPluginInstanceName -smtpServer $jsonInput.smtpServer -smtpPort $jsonInput.smtpPort -senderAddress $jsonInput.senderAddress -secureConnection true -protocol TLS -authentication false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Setting the Currency for Cost Calculation in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Setting the Currency for Cost Calculation in $operationsProductName for $solutionName"
                                             $StatusMsg = Add-vROPSCurrency -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -currency $jsonInput.currency -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring User Access in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring User Access in $operationsProductName for $solutionName"
                                             $StatusMsg = Import-vROPSUserGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -groupName $jsonInput.operationsAdminGroup -role Administrator -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Import-vROPSUserGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -groupName $jsonInput.operationsContentAdminGroup -role ContentAdmin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17477,19 +17480,19 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Removing Existing vCenter Server Adapter in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Removing Existing vCenter Server Adapter in $operationsProductName for $solutionName"
                                             $StatusMsg = Remove-OperationsDefaultAdapter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Activating the VMware Cloud Foundation Integration in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Activating the VMware Cloud Foundation Integration in $operationsProductName for $solutionName"
                                             $StatusMsg = Register-vROPSManagementPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -state enable -packType VCF -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring Credentials for SDDC Components in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Credentials for SDDC Components in $operationsProductName for $solutionName"
                                             $StatusMsg = Add-vROPSVcfCredential -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -serviceUser ($jsonInput.serviceAccountOperationsVcf + "@" + $jsonInput.domainFqdn) -servicePassword $jsonInput.serviceAccountOperationsVcfPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             foreach ($sddcDomain in $allWorkloadDomains) {
@@ -17505,25 +17508,25 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring the VMware Cloud Foundation Integration in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring the VMware Cloud Foundation Integration in $operationsProductName for $solutionName"
                                             $StatusMsg = Add-vROPSAdapterVcf -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Activating the VMware Infrastructure Health Integration in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Activating the VMware Infrastructure Health Integration in $operationsProductName for $solutionName"
                                             $StatusMsg = Register-vROPSManagementPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -state enable -packType VMwareInfrastructureHealth -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Activating the Ping Integration in $operationsProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Activating the Ping Integration in $operationsProductName for $solutionName"
                                             $StatusMsg = Register-vROPSManagementPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -state enable -packType Ping -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding Ping Adapters for the $operationsProductName Nodes"
+                                            Show-PowerValidatedSolutionsOutput -message "Adding Ping Adapters for the $operationsProductName Nodes for $solutionName"
                                             $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipListOperations -adapterName $jsonInput.pingAdapterNameOperations -collectorGroupName $jsonInput.defaultCollectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipListProxies -adapterName $jsonInput.pingAdapterNameProxies -collectorGroupName $jsonInput.collectorGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -17531,13 +17534,13 @@ Function Invoke-IomDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Adding Ping Adapters for the Clustered Workspace ONE Access"
+                                            Show-PowerValidatedSolutionsOutput -message "Adding Ping Adapters for the Clustered Workspace ONE Access for $solutionName"
                                             $StatusMsg = Add-vROPSAdapterPing -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -addressList $jsonInput.ipListIdentity -adapterName $jsonInput.pingAdapterNameIdentity -collectorGroupName $jsonInput.defaultCollectorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Creating Notifications in $operationsProductName for VMware Cloud Foundation Issues"
+                                            Show-PowerValidatedSolutionsOutput -message "Creating Notifications in $operationsProductName for VMware Cloud Foundation Issues for $solutionName"
                                             $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonPath $operationsNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
@@ -20686,7 +20689,7 @@ Function Import-vROPSNotification {
         - Adds notifications based on a .json file into VMware Aria Operations
 
         .EXAMPLE
-        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
+        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io -notificationInterval 15 -notificationMax 3 -notificationDelay 15
         This example adds notifications based on the comma separated value file provided to VMware Aria Operations.
 
         .PARAMETER server
@@ -20706,6 +20709,15 @@ Function Import-vROPSNotification {
 
         .PARAMETER emailAddress
         The email address to be configured on the alert.
+
+        .PARAMETER notificationInterval
+        The interval to resend the email if the alert has not been resolved (in minutes).
+
+        .PARAMETER notificationMax
+        The maximum number of emails to send if the alert has not been resolved.
+
+        .PARAMETER notificationDelay
+        The time to wait before sending an email if the alert has not been resolved (in minutes).
     #>
 
     Param (
@@ -20714,7 +20726,10 @@ Function Import-vROPSNotification {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertPluginName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationInterval,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationMax,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationDelay
     )
 
     if (!$PsBoundParameters.ContainsKey("jsonPath")) {
@@ -20728,7 +20743,7 @@ Function Import-vROPSNotification {
                     if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                         if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                             if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                $StatusMsg = New-vROPSNotification $jsonPath -alertPluginName $alertPluginName -emailAddress $emailAddress -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = New-vROPSNotification $jsonPath -alertPluginName $alertPluginName -emailAddress $emailAddress -notificationInterval $notificationInterval -notificationMax $notificationMax -notificationDelay $notificationDelay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 if ( $ErrorMsg ) {
                                     Write-Error "$ErrorMsg"
                                 } else {
@@ -49995,7 +50010,7 @@ Function New-vROPSNotification {
         The New-vROPSNotification cmdlet creates notifications in VMware Aria Operations
 
         .EXAMPLE
-        New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
+        New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io -notificationInterval 15 -notificationMax 3 -notificationDelay 15
         This example adds all the notifications in the json file to VMware Aria Operations using an email based alert plugin.
 
         .PARAMETER jsonPath
@@ -50006,12 +50021,24 @@ Function New-vROPSNotification {
 
         .PARAMETER emailAddress
         The email address to be configured on the alert.
+
+        .PARAMETER notificationInterval
+        The interval to resend the email if the alert has not been resolved (in minutes).
+
+        .PARAMETER notificationMax
+        The maximum number of emails to send if the alert has not been resolved.
+
+        .PARAMETER notificationDelay
+        The time to wait before sending an email if the alert has not been resolved (in minutes).
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertPluginName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationInterval,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationMax,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationDelay
     )
 
     Try {
@@ -50022,6 +50049,9 @@ Function New-vROPSNotification {
                 $templateAlerts = (Get-Content -path $jsonPath -Raw)
                 $templateAlerts = $templateAlerts -replace '!!plugInName!!', $alertPluginName
                 $templateAlerts = $templateAlerts -replace '!!email!!', $emailAddress
+                $templateAlerts = $templateAlerts -replace '!!notificationInterval!!', $notificationInterval
+                $templateAlerts = $templateAlerts -replace '!!notificationMax!!', $notificationMax
+                $templateAlerts = $templateAlerts -replace '!!notificationDelay!!', $notificationDelay
                 [Array]$alerts = $templateAlerts | ConvertFrom-Json
             }
         }

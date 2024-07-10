@@ -5,9 +5,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "One or more virtual machine guest file systems are running out of disk space"
     },
     {
@@ -16,9 +16,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Virtual machine has CPU contention due to multi-vCPU scheduling issues (co-stop) caused by too many vCPUs"
     },
     {
@@ -27,9 +27,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationInterval!!",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Virtual machine has CPU contention due to memory page swapping in the host"
     },
     {
@@ -38,9 +38,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Virtual machine has memory contention caused by swap wait and high disk read latency"
     },
     {
@@ -49,9 +49,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Virtual machine has disk I/O latency problem caused by snapshots"
     },
     {
@@ -60,9 +60,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Virtual machine has CPU contention due to multi-vCPU scheduling issues (co-stop) caused by snapshots"
     },
     {
@@ -71,9 +71,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Not enough resources for vSphere HA to start the virtual machine"
     },
     {
@@ -82,9 +82,9 @@
         "resourceKindKey": "VirtualMachine",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "vSphere HA cannot perform a failover operation for the virtual machine"
     },
     {
@@ -93,9 +93,9 @@
         "resourceKindKey": "HostSystem",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Standalone host has CPU contention caused by overpopulation of virtual machines"
     },
     {
@@ -104,9 +104,9 @@
         "resourceKindKey": "HostSystem",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Standalone host has memory contention caused by overpopulation of virtual machines"
     },
     {
@@ -115,9 +115,9 @@
         "resourceKindKey": "ClusterComputeResource",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Fully-automated DRS-enabled cluster has CPU contention caused by overpopulation of virtual machines"
     },
     {
@@ -126,9 +126,9 @@
         "resourceKindKey": "ClusterComputeResource",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Fully-automated DRS-enabled cluster has high CPU workload"
     },
     {
@@ -137,9 +137,9 @@
         "resourceKindKey": "ClusterComputeResource",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Fully-automated DRS-enabled cluster has memory contention caused by overpopulation of virtual machines"
     },
     {
@@ -148,9 +148,9 @@
         "resourceKindKey": "ClusterComputeResource",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Fully-automated DRS-enabled cluster has high memory workload and contention"
     },
     {
@@ -159,9 +159,9 @@
         "resourceKindKey": "ClusterComputeResource",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "vSphere HA fail over resources are insufficient"
     },
     {
@@ -170,9 +170,9 @@
         "resourceKindKey": "VmwareDistributedVirtualSwitch",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Distributed switch configuration is out of sync"
     },
     {
@@ -181,9 +181,9 @@
         "resourceKindKey": "ManagementCluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Management cluster's management status is not stable"
     },
     {
@@ -192,9 +192,9 @@
         "resourceKindKey": "ControllerCluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Less than 3 controller nodes are deployed"
     },
     {
@@ -203,9 +203,9 @@
         "resourceKindKey": "LoadBalancerService",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Load Balancer Service operational status down"
     },
     {
@@ -214,9 +214,9 @@
         "resourceKindKey": "Datastore",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Datastore is running out of disk space"
     },
     {
@@ -225,9 +225,9 @@
         "resourceKindKey": "Datastore",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Datastore has lost connectivity to a storage device"
     },
     {
@@ -236,9 +236,9 @@
         "resourceKindKey": "VirtualSANDCCluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "After one additional host failure, vSAN Cluster will not have enough resources to rebuild all objects"
     },
     {
@@ -247,9 +247,9 @@
         "resourceKindKey": "VirtualSANDCCluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Overall health of vSAN objects is reporting issues"
     },
     {
@@ -258,9 +258,9 @@
         "resourceKindKey": "VirtualSANDCCluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "vSAN Cluster flash read cache reservation is approaching capacity"
     },
     {
@@ -269,9 +269,9 @@
         "resourceKindKey": "vC-Ops-Node",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "One or more vRealize Operations services on a node are down"
     },
     {
@@ -280,9 +280,9 @@
         "resourceKindKey": "vC-Ops-Node",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Disk space on a vRealize Operations Manager node is low"
     },
     {
@@ -291,9 +291,9 @@
         "resourceKindKey": "vC-Ops-Node",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Node processing queue is backing up"
     },
     {
@@ -302,9 +302,9 @@
         "resourceKindKey": "vC-Ops-Fsdb",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "FSDB failed to repair corrupted files"
     },
     {
@@ -313,9 +313,9 @@
         "resourceKindKey": "vC-Ops-Fsdb",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "FSDB high load"
     },
     {
@@ -324,9 +324,9 @@
         "resourceKindKey": "vC-Ops-Analytics",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Number of Objects being monitored by this vRealize Operations Manager node exceeds the configured limit. Possible loss of data"
     },
     {
@@ -335,9 +335,9 @@
         "resourceKindKey": "vC-Ops-Remote-Collector",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "One or more vRealize Operations services on a remote collector are down"
     },
     {
@@ -346,9 +346,9 @@
         "resourceKindKey": "vC-Ops-Remote-Collector",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "Remote Collector not reporting correct number of services"
     },
     {
@@ -357,9 +357,9 @@
         "resourceKindKey": "vC-Ops-Cluster",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "3",
-        "delay": "15",
-        "resend": "15",
+        "maxNotify": "!!notificationMax!!'",
+        "delay": "!!notificationDelay!!",
+        "resend": "!!notificationInterval!!",
         "alertName": "vRealize Operations Cluster processes may not have enough memory"
     }
 ]
