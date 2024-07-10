@@ -61,8 +61,8 @@
 - Enhanced `Export-PdrJsonSpec` cmdlet to include additional details for Anti-Affinity rule and Startup Group configuration in the recovery instance.
 - Enhanced `Invoke-PdrDeployment` cmdlet to perform recovery instance configuration tasks.
 - Enhanced `Invoke-UndoPdrDeployment` cmdlet to perform the removal of recovery instance configuration tasks.
-- Enhanced `New-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
-- Enhanced `Import-vROPSNotification` cmdlet to consume a JSON file and pass in -alertPluginName and -emailAddress parameters.
+- Enhanced `New-vROPSNotification` cmdlet to consume a JSON file and pass new parameters.
+- Enhanced `Import-vROPSNotification` cmdlet to consume a JSON file and pass new parameters.
 - Enhanced `Invoke-DriDeployment` cmdlet to support v1.26 for Tanzu distribution.
 - Enhanced `Export-GlobalWsaJsonSpec` cmdlet to include the export from Planning and Preparations Workbook the Workspace ONE Access database IP.
 - Enhanced `Register-vROPSManagementPack` cmdlet to handle the new VCFDiagnostics management pack in VMware Aria Operations.

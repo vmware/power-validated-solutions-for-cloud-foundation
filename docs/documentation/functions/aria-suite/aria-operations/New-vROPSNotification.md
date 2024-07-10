@@ -4,22 +4,22 @@
 
 Create notifications in VMware Aria Operations.
 
-## SYNTAX
+## Syntax
 
-```powershell
-New-vROPSNotification [-jsonPath] <String> [-alertPluginName] <String> [-emailAddress] <String> [<CommonParameters>]
+```
+New-vROPSNotification [-jsonPath] <String> [-alertPluginName] <String> [-emailAddress] <String> [-notificationInterval] <String> [-notificationMax] <String> [-notificationDelay] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-vROPSNotification` cmdlet creates notifications in VMware Aria Operations.
+The `New-vROPSNotification` cmdlet creates notifications in VMware Aria Operations
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io
+New-vROPSNotification -jsonPath .\SampleNotifications\aria-operations-notifications-vcf.json -alertPluginName Email-Alert-Plugin -emailAddress administrator@rainpole.io -notificationInterval 15 -notificationMax 3 -notificationDelay 15
 ```
 
 This example adds all the notifications in the json file to VMware Aria Operations using an email based alert plugin.
@@ -69,6 +69,54 @@ Aliases:
 
 Required: True
 Position: 3
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -notificationInterval
+
+The interval to resend the email if the alert has not been resolved (in minutes).
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -notificationMax
+
+The maximum number of emails to send if the alert has not been resolved.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 5
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -notificationDelay
+
+The time to wait before sending an email if the alert has not been resolved (in minutes).
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
