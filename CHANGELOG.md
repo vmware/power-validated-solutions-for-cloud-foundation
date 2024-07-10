@@ -66,6 +66,7 @@
 - Enhanced `Invoke-DriDeployment` cmdlet to support v1.26 for Tanzu distribution.
 - Enhanced `Export-GlobalWsaJsonSpec` cmdlet to include the export from Planning and Preparations Workbook the Workspace ONE Access database IP.
 - Enhanced `Register-vROPSManagementPack` cmdlet to handle the new VCFDiagnostics management pack in VMware Aria Operations.
+- Enhanced `Invoke-GlobalWsaDeployment` cmdlet to ensure that the Workspace ONE Access identity provider is referencing the cluster FQDN.
 - Converted `aria-operations-notifications-vcf.csv` to 'aria-operations-notifications-vcf.json'.
 - Converted `aria-operations-notifications-srm.csv' to 'aria-operations-notifications-srm.json'.
 
