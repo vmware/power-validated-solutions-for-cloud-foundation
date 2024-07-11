@@ -28,11 +28,13 @@
 - Added `Request-AriaNetworksInternalApi` cmdlet to send a request to an internal API endpoint in VMware Aria Operations for Networks.
 - Added `Get-AriaNetworksLdapConfiguration` cmdlet to get the LDAP configuration in VMware Aria Operations for Networks.
 - Added `New-AriaNetworksLdapConfiguration` cmdlet to configure the LDAP authentication in VMware Aria Operations for Networks.
+- Added `Remove-AriaNetworksLdapConfiguration` cmdlet to remove a LDAP configuration in VMware Aria Operations for Networks.
 - Added `Update-AriaNetworksNsxtDataSourceCredentials` cmdlet to update the credentials for a NSX Manager in VMware Aria Operations for Networks.
 - Added `Test-PrereqStretchedCluster` cmdlet to check for the existence of the vSphere VM Group for stretched clusters.
 - Added `Undo-SsoUser` cmdlet to support removing a user from vCenter Single Sign-On.
 - Added `Test-AriaNetworksConnection` cmdlet to test network connectivity with a VMware Aria Operations for Networks instance.
 - Added `Test-AriaNetworksAuthentication` cmdlet to test authentication with a VMware Aria Operations for Networks instance.
+- Added `Test-AriaNetworksInternalAuthentication` cmdlet to test authentication with the internal API for a VMware Aria Operations for Networks instance.
 - Added `Add-AriaNetworksVcenterDataSource` cmdlet to add vCenter Server data sources to a VMware Aria Operations for Networks instance.
 - Added `Undo-AriaNetworksVcenterDataSource` cmdlet to remove vCenter Server data sources from a VMware Aria Operations for Networks instance.
 - Added `Undo-vRSLCMLoadBalancer` cmdlet to remove a load balancer from VMware Aria Suite Lifecycle.
