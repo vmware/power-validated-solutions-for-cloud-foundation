@@ -5,7 +5,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group is Not Configured Affecting the Risk for the System"
@@ -16,7 +16,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group is Not Configured Affecting the Health Status of the System"
@@ -27,7 +27,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Partially Recovered Affecting the Risk for the System"
@@ -38,7 +38,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Partially Recovered Affecting the Health Status of the System"
@@ -49,7 +49,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Recovering Affecting the Risk for the System"
@@ -60,7 +60,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Recovering Affecting the Health Status of the System"
@@ -71,7 +71,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Testing Affecting the Risk for the System"
@@ -82,7 +82,7 @@
         "resourceKindKey": "Protection Groups",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Protection Group Is Testing Affecting the Health Status of the System"
@@ -93,7 +93,7 @@
         "resourceKindKey": "Recovery Plans",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Recovery Plan Has Errors Affecting the Risk for the System"
@@ -104,7 +104,7 @@
         "resourceKindKey": "Recovery Plans",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Recovery Plan Has Errors Affecting the Health Status of the System"
@@ -115,7 +115,7 @@
         "resourceKindKey": "Recovery Plans",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Recovery Plan Has Warnings Affecting the Risk for the System"
@@ -126,7 +126,7 @@
         "resourceKindKey": "Recovery Plans",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Recovery Plan Has Warnings Affecting the Health Status of the System"
@@ -137,7 +137,7 @@
         "resourceKindKey": "SRM Site",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Is Pair Site Not Connected"
@@ -148,7 +148,7 @@
         "resourceKindKey": "SRM Site",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Site Not Paired"
@@ -159,7 +159,7 @@
         "resourceKindKey": "SRM Site",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Site recovery Manager Site Has Object(s) With Issues Affecting the Risk for the System"
@@ -170,7 +170,7 @@
         "resourceKindKey": "SRM Site",
         "alertPluginName": "!!plugInName!!",
         "emailAddress": "!!email!!",
-        "maxNotify": "!!notificationMax!!'",
+        "maxNotify": "!!notificationMax!!",
         "delay": "!!notificationDelay!!",
         "resend": "!!notificationInterval!!",
         "alertName": "Site recovery Manager Site Has Object(s) With Issues Affecting the Health Status of the System"
