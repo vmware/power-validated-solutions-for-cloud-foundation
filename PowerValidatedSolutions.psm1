@@ -2597,7 +2597,7 @@ Function Export-PdrJsonSpec {
                     'srmAdminEmail'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_admin_email"].Value
                     'srmLicenseKey'            = $pnpProtectedWorkbook.Workbook.Names["srm_license"].Value
                     'networkSegment'           = $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                    'cluster'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value
+                    'cluster'                  = if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpProtectedWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value }
                 }
 
                 if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
@@ -2723,7 +2723,6 @@ Function Export-PdrJsonSpec {
                 if ($pnpProtectedWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
                     $jsonObject | Add-Member -notepropertyname 'vmFolderOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmNameOperationsNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmListOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value)
@@ -2732,6 +2731,9 @@ Function Export-PdrJsonSpec {
                     $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleOperations' -notepropertyvalue "anti-affinity-rule-operations"
                     $jsonObject | Add-Member -notepropertyname 'drsGroupNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+                    $jsonObject | Add-Member -notepropertyname 'notificationInterval' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int]
+                    $jsonObject | Add-Member -notepropertyname 'notificationMax' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int]
+                    $jsonObject | Add-Member -notepropertyname 'notificationDelay' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int]
                 }
 
                 if ($pnpProtectedWorkbook.Workbook.Names["private_cloud_result"].Value -eq "Included") {
@@ -3869,7 +3871,7 @@ Function Invoke-PdrSolutionInterop {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Create Notifications in $operationsProductName for $solutionName"
-                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -jsonPath $srmNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -jsonPath $srmNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -notificationInterval $jsonInput.notificationInterval -notificationMax $jsonInput.notificationMax -notificationDelay $jsonInput.notificationDelay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -13045,7 +13047,7 @@ Function Export-IlaJsonSpec {
                 'mgmtSddcDomainName'          = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 'contentLibraryName'          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                = $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
-                'licenseKey'                  = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrli_license"].Value }
+                'licenseKey'                  = $pnpWorkbook.Workbook.Names["vrli_license"].Value
                 'certificateAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value
                 'adminPasswordAlias'          = $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value
                 'adminPassword'               = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
@@ -13054,8 +13056,8 @@ Function Export-IlaJsonSpec {
                 'datacenter'                  = $pnpWorkbook.Workbook.Names["vrslcm_reg_dc"].Value
                 'vcenterFqdn'                 = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
                 'vcenterDatacenter'           = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'              = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'            = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'vcenterCluster'              = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
+                'vcenterDatastore'            = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
                 'network'                     = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
                 'gateway'                     = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
                 'netmask'                     = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
@@ -13080,11 +13082,11 @@ Function Export-IlaJsonSpec {
                 'vmList'                      = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
                 'smtpServer'                  = $pnpWorkbook.Workbook.Names["smtp_server"].Value
                 'port'                        = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
-                'sender'                      = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
+                'sender'                      = $pnpWorkbook.Workbook.Names["region_vrli_email_notification_target"].Value
                 'smtpUser'                    = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
                 'smtpPass'                    = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
                 'emailAddress'                = $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
-                'retentionNotificationDays'   = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[0]
+                'retentionNotificationDays'   = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[0] -as [Int]
                 'retentionInterval'           = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[1]
                 'retentionPeriodDays'         = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_period"].Value -as [Int]
                 'archiveLocation'             = $pnpWorkbook.Workbook.Names["region_vrli_archive_location"].Value
@@ -13383,7 +13385,10 @@ Function Invoke-IlaDeployment {
                                                 }
                                                 $allDatacenters = Get-vRSLCMDatacenter
                                                 foreach ($datacenter in $allDatacenters) {
-                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                    $allVcenters = (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid)
+                                                    foreach ($vcenter in $allVcenters) {
+                                                        Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName $vcenter.vcenterName | Out-Null
+                                                    }
                                                 }
                                             } else {
                                                 Show-PowerValidatedSolutionsOutput -type ERROR -message "$logsProductName OVA for version ($ariaLogsVersion) File Not Found: PRE_VALIDATION_FAILED"
@@ -16927,7 +16932,7 @@ Function Export-IomJsonSpec {
                 'mgmtSddcDomainName'                  = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 'contentLibraryName'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                        = $pnpWorkbook.Workbook.Names["vrops_license_alias"].Value
-                'licenseKey'                          = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrops_license"].Value }
+                'licenseKey'                          = $pnpWorkbook.Workbook.Names["vrops_license"].Value
                 'certificateAlias'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value
                 'rootPasswordAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
                 'rootPassword'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
@@ -16939,8 +16944,8 @@ Function Export-IomJsonSpec {
                 'datacenter'                          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
                 'vcenterFqdn'                         = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
                 'vcenterDatacenter'                   = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                      = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'                    = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'vcenterCluster'                      = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
+                'vcenterDatastore'                    = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
                 'network'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
                 'gateway'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
                 'netmask'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
@@ -17008,9 +17013,9 @@ Function Export-IomJsonSpec {
                 'smtpAuthUser'                        = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
                 'smtpAuthPass'                        = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
                 'senderAddress'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
-                'notificationInterval'                = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value
-                'notificationMax'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value
-                'notificationDelay'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value
+                'notificationInterval'                = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int]
+                'notificationMax'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int]
+                'notificationDelay'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int]
                 'operationsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
                 'operationsContentAdminGroup'         = $pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
                 'operationsReadOnlyGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
@@ -17328,7 +17333,10 @@ Function Invoke-IomDeployment {
                                             }
                                             $allDatacenters = Get-vRSLCMDatacenter
                                             foreach ($datacenter in $allDatacenters) {
-                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                $allVcenters = (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid)
+                                                foreach ($vcenter in $allVcenters) {
+                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName $vcenter.vcenterName | Out-Null
+                                                }
                                             }
                                         }
 
@@ -17541,7 +17549,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Creating Notifications in $operationsProductName for VMware Cloud Foundation Issues for $solutionName"
-                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonPath $operationsNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Import-vROPSNotification -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonPath $operationsNotifications -alertPluginName $jsonInput.alertPluginInstanceName -emailAddress $jsonInput.alertReceiverEmail -notificationInterval $jsonInput.notificationInterval -notificationMax $jsonInput.notificationMax -notificationDelay $jsonInput.notificationDelay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -17608,8 +17616,12 @@ Function Invoke-UndoIomDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the Active Directory Groups for $operationsProductName in Workspace ONE Access"
-                                    $StatusMsg = Undo-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    if (Get-VCFWSA) {
+                                        $StatusMsg = Undo-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    } else {
+                                        Show-PowerValidatedSolutionsOutput -type WARNING -message "Removing the Active Directory Groups for $operationsProductName, Workspace ONE Access Not Found: SKIPPED"
+                                    }
                                 }
 
                                 if (!$failureDetected) {
@@ -17717,6 +17729,12 @@ Function Invoke-UndoIomDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Removal of $solutionName"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing $operationsProductName Load Balancer from $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMLoadBalancer -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type NSX_T -loadBalancerFqdn $jsonInput.clusterFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
                             }
                         }
@@ -21370,8 +21388,8 @@ Function Export-InvJsonSpec {
                 # Infrastructure Settings
                 'vcenterFqdn'                        = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
                 'vcenterDatacenter'                  = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                     = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'                   = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'vcenterCluster'                     = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
+                'vcenterDatastore'                   = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
                 'network'                            = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
                 'dns'                                = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                 'ntp'                                = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
@@ -21736,7 +21754,10 @@ Function Invoke-InvDeployment {
                                             }
                                             $allDatacenters = Get-vRSLCMDatacenter
                                             foreach ($datacenter in $allDatacenters) {
-                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                $allVcenters = (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid)
+                                                foreach ($vcenter in $allVcenters) {
+                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName $vcenter.vcenterName | Out-Null
+                                                }
                                             }
                                         }
 
@@ -22604,7 +22625,12 @@ Function Add-AriaNetworksVcenterDataSource {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceAccount,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceAccountPass
     )
 
     Try {
@@ -22767,7 +22793,7 @@ Function Export-PcaJsonSpec {
                 'mgmtSddcDomainName'             = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 'contentLibraryName'             = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                   = $pnpWorkbook.Workbook.Names["vra_license_alias"].Value
-                'licenseKey'                     = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vra_license"].Value }
+                'licenseKey'                     = $pnpWorkbook.Workbook.Names["vra_license"].Value
                 'certificateAlias'               = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value
                 'rootPasswordAlias'              = $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value
                 'rootPassword'                   = $pnpWorkbook.Workbook.Names["xreg_vra_root_password"].Value
@@ -22779,8 +22805,8 @@ Function Export-PcaJsonSpec {
                 'datacenter'                     = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
                 'vcenterFqdn'                    = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
                 'vcenterDatacenter'              = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                 = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcenterDatastore'               = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'vcenterCluster'                 = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
+                'vcenterDatastore'               = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
                 'network'                        = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
                 'dns'                            = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                 'gateway'                        = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
@@ -23161,7 +23187,10 @@ Function Invoke-PcaDeployment {
                                                 }
                                                 $allDatacenters = Get-vRSLCMDatacenter
                                                 foreach ($datacenter in $allDatacenters) {
-                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                    $allVcenters = (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid)
+                                                    foreach ($vcenter in $allVcenters) {
+                                                        Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName $vcenter.vcenterName | Out-Null
+                                                    }
                                                 }
                                             }
 
@@ -23538,6 +23567,12 @@ Function Invoke-UndoPcaDeployment {
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for $automationProductName"
                                     $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing $automationProductName Load Balancer from $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMLoadBalancer -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type NSX_T -loadBalancerFqdn $jsonInput.clusterFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
 
@@ -29274,8 +29309,8 @@ Function Export-GlobalWsaJsonSpec {
                 'vcFqdn'                      = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
                 'vcHostname'                  = $pnpWorkbook.Workbook.Names["mgmt_vc_hostname"].Value
                 'vcDatacenter'                = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-                'vcDatastore'                 = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                'vcCluster'                   = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
+                'vcDatastore'                 = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
                 'environmentName'             = "globalenvironment"
                 'contentLibraryName'          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'xintDatacenter'              = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
@@ -29313,10 +29348,10 @@ Function Export-GlobalWsaJsonSpec {
                 'domainControllerMachineName' = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'baseGroupDn'                 = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
                 'baseUserDn'                  = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
-                'adGroups'                    = "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
-                'wsaAdminGroup'               = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
-                'wsaDirectoryAdminGroup'      = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
-                'wsaReadOnlyGroup'            = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
+                'adGroups'                    = "$($pnpWorkbook.Workbook.Names["group_parent_gg_wsa_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_parent_gg_wsa_directory_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_parent_gg_wsa_read_only"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
+                'wsaAdminGroup'               = $pnpWorkbook.Workbook.Names["group_parent_gg_wsa_admins"].Value
+                'wsaDirectoryAdminGroup'      = $pnpWorkbook.Workbook.Names["group_parent_gg_wsa_directory_admins"].Value
+                'wsaReadOnlyGroup'            = $pnpWorkbook.Workbook.Names["group_parent_gg_wsa_read_only"].Value
                 'aslcmAdminGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'aslcmReleaseManagersGroup'   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'aslcmContentDevelopersGroup' = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -29610,8 +29645,9 @@ Function Invoke-GlobalWsaDeployment {
                                                 }
                                                 $allDatacenters = Get-vRSLCMDatacenter
                                                 foreach ($datacenter in $allDatacenters) {
-                                                    if ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName) {
-                                                        Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                    $allVcenters = (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid)
+                                                    foreach ($vcenter in $allVcenters) {
+                                                        Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName $vcenter.vcenterName | Out-Null
                                                     }
                                                 }
                                             }
