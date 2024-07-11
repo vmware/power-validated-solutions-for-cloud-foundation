@@ -17605,7 +17605,7 @@ Function Invoke-UndoIomDeployment {
                         if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
                             if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                                 $allWorkloadDomains = Get-VCFWorkloadDomain
-                                
+
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the Active Directory Groups for $operationsProductName in Workspace ONE Access"
                                     $StatusMsg = Undo-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -21410,7 +21410,11 @@ Function Export-InvJsonSpec {
                 'domainControllerMachineName'        = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'serviceAccountNetworksVsphere'      = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_user"].Value
                 'serviceAccountNetworksVspherePass'  = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_password"].Value
-                'adGroups'                           = "$($pnpWorkbook.Workbook.Names["gg_vrni_admin_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_member_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_auditor_group"].Value)"
+                'dn_admin'                           = $pnpWorkbook.Workbook.Names["gg_vrni_admin_group_dn"].Value
+                'dn_member'                          = $pnpWorkbook.Workbook.Names["gg_vrni_member_group_dn"].Value
+                'dn_auditor'                         = $pnpWorkbook.Workbook.Names["gg_vrni_auditor_group_dn"].Value
+                'dn_base'                            = $pnpWorkbook.Workbook.Names["inv_ad_base_dn"].Value
+                'ldap_url'                           = $pnpWorkbook.Workbook.Names["inv_ldap_url"].Value
                 'vsphereRoleNameNetworks'            = $pnpWorkbook.Workbook.Names["inv_vsphere_role"].Value
                 'stretchedCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
             }

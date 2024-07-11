@@ -48,6 +48,7 @@
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet when standard deployment is selected the cluster FQDN should be used and not Node A for Workspace ONE Access.
 - Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where an error is thrown when the datacenter object is already moved, should handle the scenario cleanly.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
+- Enhanced `Export-InvJsonSpec` cmdlet to export additional fields into the json file.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
 - Enhanced `Export-vRLIJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Logs virtual appliances into the defined folder.
