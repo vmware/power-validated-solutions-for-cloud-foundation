@@ -52258,6 +52258,32 @@ Function New-AriaNetworksLdapConfiguration {
 }
 Export-ModuleMember -Function New-AriaNetworksLdapConfiguration
 
+Function Remove-AriaNetworksLdapConfiguration {
+    <#
+        .SYNOPSIS
+        Removes the LDAP configuration from VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Remove-AriaNetworksLdapConfiguration cmdlet allows a user to remove the LDAP configuration from VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Remove-AriaNetworksLdapConfiguration
+        This example removes the LDAP configuration from VMware Aria Operations for Networks.
+    #>
+
+    Try {
+        if ($ariaNetworksApplianceInternal) {
+            $uri = "https://$ariaNetworksApplianceInternal/api/auth/ldapConfiguration"
+            Invoke-RestMethod -Uri $uri -Method 'DELETE' -Headers $ariaNetworksHeaderInternal -ContentType "application/json" -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to VMware Aria Operations for Networks Internal API, run Request-AriaNetworksInternalApiToken and try again."
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-AriaNetworksLdapConfiguration
+
 Function Update-AriaNetworksvCenterDataSourceCredentials {
     <#
         .SYNOPSIS
@@ -57766,6 +57792,53 @@ Function Test-AriaNetworksAuthentication {
     }
 }
 Export-ModuleMember -Function Test-AriaNetworksAuthentication
+
+Function Test-AriaNetworksInternalAuthentication {
+    <#
+        .SYNOPSIS
+        Check authentication to the VMware Aria Operations for Networks instance for using the internal API.
+
+        .DESCRIPTION
+        The Test-AriaNetworksInternalAuthentication cmdlet checks authentication to a VMware Aria Operations for Networks
+        instance for using the internal API.
+
+        .EXAMPLE
+        Test-AriaNetworksInternalAuthentication -server xint-net01a.rainpole.io -user admin@local -pass VMw@re1!
+        This example checks authentication with a VMware Aria Operations for Networks instance.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the VMware Aria Operations for Networks instance.
+
+        .PARAMETER user
+        The username to authenticate to the VMware Aria Operations for Networks instance.
+
+        .PARAMETER pass
+        The password to authenticate to the VMware Aria Operations for Networks instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Item variable:ariaNetworksHeaderInternal -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        Request-AriaNetworksInternalApiToken -fqdn $server -username $user -password $pass | Out-Null
+        if ($ariaNetworksHeaderInternal.Cookie) {
+            $ariaNetworksInternalAuthentication = $True
+            Return $ariaNetworksInternalAuthentication
+        } else {
+            Write-Error "Unable to obtain internal API access token from VMware Aria Operations for Networks ($server), check credentials: PRE_VALIDATION_FAILED"
+            $ariaNetworksInternalAuthentication = $False
+            Return $ariaNetworksInternalAuthentication
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Test-AriaNetworksInternalAuthentication
 
 Function Test-VrmsVamiConnection {
     <#
