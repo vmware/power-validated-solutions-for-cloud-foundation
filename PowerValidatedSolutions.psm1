@@ -9944,6 +9944,22 @@ Function Invoke-DriDeployment {
                         }
 
                         if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Register the Contour Service for $solutionName"
+                            procedureWaitKey
+                            Show-PowerValidatedSolutionsOutput -message "Install Contour as a Supervisor Service for $solutionName"
+                            Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "contour.yml") -configureYaml ($binaries + "contour-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Register the Harbour Service for $solutionName"
+                            procedureWaitKey
+                            Show-PowerValidatedSolutionsOutput -message "Install Harbor as a Supervisor Service for $solutionName"
+                            Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "harbor.yml") -configureYaml ($binaries + "harbor-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Adding a Virtual Machine Class for the Tanzu Kubernetes Cluster for $solutionName"
                             $StatusMsg = Add-NamespaceVmClass -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.tanzuNamespaceName -vmClass $jsonInput.vmClass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -12750,6 +12766,243 @@ Function Undo-Registry {
     }
 }
 Export-ModuleMember -Function Undo-Registry
+
+Function Add-SupervisorService {
+    <#
+		.SYNOPSIS
+        Add a Supervisor Service to Kubernetes Cluster.
+
+        .DESCRIPTION
+        The Add-SupervisorService cmdlets adds Supervisor Service to a Kubernetes Cluster. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Add a Supervisor Service to a Kubernetes Cluster
+
+        .EXAMPLE
+        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\contour.yml -configureYaml F:\VMware.PlatformTools\binaries\contour-data-values.yml
+        This example adds the contour Supervisor Service
+
+        .EXAMPLE
+        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\harbor.yml -configureYaml F:\VMware.PlatformTools\binaries\harbor-data-values.yml
+        This example adds the harbour Supervisor Service
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
+
+        .PARAMETER cluster
+        The supervisor cluster name.
+
+        .PARAMETER registerYaml
+        The path to the yaml file used for registration.
+
+        .PARAMETER configureYaml
+        The path to the yaml file used for configuration.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registerYaml,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$configureYaml
+    )
+
+    if (-Not ($PsBoundParameters.ContainsKey("registerYaml"))) {
+        $registerYaml = Get-ExternalFileName -title "Select the Supervisor Service Registration YAML (.yml) File" -fileType "yml" -location "default"
+    }
+    if (-Not ($PsBoundParameters.ContainsKey("configureYaml"))) {
+        $configureYaml = Get-ExternalFileName -title "Select the Supervisor Service Configuration YAML (.yml) File" -fileType "yml" -location "default"
+    }
+
+    Try {
+        if (Test-Path -Path $registerYaml) {
+            if (Test-Path -Path $configureYaml) {
+                if (Test-VCFConnection -server $server) {
+                    if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    if (($clusterDetails = Invoke-ListNamespaceManagementClusters | Where-Object { $_.cluster_name -eq $cluster })) {
+                                        $supervisorService = (($supervisorService = (Select-String -Path $registerYaml -Pattern 'refName: ')) -Split ('refName: '))[-1]
+                                        $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
+                                        $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
+                                        # if (-Not (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName })) {
+                                        #     $supervisorServiceVersionYaml = Get-Content -Path $registerYaml -Raw
+                                        #     $supervisorServiceVersionYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceVersionYaml)
+                                        #     $supervisorServiceVersionYamlbase64 = [System.Convert]::ToBase64String($supervisorServiceVersionYamlArray)
+                                        #     $supervisorServiceVersionSpec = Initialize-NamespaceManagementSupervisorServicesVersionsCustomCreateSpec -Version $supervisorServiceVersion -DisplayName $supervisorServiceDisplayName -Content $supervisorServiceVersionYamlbase64
+                                        #     $supervisorServiceCustomSpec = Initialize-NamespaceManagementSupervisorServicesCustomCreateSpec -SupervisorService $supervisorService -DisplayName $supervisorService.Split('.')[-0] -VersionSpec $supervisorServiceVersionSpec
+                                        #     $supervisorServiceCreateSpec = Initialize-NamespaceManagementSupervisorServicesCreateSpec -CustomSpec $supervisorServiceCustomSpec
+                                        #     Invoke-CreateNamespaceManagementSupervisorServices -NamespaceManagementSupervisorServicesCreateSpec $supervisorServiceCreateSpec
+                                        #     if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                        #         Write-Output "Registration of Supervisor Service ($supervisorService): SUCCESFUL"
+                                        #     } else {
+                                        #         Write-Error "Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                        #     }
+                                        # } else {
+                                        #     Write-Warning "Registration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
+                                        # }
+                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
+                                            $supervisorServiceConfigurationYaml = Get-Content -Path $configureYaml -Raw
+                                            $supervisorServiceConfigurationYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceConfigurationYaml)
+                                            $supervisorServiceConfigurationYamlBase64 = [System.Convert]::ToBase64String($supervisorServiceConfigurationYamlArray)
+                                            $supervisorServicesCreateSpec = Initialize-NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec -SupervisorService $supervisorService -Version $supervisorServiceVersion -YamlServiceConfig $supervisorServiceConfigurationYamlBase64
+                                            Invoke-CreateClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster -NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec $supervisorServicesCreateSpec
+                                            Start-Sleep 5
+                                            if (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
+                                                Write-Output "Configuration of Supervisor Service ($supervisorService): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Configuration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Configuration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate a Kubernetes Cluster on Cluster ($cluster): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                #Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                            }
+                        }
+                    }
+                }
+            } else {
+                Write-Error "Supervisor Service Configuration YAML (.yml) File ($configureYaml) File Not Found: PRE_VALIDATION_FAILED"
+            }
+        } else {
+            Write-Error "Supervisor Service Registration YAML (.yml) File ($registerYaml) File Not Found: PRE_VALIDATION_FAILED"
+        }
+
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-SupervisorService
+
+Function Undo-SupervisorService {
+    <#
+		.SYNOPSIS
+        Remove a Supervisor Service from a Kubernetes Cluster.
+
+        .DESCRIPTION
+        The Undo-SupervisorService cmdlets removes a Supervisor Service from a Kubernetes Cluster. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Removes a Supervisor Service from a Kubernetes Cluster
+
+        .EXAMPLE
+        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\contour.yml
+        This example removes the contour Supervisor Service.
+
+        .EXAMPLE
+        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\harbor.yml
+        This example removes the harbor Supervisor Service.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
+
+        .PARAMETER cluster
+        The supervisor cluster name.
+
+        .PARAMETER registerYaml
+        The path to the yaml file used for registration.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registerYaml
+    )
+
+    if (-Not ($PsBoundParameters.ContainsKey("registerYaml"))) {
+        $registerYaml = Get-ExternalFileName -title "Select the Supervisor Service Registration YAML (.yml) File" -fileType "yml" -location "default"
+    }
+
+    Try {
+        if (Test-Path -Path $registerYaml) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (($clusterDetails = Invoke-ListNamespaceManagementClusters | Where-Object { $_.cluster_name -eq $cluster })) {
+                                    $supervisorService = (($supervisorService = (Select-String -Path $registerYaml -Pattern 'refName: ')) -Split ('refName: '))[-1]
+                                    $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
+                                    $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
+                                    if (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
+                                        Invoke-DeleteClusterSupervisorServiceNamespaceManagement -Cluster $clusterDetails.cluster -SupervisorService $supervisorService -Confirm:$false 
+                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
+                                            Write-Output "Removing Supervisor Service ($supervisorService) from Cluster ($cluster): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Removing Supervisor Service ($supervisorService) from Cluster ($cluster): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Removing Supervisor Service ($supervisorService) from Cluster ($cluster), already removed: SKIPPED"
+                                    }
+                                    
+                                    if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                        if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "ACTIVATED" }) {
+                                            Invoke-UpdateSupervisorService_0 -SupervisorService $supervisorService
+                                            if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "DECTIVATED" }) {
+                                                Write-Output "Deactivate Superviser Service ($supervisorService): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Deactivate Superviser Service ($supervisorService): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Deactivate Superviser Service ($supervisorService), already deactivated: SKIPPED"
+                                        }
+                                        Invoke-DeleteSupervisorServiceVersionNamespaceManagement -SupervisorService $supervisorService -Version (Invoke-ListSupervisorServiceNamespaceManagementVersions -SupervisorService $supervisorService).version -Confirm:$false
+                                        Invoke-DeleteSupervisorServiceNamespaceManagement -SupervisorService $supervisorService -Confirm:$false
+                                        if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                            Write-Output "Removing Registration of Supervisor Service ($supervisorService): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Removing Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Removing Registration of Supervisor Service ($supervisorService), aleady removed: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to locate a Kubernetes Cluster on Cluster ($cluster): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                        }
+                    }
+                }
+            }
+        } else {
+            Write-Error "Supervisor Service Registration YAML (.yml) File ($registerYaml) File Not Found: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SupervisorService
 
 Function Add-NamespaceVmClass {
     <#
