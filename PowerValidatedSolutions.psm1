@@ -21428,11 +21428,12 @@ Function Export-InvJsonSpec {
                 'domainControllerMachineName'        = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
                 'serviceAccountNetworksVsphere'      = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_user"].Value
                 'serviceAccountNetworksVspherePass'  = $pnpWorkbook.Workbook.Names["inv_vsphere_svc_password"].Value
-                'dn_admin'                           = $pnpWorkbook.Workbook.Names["gg_vrni_admin_group_dn"].Value
-                'dn_member'                          = $pnpWorkbook.Workbook.Names["gg_vrni_member_group_dn"].Value
-                'dn_auditor'                         = $pnpWorkbook.Workbook.Names["gg_vrni_auditor_group_dn"].Value
-                'dn_base'                            = $pnpWorkbook.Workbook.Names["inv_ad_base_dn"].Value
-                'ldap_url'                           = $pnpWorkbook.Workbook.Names["inv_ldap_url"].Value
+                'adGroups'                           = "$($pnpWorkbook.Workbook.Names["gg_vrni_admin_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_member_group"].Value)", "$($pnpWorkbook.Workbook.Names["gg_vrni_auditor_group"].Value)"
+                'dnAdminGroup'                       = $pnpWorkbook.Workbook.Names["gg_vrni_admin_group_dn"].Value
+                'dnMemberGroup'                      = $pnpWorkbook.Workbook.Names["gg_vrni_member_group_dn"].Value
+                'dnAuditorGroup'                     = $pnpWorkbook.Workbook.Names["gg_vrni_auditor_group_dn"].Value
+                'dnBase'                             = $pnpWorkbook.Workbook.Names["inv_ad_base_dn"].Value
+                'ldapUrl'                            = $pnpWorkbook.Workbook.Names["inv_ldap_url"].Value
                 'vsphereRoleNameNetworks'            = $pnpWorkbook.Workbook.Names["inv_vsphere_role"].Value
                 'stretchedCluster'                   = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
             }
@@ -21794,7 +21795,7 @@ Function Invoke-InvDeployment {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Deploying $networksProductName Using $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -message "Deploying $networksProductName Using $lcmProductName for $solutionName"
                                             if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                                 $StatusMsg = New-AriaNetworksDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             } else {
@@ -21806,22 +21807,36 @@ Function Invoke-InvDeployment {
 
                                         if (!$failureDetected) {
                                             if ($jsonInput.stretchedCluster -eq "Include") {
-                                                Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group"
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $networksProductName Appliances to the First Availability Zone VM Group for $solutionName"
                                                 $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Add Role Based Access for $solutionName"
+                                            Show-PowerValidatedSolutionsOutput -message "Add Role Based Access for $solutionName for $solutionName"
                                             $StatusMsg = Add-AriaNetworksLdapConfiguration -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Add vCenter Server Data Sources for $solutionName"
-                                            $StatusMsg = Add-AriaNetworksVcenterDataSource -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                $StatusMsg = Add-AriaNetworksVcenterDataSource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -serviceAccount $jsonInput.serviceAccountNetworksVsphere -serviceAccountPass $jsonInput.serviceAccountNetworksVspherePass -environmentName $jsonInput.environmentName -ariaNetworksFqdn $jsonInput.ariaNetworksPlatformNodeaFqdn -ariaNetworksUser admin@local -ariaNetworksPass $jsonInput.ariaNetworksAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add NSX Manager Data Sources for $solutionName"
+                                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                                $nsxCertKey = $certificates + $sddcDomain.nsxtCluster.vipFqdn.Split('.')[0] + ".key"
+                                                $nsxCert = $certificates + $sddcDomain.nsxtCluster.vipFqdn.Split('.')[0] + ".cer"
+                                                if (Test-Path -Path $nsxCertKey, $nsxCert) {
+                                                    $StatusMsg = Add-AriaNetworksNsxDataSource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -certificate $nsxCert -privatekey $nsxCertKey -environmentName $jsonInput.environmentName -ariaNetworksFqdn $jsonInput.ariaNetworksPlatformNodeaFqdn -ariaNetworksUser admin@local -ariaNetworksPass $jsonInput.ariaNetworksAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                                }
+                                            }
                                         }
 
                                         if (!$failureDetected) {
@@ -22641,7 +22656,7 @@ Function Add-AriaNetworksLdapConfiguration {
                                         if (Test-AriaNetworksInternalAuthentication -server $jsonInput.ariaNetworksPlatformNodeaFqdn -user admin@local -pass $jsonInput.ariaNetworksAdminPassword) {
                                             if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
                                                 if ($ariaNetworksLdapConfig.status -eq $False) {
-                                                    New-AriaNetworksLdapConfiguration -domain $jsonInput.domain -url $jsonInput.ldap_url -username $jsonInput.domainBindUser -password $jsonInput.domainBindPass -userBaseDN $jsonInput.dn_base -memberDN $jsonInput.dn_member -adminDN $jsonInput.dn_admin -auditorDN $jsonInput.dn_auditor | Out-Null
+                                                    New-AriaNetworksLdapConfiguration -domain $jsonInput.domainFqdn -url $jsonInput.ldapUrl -username $jsonInput.domainBindUser -password $jsonInput.domainBindPass -userBaseDN $jsonInput.dnBase -memberDN $jsonInput.dnMemberGroup -adminDN $jsonInput.dnAdminGroup -auditorDN $jsonInput.dnAuditorGroup | Out-Null
                                                     if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
                                                         if ($ariaNetworksLdapConfig.status -eq $True){
                                                             Write-Output "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
@@ -26501,7 +26516,7 @@ Function Invoke-UndoHrmDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Assignment of VMware Aria Operations Custom Role for the Python Module for $solutionName"
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Follow Manual Steps."
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Follow Manual Steps"
                                 }
 
                                 if (!$failureDetected) {
