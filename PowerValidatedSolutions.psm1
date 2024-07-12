@@ -22935,6 +22935,224 @@ Function Undo-AriaNetworksVcenterDataSource {
 }
 Export-ModuleMember -Function Undo-AriaNetworksVcenterDataSource
 
+Function Add-AriaNetworksNsxDataSource {
+    <#
+        .SYNOPSIS
+        Adds a new NSX Manager data source to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Add-AriaNetworksNsxDataSource cmdlet adds a new NSX Manager data source to VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -pass values
+        and uses the -sddcDomain, -serviceAccount, -serviceAccountPass, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
+        and -ariaNetworksPass as well to do the following:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Gathers NSX Manager details from SDDC Manager instance
+        - Adds a new NSX Manager data source for a domain
+
+        .EXAMPLE
+        Add-AriaNetworksNsxDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -serviceAccount svc-inv-nsx -serviceAccountPass VMw@re123!VMw@re123! -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
+        This example creates a NSX Manager data source for a domain in the SDDC in the VMware Aria Operations for Networks instance using a service account username and password.
+
+        .EXAMPLE
+        Add-AriaNetworksNsxDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -certificate F:\certs\sfo-m01-nsx01.cer -privatekey F:\certs\sfo-m01-nsx01.key -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
+        This example creates a NSX Manager data source for a domain in the SDDC in the VMware Aria Operations for Networks instance using a principal identity certificate and private key.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) of the SDDC Manager to connect to.
+
+        .PARAMETER user
+        The username to use for authentication to SDDC Manager.
+
+        .PARAMETER pass
+        The password to use for authentication to SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the domain in SDDC Manager.
+
+        .PARAMETER serviceAccount
+        The name of the service account to use for authentication for the data source.
+
+        .PARAMETER serviceAccountPass
+        The password for the service account to use for authentication for the data source.
+
+        .PARAMETER certificate
+        The principal identity certificate to use for authentication for the data source.
+
+        .PARAMETER privatekey
+        The principal identity private key to use for authentication for the data source.
+
+        .PARAMETER environmentName
+        The VMware Aria Suite Lifecycle environment name.
+
+        .PARAMETER ariaNetworksFqdn
+        The fully qualified domain name (FQDN) of the VMware Aria Operations for Networks platform node.
+
+        .PARAMETER ariaNetworksUser
+        The username to use to authenticate to VMware Aria Operations for Networks.
+
+        .PARAMETER ariaNetworksPass
+        The password for the username to use to authenticate to VMware Aria Operations for Networks.
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "credentials")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$serviceAccount,
+        [Parameter (Mandatory = $false, ParameterSetName = 'credentials')] [ValidateNotNullOrEmpty()] [String]$serviceAccountPass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$certificate,
+        [Parameter (Mandatory = $false, ParameterSetName = 'certificate')] [ValidateNotNullOrEmpty()] [String]$privatekey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $ariaNetworksFqdn) {
+                                        if (Test-AriaNetworksAuthentication -server $ariaNetworksFqdn -user $ariaNetworksUser -pass $ariaNetworksPass) {
+                                            if (-Not (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId)) {
+                                                if ($serviceAccount -and $serviceAccountPass) {
+                                                    New-AriaNetworksNsxtDataSource -fqdn $vcfNsxtDetails.fqdn -username $serviceAccount -password $serviceAccountPass -nickname "$($vcfNsxtDetails.fqdn) - Management Domain NSX Manager" -CollectorId (Get-AriaNetworksNodes).id -enabled true | Out-Null
+                                                        if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
+                                                            Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                        } else {
+                                                            Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
+                                                        }
+                                                    }
+                                                if ($certificate -and $privatekey) {
+                                                    New-AriaNetworksNsxtDataSource -fqdn $vcfNsxtDetails.fqdn -certificate $certificate -privatekey $privatekey -nickname "$($vcfNsxtDetails.fqdn) - Management Domain NSX Manager" -CollectorId (Get-AriaNetworksNodes).id -enabled true | Out-Null
+                                                        if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
+                                                            Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                        } else {
+                                                            Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
+                                                        }
+                                                }
+                                            } else {
+                                                Write-Warning "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn), already exists: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-AriaNetworksNsxDataSource
+
+Function Undo-AriaNetworksNsxDataSource {
+    <#
+        .SYNOPSIS
+        Removes a NSX Manager data source to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Undo-AriaNetworksNsxDataSource cmdlet removes a NSX Manager data source from VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -pass values
+        and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
+        and -ariaNetworksPass as well to do the following:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Gathers NSX Manager details from the SDDC Manager instance
+        - Removes a NSX Manager data source from the domain
+
+        .EXAMPLE
+        Undo-AriaNetworksNsxDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
+        This example removes a NSX Manager data source from a domain in the SDDC in the VMware Aria Operations for Networks instance.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) of the SDDC Manager to connect to.
+
+        .PARAMETER user
+        The username to use for authentication to SDDC Manager.
+
+        .PARAMETER pass
+        The password to use for authentication to SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the domain in SDDC Manager.
+
+        .PARAMETER environmentName
+        The VMware Aria Suite Lifecycle environment name.
+
+        .PARAMETER ariaNetworksFqdn
+        The fully qualified domain name (FQDN) of the VMware Aria Operations for Networks platform node.
+
+        .PARAMETER ariaNetworksUser
+        The username to use to authenticate to VMware Aria Operations for Networks.
+
+        .PARAMETER ariaNetworksPass
+        The password for the username to use to authenticate to VMware Aria Operations for Networks.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ariaNetworksPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $ariaNetworksFqdn) {
+                                        if (Test-AriaNetworksAuthentication -server $ariaNetworksFqdn -user $ariaNetworksUser -pass $ariaNetworksPass) {
+                                            if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
+                                                Remove-AriaNetworksDataSource -dataSourceType nsxt -id (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId).entity_id
+                                                if (-Not (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId)) {
+                                                        Write-Output "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
+                                                    }
+                                            } else {
+                                                Write-Warning "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn), does not exist: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-AriaNetworksNsxDataSource
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
