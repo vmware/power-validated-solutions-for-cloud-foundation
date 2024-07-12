@@ -42,6 +42,8 @@
 - Added `Add-AriaNetworksNsxDataSource` cmdlet to add NSX Manager data sources to a VMware Aria Operations for Networks instance.
 - Added `Undo-AriaNetworksNsxDataSource` cmdlet to remove NSX Manager data sources from a VMware Aria Operations for Networks instance.
 - Added `Undo-vRSLCMLoadBalancer` cmdlet to remove a load balancer from VMware Aria Suite Lifecycle.
+- Added `Add-SupervisorService` cmdlet to support enabling a Supervisor Service.
+- Added `Undi-SupervisorService` cmdlet to support removing a Supervisor Service.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
 - Fixed `Request-IomMscaSignedCertificate` cmdlet where the data node FQDN for the SAN was not incorrect and the Cloud Proxy SANs were missing.
