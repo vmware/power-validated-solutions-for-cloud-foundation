@@ -12955,7 +12955,7 @@ Function Undo-SupervisorService {
                                     $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
                                     $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
                                     if (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
-                                        Invoke-DeleteClusterSupervisorServiceNamespaceManagement -Cluster $clusterDetails.cluster -SupervisorService $supervisorService -Confirm:$false 
+                                        Invoke-DeleteClusterSupervisorServiceNamespaceManagement -Cluster $clusterDetails.cluster -SupervisorService $supervisorService -Confirm:$false
                                         if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
                                             Write-Output "Removing Supervisor Service ($supervisorService) from Cluster ($cluster): SUCCESSFUL"
                                         } else {
@@ -12964,7 +12964,7 @@ Function Undo-SupervisorService {
                                     } else {
                                         Write-Warning "Removing Supervisor Service ($supervisorService) from Cluster ($cluster), already removed: SKIPPED"
                                     }
-                                    
+
                                     if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
                                         if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "ACTIVATED" }) {
                                             Invoke-UpdateSupervisorService_0 -SupervisorService $supervisorService
@@ -23023,7 +23023,7 @@ Function Add-AriaNetworksVcenterDataSource {
         - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers vCenter Server details from the SDDC Manager instance
-        - Adds a new vCenter Server data source for each Workload Domain
+        - Adds a new vCenter Server data source for a domain
 
         .EXAMPLE
         Add-AriaNetworksVcenterDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -serviceAccount svc-inv-vsphere -serviceAccountPass VMw@re1! -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
@@ -23118,13 +23118,13 @@ Function Undo-AriaNetworksVcenterDataSource {
         .DESCRIPTION
         The Undo-AriaNetworksVcenterDataSource cmdlet removes a vCenter Server data source from VMware Aria Operations
         for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -pass values
-        and uses the -sddcDomain, -serviceAccount, -serviceAccountPass, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
+        and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
         and -ariaNetworksPass as well to do the following:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers vCenter Server details from the SDDC Manager instance
-        - Removes a vCenter Server data source for each Workload Domain
+        - Removes a vCenter Server data source from a domain
 
         .EXAMPLE
         Undo-AriaNetworksVcenterDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
@@ -23342,7 +23342,7 @@ Function Undo-AriaNetworksNsxDataSource {
         - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers NSX Manager details from the SDDC Manager instance
-        - Removes a NSX Manager data source from the domain
+        - Removes a NSX Manager data source from a domain
 
         .EXAMPLE
         Undo-AriaNetworksNsxDataSource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -environmentName xint-env -ariaNetworksFqdn xint-net01a.rainpole.io -ariaNetworksUser admin@local -ariaNetworksPass VMw@re1!
