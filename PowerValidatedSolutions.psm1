@@ -16925,7 +16925,7 @@ Function Enable-vRLIContentPack {
                                     if (-Not ($allContentPacks -match "403 (rate limit exceeded)")) {
                                         if ($contentPackUri = ($allContentPacks | Where-Object { $_.name -eq $contentPackFile }).url) {
                                             $contentPackResponse = Invoke-RestMethod -Method 'GET' -Uri $contentPackUri -Headers $ghHeaders
-                                            $json = $contentPackResponse | ConvertTo-Json -Depth 100 -Compress
+                                            $json = $contentPackResponse | ConvertTo-Json -Depth 100
                                             if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
                                                 Write-Warning "Installing Content Pack ($contentPackName v$contentPackVersion) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
                                             } else {
@@ -52288,14 +52288,14 @@ Function Install-vRLIContentPack {
         Installs a Content Pack to VMware Aria Operations for Logs.
 
         .DESCRIPTION
-        The Install-vRLIContentPack cmdlet installed a content pack to VMware Aria Operations for Logs.
+        The Install-vRLIContentPack cmdlet installs a content pack to VMware Aria Operations for Logs.
 
         .EXAMPLE
         Install-vRLIContentPack -json $json
         This example installs a content pack to VMware Aria Operations for Logs from a JSON payload.
 
         .EXAMPLE
-        Insall-vRLIContentPack -update -json $json
+        Install-vRLIContentPack -update -json $json
         This example updates a content pack in VMware Aria Operations for Logs from a JSON payload.
 
         .PARAMETER update
@@ -52310,13 +52310,31 @@ Function Install-vRLIContentPack {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$update
     )
 
+    $uri = "https://$vrliAppliance/api/v2/content/contentpack"
+
+    if ($update) {
+        $uri += "?overwrite=true"
+    } else {
+        $uri += "?overwrite=false"
+    }
+
+    $headers = @{}
+    $vrliHeaders.GetEnumerator() | ForEach-Object { $headers[$_.Key] = $_.Value }
+    $headers['accept'] = '*/*'
+    $headers['Content-Encoding'] = 'gzip' # Indicate that the content is GZIP compressed
+
+    # Compress the JSON payload.
+    $compressedStream = New-Object System.IO.MemoryStream
+    $gzipStream = New-Object System.IO.Compression.GzipStream $compressedStream, ([System.IO.Compression.CompressionMode]::Compress)
+    $sw = New-Object System.IO.StreamWriter $gzipStream
+    $sw.Write($json)
+    $sw.Close()
+    $gzipStream.Close()
+    $byteArray = $compressedStream.ToArray()
+    $compressedStream.Close()
+
     Try {
-        if ($PsBoundParameters.ContainsKey("update")) {
-            $uri = "https://$vrliAppliance/api/v1/content/contentpack?overwrite=true"
-        } else {
-            $uri = "https://$vrliappliance/api/v1/content/contentpack"
-        }
-        Invoke-RestMethod -Method 'POST' -Uri $uri -ContentType 'application/octet-stream' -Headers $vrliHeaders -Body $json
+        Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $headers -Body $byteArray -ContentType 'application/json'
     } Catch {
         Debug-ExceptionWriter -object $_
     }
