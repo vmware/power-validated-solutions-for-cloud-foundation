@@ -21812,10 +21812,11 @@ Function Invoke-InvDeployment {
                                             }
                                         }
 
-                                        # TODO:
-                                        # if (!$failureDetected) {
-                                        #     Show-PowerValidatedSolutionsOutput -message "Configure Role-Based Access for $networksProductName for $solutionName"
-                                        # }
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Add Role Based Access for $solutionName"
+                                            $StatusMsg = Add-AriaNetworksLdapConfiguration -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        }
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Add vCenter Server Data Sources for $solutionName"
@@ -22601,6 +22602,144 @@ Function Undo-AriaNetworksDeployment {
     }
 }
 Export-ModuleMember -Function Undo-AriaNetworksDeployment
+
+Function Add-AriaNetworksLdapConfiguration {
+    <#
+        .SYNOPSIS
+        Adds a LDAP configuration to VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Add-AriaNetworksLdapConfiguration cmdlet adds a new LDAP configuration to VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Adds a new LDAP configuration to VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Add-AriaNetworksLdapConfiguration -jsonFile .\invDeploySpec.json
+        This example adds the LDAP configuration in the VMware Aria Operations for Networks instance using the JSON file provided.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $jsonInput.ariaNetworksPlatformNodeaFqdn) {
+                                        if (Test-AriaNetworksInternalAuthentication -server $jsonInput.ariaNetworksPlatformNodeaFqdn -user admin@local -pass $jsonInput.ariaNetworksAdminPassword) {
+                                            if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
+                                                if ($ariaNetworksLdapConfig.status -eq $False) {
+                                                    New-AriaNetworksLdapConfiguration -domain $jsonInput.domain -url $jsonInput.ldap_url -username $jsonInput.domainBindUser -password $jsonInput.domainBindPass -userBaseDN $jsonInput.dn_base -memberDN $jsonInput.dn_member -adminDN $jsonInput.dn_admin -auditorDN $jsonInput.dn_auditor | Out-Null
+                                                    if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
+                                                        if ($ariaNetworksLdapConfig.status -eq $True){
+                                                            Write-Output "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
+                                                            }
+                                                        }
+                                                    }  else {
+                                                        Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), already exists: SKIPPED"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+            }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-AriaNetworksLdapConfiguration
+
+Function Undo-AriaNetworksLdapConfiguration {
+    <#
+        .SYNOPSIS
+        Removes a LDAP configuration from VMware Aria Operations for Networks.
+
+        .DESCRIPTION
+        The Undo-AriaNetworksLdapConfiguration cmdlet removes a LDAP configuration from VMware Aria Operations
+        for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
+        - Removes a LDAP configuration from VMware Aria Operations for Networks.
+
+        .EXAMPLE
+        Undo-AriaNetworksLdapConfiguration -jsonFile .\invDeploySpec.json
+        This example removes the LDAP configuration from the VMware Aria Operations for Networks instance using the JSON file provided.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                if (Get-vRSLCMProductNode -environmentName $jsonInput.environmentName -product vrni) {
+                                    if (Test-AriaNetworksConnection -server $jsonInput.ariaNetworksPlatformNodeaFqdn) {
+                                        if (Test-AriaNetworksInternalAuthentication -server $jsonInput.ariaNetworksPlatformNodeaFqdn -user admin@local -pass $jsonInput.ariaNetworksAdminPassword) {
+                                            if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
+                                                if ($ariaNetworksLdapConfig.status -eq $True) {
+                                                    Remove-AriaNetworksLdapConfiguration | Out-Null
+                                                    if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
+                                                        if ($ariaNetworksLdapConfig.status -eq $False){
+                                                            Write-Output "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
+                                                            }
+                                                        }
+                                                    }  else {
+                                                        Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), does not exist: SKIPPED"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+            }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-AriaNetworksLdapConfiguration
 
 Function Add-AriaNetworksVcenterDataSource {
     <#

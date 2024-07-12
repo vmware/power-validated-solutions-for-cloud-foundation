@@ -35,6 +35,8 @@
 - Added `Test-AriaNetworksConnection` cmdlet to test network connectivity with a VMware Aria Operations for Networks instance.
 - Added `Test-AriaNetworksAuthentication` cmdlet to test authentication with a VMware Aria Operations for Networks instance.
 - Added `Test-AriaNetworksInternalAuthentication` cmdlet to test authentication with the internal API for a VMware Aria Operations for Networks instance.
+- Added `Add-AriaNetworksLdapConfiguration` cmdlet to add a LDAP configuration to a VMware Aria Operations for Networks instance.
+- Added `Undo-AriaNetworksLdapConfiguration` cmdlet to remove a LDAP configuration from a VMware Aria Operations for Networks instance.
 - Added `Add-AriaNetworksVcenterDataSource` cmdlet to add vCenter Server data sources to a VMware Aria Operations for Networks instance.
 - Added `Undo-AriaNetworksVcenterDataSource` cmdlet to remove vCenter Server data sources from a VMware Aria Operations for Networks instance.
 - Added `Undo-vRSLCMLoadBalancer` cmdlet to remove a load balancer from VMware Aria Suite Lifecycle.
