@@ -39,6 +39,8 @@
 - Added `Undo-AriaNetworksLdapConfiguration` cmdlet to remove a LDAP configuration from a VMware Aria Operations for Networks instance.
 - Added `Add-AriaNetworksVcenterDataSource` cmdlet to add vCenter Server data sources to a VMware Aria Operations for Networks instance.
 - Added `Undo-AriaNetworksVcenterDataSource` cmdlet to remove vCenter Server data sources from a VMware Aria Operations for Networks instance.
+- Added `Add-AriaNetworksNsxDataSource` cmdlet to add NSX Manager data sources to a VMware Aria Operations for Networks instance.
+- Added `Undo-AriaNetworksNsxDataSource` cmdlet to remove NSX Manager data sources from a VMware Aria Operations for Networks instance.
 - Added `Undo-vRSLCMLoadBalancer` cmdlet to remove a load balancer from VMware Aria Suite Lifecycle.
 - Fixed `Invoke-IamDeployment` and `Invoke-UndoIamDeployment` cmdlets where it was not discovering the NSX service accounts correctly.
 - Fixed `Invoke-IlaDeployment` cmdlet to configure NSX Syslog servers in the correct order after connecting VI Workload Domains.
