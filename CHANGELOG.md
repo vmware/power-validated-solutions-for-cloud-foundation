@@ -59,7 +59,7 @@
 - Enhanced `Test-PrereqApplicationVirtualNetwork` cmdlet to allow validation of either X_REGION or REGION_A networks.
 - Enhanced `Export-vRLIJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Logs virtual appliances into the defined folder.
 - Enhanced `Export-vROPsJsonSpec` cmdlet for automatic placement of the VMware Aria Operations virtual appliances into the defined folder.
-- Enhanced `Export-InvJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Networks virtual appliances into the defined folder.
+- Enhanced `Export-AriaNetworksJsonSpec` cmdlet for automatic placement of the VMware Aria Operations for Networks virtual appliances into the defined folder.
 - Enhanced `Export-vRAJsonSpec` cmdlet for automatic placement of the VMware Aria Automation virtual appliances into the defined folder.
 - Enhanced `New-vRAvROPSIntegrationItem` cmdlet for better error checking and message handling.
 - Enhanced `Undo-vRAvROPsIntegrationItem` cmdlet for better error checking and message handling.
@@ -76,6 +76,7 @@
 - Enhanced `Invoke-GlobalWsaDeployment` cmdlet to ensure that the Workspace ONE Access identity provider is referencing the cluster FQDN.
 - Enhanced `Invoke-UndoIomDeployment` cmdlet to remove the load balancer configured in VMware Aria Suite Lifecycle for VMware Aria Operations.
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the load balancer configured in VMware Aria Suite Lifecycle for VMware Aria Automation.
+- Enhanced `Invoke-InvDeployment` cmdlet to add data collector and LDAP configuration functions.
 - Converted `aria-operations-notifications-vcf.csv` to 'aria-operations-notifications-vcf.json'.
 - Converted `aria-operations-notifications-srm.csv' to 'aria-operations-notifications-srm.json'.
 
