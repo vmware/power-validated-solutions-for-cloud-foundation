@@ -17,14 +17,14 @@ Undo-AriaNetworksVcenterDataSource [-server] <String> [-user] <String> [-pass] <
 The `Undo-AriaNetworksVcenterDataSource` cmdlet removes a vCenter Server data source from VMware Aria Operations
 for Networks.
 The cmdlet connects to SDDC Manager using the -server, -user, and -pass values
-and uses the -sddcDomain, -serviceAccount, -serviceAccountPass, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
+and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
 and -ariaNetworksPass as well to do the following:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Gathers vCenter Server details from the SDDC Manager instance
-- Removes a vCenter Server data source for each Workload Domain
+- Removes a vCenter Server data source from a domain
 
 ## Examples
 

@@ -24,7 +24,7 @@ and -ariaNetworksPass as well to do the following:
 - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Gathers NSX Manager details from the SDDC Manager instance
-- Removes a NSX Manager data source from the domain
+- Removes a NSX Manager data source from a domain
 
 ## Examples
 

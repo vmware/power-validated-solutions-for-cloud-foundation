@@ -24,7 +24,7 @@ and -ariaNetworksPass as well to do the following:
 - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Gathers vCenter Server details from the SDDC Manager instance
-- Adds a new vCenter Server data source for each Workload Domain
+- Adds a new vCenter Server data source from a domain
 
 ## Examples
 
