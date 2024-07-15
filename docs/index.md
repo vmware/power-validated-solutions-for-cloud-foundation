@@ -20,10 +20,8 @@ The following table lists the supported platforms for this module.
 
 Platform                                                     | Supported
 -------------------------------------------------------------|------------------------------------
+:fontawesome-solid-cloud: &nbsp; VMware Cloud Foundation 5.2 | :fontawesome-solid-check:{ .green }
 :fontawesome-solid-cloud: &nbsp; VMware Cloud Foundation 5.1 | :fontawesome-solid-check:{ .green }
-:fontawesome-solid-cloud: &nbsp; VMware Cloud Foundation 5.0 | :fontawesome-solid-check:{ .green }
-:fontawesome-solid-cloud: &nbsp; VMware Cloud Foundation 4.5 | :fontawesome-solid-check:{ .green }
-:fontawesome-solid-cloud: &nbsp; VMware Cloud Foundation 4.4 | :fontawesome-solid-check:{ .green }
 
 ### Operating Systems
 
@@ -55,17 +53,19 @@ PowerShell Module                                    | Version   | Publisher    
 
 ## Related Projects
 
-The following table lists the related projects for this use this module.
+The following table lists the related projects that use this module.
 
-Project                                                                                                         | Reference
-----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------
-[PowerShell Module for VMware Cloud Foundation Reporting][psgallery-module-reporting]                           | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-reporting]
+Project                                                                                                       | Reference
+--------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------
+[PowerShell Module for VMware Cloud Foundation Reporting][psgallery-module-reporting]                         | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-reporting]
 [PowerShell Module for VMware Cloud Foundation Certificate Management][psgallery-module-certificate-management] | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-certificate-management]
-[PowerShell Module for VMware Cloud Foundation Password Management][psgallery-module-password-management]       | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-password-management]
-[PowerShell Module for VMware Cloud Foundation Power Management][psgallery-module-power-management]             | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-power-management]
+[PowerShell Module for VMware Cloud Foundation Logging Management][psgallery-module-logging-management]       | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-logging-management]
+[PowerShell Module for VMware Cloud Foundation Password Management][psgallery-module-password-management]     | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-password-management]
+[PowerShell Module for VMware Cloud Foundation Power Management][psgallery-module-power-management]           | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-power-management]
 
 [microsoft-powershell]: https://docs.microsoft.com/en-us/powershell
 [docs-module-certificate-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-certificate-management
+[docs-module-logging-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-logging-management
 [docs-module-password-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-password-management
 [docs-module-powervcf]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation
 [docs-module-power-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-power-management
@@ -76,12 +76,12 @@ Project                                                                         
 [psgallery-module-powervcf]: https://www.powershellgallery.com/packages/PowerVCF
 [psgallery-module-reporting]: https://www.powershellgallery.com/packages/VMware.CloudFoundation.Reporting
 [psgallery-module-certificate-management]: https://www.powershellgallery.com/packages/VMware.CloudFoundation.CertificateManagement
+[psgallery-module-logging-management]: https://www.powershellgallery.com/packages/VMware.CloudFoundation.LoggingManagement
 [psgallery-module-password-management]: https://www.powershellgallery.com/packages/VMware.CloudFoundation.PasswordManagement
 [psgallery-module-power-management]: https://www.powershellgallery.com/packages/VMware.CloudFoundation.PowerManagement
 [psgallery-module-pvs]: https://www.powershellgallery.com/packages/PowerValidatedSolutions
 [psgallery-module-ssoadmin]: https://www.powershellgallery.com/packages/VMware.vSphere.SsoAdmin
 [developer-module-powercli]: https://developer.vmware.com/tool/vmware-powercli
 [github-module-importexcel]: https://github.com/dfinke/ImportExcel
-[github-module-powervcf]: https://github.com/vmware/powershell-module-for-vmware-cloud-foundation
 [github-module-ssoadmin]: https://github.com/vmware/PowerCLI-Example-Scripts/tree/master/Modules/VMware.vSphere.SsoAdmin
 [vvs]: https://www.vmware.com/go/vvs

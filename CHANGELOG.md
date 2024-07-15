@@ -4,6 +4,7 @@
 
 > Release Date: (Not Released)
 
+- Removed support for VMware Cloud Foundation 5.0 and earlier.
 - Added `Invoke-IlaSolutionInterop` cmdlet to perform solution interoperability configuration for Intelligent Logging and Analytics.
 - Added `Invoke-UndoIlaSolutionInterop` cmdlet to perform the removal of solution interoperability configuration for Intelligent Logging and Analytics.
 - Added `Invoke-IomSolutionInterop` cmdlet to perform solution interoperability configuration for Intelligent Operations Management.
@@ -81,7 +82,7 @@
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the load balancer configured in VMware Aria Suite Lifecycle for VMware Aria Automation.
 - Enhanced `Invoke-InvDeployment` cmdlet to add data collector and LDAP configuration functions.
 - Enhanced `Install-vRLIContentPack` cmdlet to compress the and stream the content pack JSON payload to VMware Aria Operations for Logs.
-- Enhanced all `Export-???JsonSpec` cmdlets to check for 'N/A', 'n/a' and '#VALUE' values extracted from the Planning and Preparation Workbook and warn.
+- Enhanced all `Export-***JsonSpec` cmdlets to check for 'N/A', 'n/a' and '#VALUE' values extracted from the Planning and Preparation Workbook and warn.
 - Converted `aria-operations-notifications-vcf.csv` to `aria-operations-notifications-vcf.json`.
 - Converted `aria-operations-notifications-srm.csv` to `aria-operations-notifications-srm.json`.
 
