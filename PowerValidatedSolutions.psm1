@@ -121,7 +121,7 @@ Function Export-IamJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -2755,21 +2755,21 @@ Function Export-PdrJsonSpec {
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
                 $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
                 Foreach ($jsonValue in $baseData.psobject.properties) {
-                    if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                         Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                         $issueWithJson = $true
                     }
                 }
                 $protectedData = $protectedObject | ConvertTo-Json -Depth 12; $protectedData = $protectedData | ConvertFrom-Json
                 Foreach ($objectValue in $protectedData.psobject.properties) {
-                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value ) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
                         Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Protected property: {0}' -f $objectValue.Name)
                         $issueWithJson = $true
                     }
                 }
                 $recoveryData = $recoveryObject | ConvertTo-Json -Depth 12; $recoveryData = $recoveryData | ConvertFrom-Json
                 Foreach ($objectValue in $recoveryData.psobject.properties) {
-                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value ) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
                         Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Recovery property: {0}' -f $objectValue.Name)
                         $issueWithJson = $true
                     }
@@ -9687,7 +9687,7 @@ Function Export-DriJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -13389,7 +13389,7 @@ Function Export-IlaJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -17307,7 +17307,7 @@ Function Export-IomJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -23596,7 +23596,7 @@ Function Export-PcaJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -26565,7 +26565,7 @@ Function Export-HrmJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -27115,7 +27115,7 @@ Function Export-CbwJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -27578,7 +27578,7 @@ Function Export-CbrJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -27978,7 +27978,7 @@ Function Export-CcmJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
@@ -28467,7 +28467,7 @@ Function Export-vRSLCMJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     $issueWithJson = $true
                 }
             }
@@ -30068,7 +30068,7 @@ Function Export-GlobalWsaJsonSpec {
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     $issueWithJson = $true
                 }
             }

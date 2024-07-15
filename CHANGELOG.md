@@ -80,6 +80,7 @@
 - Enhanced `Invoke-UndoPcaDeployment` cmdlet to remove the load balancer configured in VMware Aria Suite Lifecycle for VMware Aria Automation.
 - Enhanced `Invoke-InvDeployment` cmdlet to add data collector and LDAP configuration functions.
 - Enhanced `Install-vRLIContentPack` cmdlet to compress the and stream the content pack JSON payload to VMware Aria Operations for Logs.
+- Enhanced all `Export-???JsonSpec` cmdlets to check for 'N/A', 'n/a' and '#VALUE' values extracted from the Planning and Preparation Workbook and warn.
 - Converted `aria-operations-notifications-vcf.csv` to `aria-operations-notifications-vcf.json`.
 - Converted `aria-operations-notifications-srm.csv` to `aria-operations-notifications-srm.json`.
 
