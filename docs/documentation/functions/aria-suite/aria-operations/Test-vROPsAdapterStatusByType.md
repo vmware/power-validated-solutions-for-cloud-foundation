@@ -12,8 +12,7 @@ Test-vROPsAdapterStatusByType [-server] <String> [-user] <String> [-pass] <Strin
 
 ## Description
 
-The `Test-vROPsAdapterStatusByType` cmdlet tests the integration status between VMware Aria Operations and
-configured adapter.
+The `Test-vROPsAdapterStatusByType` cmdlet tests the integration status between VMware Aria Operations and configured adapter.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

@@ -7,8 +7,7 @@ Enable the embedded Harbor Registry on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Enable-WMRegistry [[-domain] <String>] [[-cluster] <String>] [[-storagePolicy] <String>]
- [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-WMRegistry [[-domain] <String>] [[-cluster] <String>] [[-storagePolicy] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `Enable-WMRegistry` cmdlet enables the embedded Harbor Registry on a Supervi
 Enable-WMRegistry -cluster sfo-w01-cl01 -storagePolicy vsphere-with-tanzu-policy
 ```
 
-This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01
+This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01.
 
 ### Example 2
 

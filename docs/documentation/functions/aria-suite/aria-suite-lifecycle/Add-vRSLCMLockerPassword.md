@@ -22,7 +22,7 @@ The `Add-vRSLCMLockerPassword` cmdlet add as new passwords to the locker.
 Add-vRSLCMLockerPassword -userName admin -alias xint-admin -password VMw@re1! -description "Password for Cross-Instance Admin"
 ```
 
-This example adda a password to the locker.
+This example adds a password to the locker.
 
 ## Parameters
 

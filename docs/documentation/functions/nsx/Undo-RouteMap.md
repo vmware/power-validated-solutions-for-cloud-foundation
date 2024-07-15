@@ -2,23 +2,21 @@
 
 ## Synopsis
 
-The Undo-RouteMap cmdlet removes NSX Route Map from the NSX Manager cluster.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Removes an NSX Route Map from NSX Manager
+Removes an NSX Route Map from NSX Manager
 
 ## Syntax
 
 ```powershell
-Undo-RouteMap [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String>
- [-routeMapName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-RouteMap [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String> [-routeMapName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-RouteMap` cmdlet removes an NSX Route Map.
+The `Undo-RouteMap` cmdlet removes NSX Route Map from the NSX Manager cluster. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Removes an NSX Route Map from NSX Manager
 
 ## Examples
 

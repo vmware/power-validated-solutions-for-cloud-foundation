@@ -23,7 +23,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that the VMware Aria Automation adapter exists and configured in VMware Aria Operations
 - Validates that the credential name of VMware Aria Automation adapter does not already exist in VMware Aria Operations
 - Validates that the given credential is valid and updates VMware Aria Automation adapter in VMware Aria Operations
-- Verifies the VMware Aria Automation adapter status in VMware Aria Operations after updating the credential.
+- Verifies the VMware Aria Automation adapter status in VMware Aria Operations after updating the credential
 
 ## Examples
 

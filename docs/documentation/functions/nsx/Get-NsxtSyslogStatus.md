@@ -11,7 +11,6 @@ Gets the status of the Syslog Service
 ```powershell
 Get-NsxtSyslogStatus [-node] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
-
 ### transport
 
 ```powershell
@@ -30,7 +29,7 @@ The `Get-NsxtSyslogStatus` cmdlet gets the status of the Syslog Service for NSX 
 Get-NsxtSyslogStatus -type node
 ```
 
-This example gets the status of the syslog service for NSX Manager node
+This example gets the status of the syslog service for NSX Manager node.
 
 ### Example 2
 

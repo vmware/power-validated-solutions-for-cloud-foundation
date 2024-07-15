@@ -7,15 +7,12 @@ Removes the default vCenter Server and vSAN Adapters from VMware Aria Operations
 ## Syntax
 
 ```powershell
-Remove-OperationsDefaultAdapter [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-OperationsDefaultAdapter [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Remove-OperationsDefaultAdapter` cmdlet removes the default vCenter Server and vSAN adapters and associated
-credentials from VMware Aria Operations.
-
+The `Remove-OperationsDefaultAdapter` cmdlet removes the default vCenter Server and vSAN adapters and associated credentials from VMware Aria Operations.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

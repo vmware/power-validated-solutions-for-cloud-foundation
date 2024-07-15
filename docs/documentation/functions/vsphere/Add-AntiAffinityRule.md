@@ -7,15 +7,12 @@ Creates a vSphere Anti-Affinity rule
 ## Syntax
 
 ```powershell
-Add-AntiAffinityRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-ruleName] <String> [-antiAffinityVMs] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-AntiAffinityRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String> [-antiAffinityVMs] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-AntiAffinityRule` cmdlet creates a vSphere Anti-Affinity rule.
-The cmdlet connects to SDDC Manager using
-the -server, -user, and -password values:
+The `Add-AntiAffinityRule` cmdlet creates a vSphere Anti-Affinity rule. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server
@@ -28,8 +25,9 @@ the -server, -user, and -password values:
 
 ```powershell
 Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xint-wsa01a,xint-wsa01b,xint-wsa01c"
-This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain
 ```
+
+This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain.
 
 ## Parameters
 

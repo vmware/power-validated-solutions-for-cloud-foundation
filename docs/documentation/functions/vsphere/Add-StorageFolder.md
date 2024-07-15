@@ -7,15 +7,12 @@ Create a Storage Folder
 ## Syntax
 
 ```powershell
-Add-StorageFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-folderName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-StorageFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-folderName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-StorageFolder` cmdlet creates a Storage folder.
-The cmdlet connects to SDDC Manager using the -server,
--user, and -password values:
+The `Add-StorageFolder` cmdlet creates a Storage folder. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that the Workload Domain exists in the SDDC Manager inventory

@@ -7,8 +7,7 @@ Remove a Tanzu Kubernetes Cluster
 ## Syntax
 
 ```powershell
-Undo-TanzuKubernetesCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [-namespace] <String> [-tkc] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-TanzuKubernetesCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-namespace] <String> [-tkc] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -22,7 +22,7 @@ The `Get-NsxtTier0` cmdlet retrieves a list of Tier 0 Gateways.
 Get-NsxtTier0Gateway
 ```
 
-This example returns all Tier 0 Gateways
+This example returns all Tier 0 Gateways.
 
 ### Example 2
 

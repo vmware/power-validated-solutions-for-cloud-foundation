@@ -13,7 +13,6 @@ Deploy-PhotonAppliance [-server] <String> [-user] <String> [-pass] <String> [-sd
 ## Description
 
 The `Deploy-PhotonAppliance` cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

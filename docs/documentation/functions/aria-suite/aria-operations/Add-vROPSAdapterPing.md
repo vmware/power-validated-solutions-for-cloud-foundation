@@ -7,8 +7,7 @@ Adds a Ping Adapter to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Add-vROPSAdapterPing [-server] <String> [-user] <String> [-pass] <String> [-addressList] <String>
- [-adapterName] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAdapterPing [-server] <String> [-user] <String> [-pass] <String> [-addressList] <String> [-adapterName] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -31,7 +30,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.30,192.168.11.31,192.168.11.32,192.168.11.33" -adapterName xint-vrops01 -collectorGroupName "sfo-remote-collectors"
 ```
 
-This example creates a new Ping adapter called 'xint-vrops01', assigns the IP Addresses provided and assigned the collector group called 'sfo-remote-collectors'
+This example creates a new Ping adapter called 'xint-vrops01', assigns the IP Addresses provided and assigned the collector group called 'sfo-remote-collectors'.
 
 ### Example 2
 

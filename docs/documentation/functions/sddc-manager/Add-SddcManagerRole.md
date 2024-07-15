@@ -7,15 +7,13 @@ Assign SDDC Manager roles to a user/group
 ## Syntax
 
 ```powershell
-Add-SddcManagerRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-domainBindUser] <String> [-domainBindPass] <String> [-principal] <String> [-role] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-SddcManagerRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-principal] <String> [-role] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-SddcManagerRole` cmdlet assigns an SDDC Manager role to the user or group provided.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Verifies that the bind credetials are valid
 - Validates that network connectivity and authentication is possible to SDDC Manager

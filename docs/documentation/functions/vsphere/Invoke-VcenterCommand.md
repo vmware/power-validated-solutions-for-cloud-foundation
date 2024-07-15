@@ -7,14 +7,12 @@ Invoke a command line operation on vCenter Server
 ## Syntax
 
 ```powershell
-Invoke-VcenterCommand [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-command] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-VcenterCommand [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-command] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Invoke-VcenterCommand` cmdlet allows you to invoke any command line operation on a vCenter Server managed
-by SDDC Manager.
+The `Invoke-VcenterCommand` cmdlet allows you to invoke any command line operation on a vCenter Server managed by SDDC Manager.
 
 ## Examples
 

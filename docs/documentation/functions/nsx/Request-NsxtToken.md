@@ -7,8 +7,7 @@ Connects to the specified NSX Manager
 ## Syntax
 
 ```powershell
-Request-NsxtToken [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [[-inputObject] <PSObject>]
- [-skipCertificateCheck] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-NsxtToken [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [[-inputObject] <PSObject>] [-skipCertificateCheck] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `Request-NsxtToken` cmdlet connects to the specified NSX Manager with the su
 Request-NsxtToken -fqdn sfo-w01-nsx01.sfo.rainpole.io -username admin -password VMw@re1!VMw@re1!
 ```
 
-This example shows how to connect to NSX Manager
+This example shows how to connect to NSX Manager.
 
 ### Example 2
 

@@ -7,15 +7,13 @@ Enable the embedded Harbor Registry on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Enable-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-storagePolicy] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-storagePolicy] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Enable-Registry` cmdlet enables the embedded Harbor Registry on a Supervisor Cluster.
-The cmdlet connects to
-SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

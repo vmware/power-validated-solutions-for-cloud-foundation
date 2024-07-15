@@ -7,14 +7,12 @@ Creates a Namespace and applies extra configuration to it
 ## Syntax
 
 ```powershell
-Add-Namespace [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String>
- [-namespace] <String> [-storagePolicy] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-Namespace [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-namespace] <String> [-storagePolicy] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-Namespace` cmdlet creates a Namespace and applies its configuration.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Add-Namespace` cmdlet creates a Namespace and applies its configuration. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

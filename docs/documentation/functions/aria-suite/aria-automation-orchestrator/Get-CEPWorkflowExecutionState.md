@@ -12,8 +12,7 @@ Get-CEPWorkflowExecutionState [-workflowId] <String> [-executionId] <String> [-P
 
 ## Description
 
-The `Get-CEPWorkflowExecutionState` cmdlet returns the status of VMware Aria Automation Orchestrator workflow
-execution runs.
+The `Get-CEPWorkflowExecutionState` cmdlet returns the status of VMware Aria Automation Orchestrator workflow execution runs.
 
 ## Examples
 

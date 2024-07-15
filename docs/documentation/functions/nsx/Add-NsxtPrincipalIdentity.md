@@ -7,20 +7,17 @@ Add a principal identity to NSX Manager.
 ## Syntax
 
 ```powershell
-Add-NsxtPrincipalIdentity [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-principalId] <String> [-role] <String> [[-outputPath] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-NsxtPrincipalIdentity [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principalId] <String> [-role] <String> [[-outputPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-NsxtPrincipalIdentity` cmdlet adds a principal identity to NSX Manager.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager
-- Adds a principal identity to NSX Manager.
+- Adds a principal identity to NSX Manager
 
 ## Examples
 
@@ -30,7 +27,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-NsxtPrincipalIdentity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principalId svc-iom-sfo-m01-nsx01 -role enterprise_admin
 ```
 
-This example adds a principal identity to NSX Manager
+This example adds a principal identity to NSX Manager.
 
 ## Parameters
 

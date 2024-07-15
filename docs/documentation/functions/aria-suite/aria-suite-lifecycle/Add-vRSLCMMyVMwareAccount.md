@@ -12,10 +12,7 @@ Add-vRSLCMMyVMwareAccount [-server] <String> [-user] <String> [-pass] <String> [
 
 ## Description
 
-The `Add-vRSLCMMyVMwareAccount` cmdlet adds a VMware Customer Connect Account to VMware Aria Suite Lifecycle based on
-credentials added to the VMware Aria Suite Lifecycle locker.
-
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
+The `Add-vRSLCMMyVMwareAccount` cmdlet adds a VMware Customer Connect Account to VMware Aria Suite Lifecycle based on credentials added to the VMware Aria Suite Lifecycle locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle

@@ -424,6 +424,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations-networks/Request-AriaNetworksToken.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksAuthentication.md
       - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksConnection.md
+      - documentation/functions/aria-suite/aria-operations-networks/Test-AriaNetworksInternalAuthentication.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksDeployment.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksLdapConfiguration.md
       - documentation/functions/aria-suite/aria-operations-networks/Undo-AriaNetworksNsxDataSource.md
@@ -725,13 +726,13 @@ nav:
       - documentation/functions/vsphere/Get-VCConfigurationDNS.md
       - documentation/functions/vsphere/Get-VCConfigurationNTP.md
       - documentation/functions/vsphere/Get-VcenterBackupStatus.md
-      - documentation/functions/vsphere/Get-VCenterCEIP.md
+      - documentation/functions/vsphere/Get-VcenterCEIP.md
       - documentation/functions/vsphere/Get-VcenterPasswordExpiration.md
       - documentation/functions/vsphere/Get-VcenterRootPasswordExpiration.md
       - documentation/functions/vsphere/Get-vCenterServerDetail.md
       - documentation/functions/vsphere/Get-VcenterTriggeredAlarm.md
       - documentation/functions/vsphere/Get-VcLicense.md
-      - documentation/functions/vsphere/Get-VCVersion.md
+      - documentation/functions/vsphere/Get-VcVersion.md
       - documentation/functions/vsphere/Get-VMOvfProperty.md
       - documentation/functions/vsphere/Get-VMvAppConfig.md
       - documentation/functions/vsphere/Get-VsanHealthTest.md
@@ -753,7 +754,7 @@ nav:
       - documentation/functions/vsphere/Set-LocalAccountLockout.md
       - documentation/functions/vsphere/Set-LocalPasswordComplexity.md
       - documentation/functions/vsphere/Set-LocalUserPasswordExpiration.md
-      - documentation/functions/vsphere/Set-VCenterCEIP.md
+      - documentation/functions/vsphere/Set-VcenterCEIP.md
       - documentation/functions/vsphere/Set-VcenterPasswordExpiration.md
       - documentation/functions/vsphere/Set-vCenterPermission.md
       - documentation/functions/vsphere/Set-VcenterRootPasswordExpiration.md
@@ -831,6 +832,7 @@ nav:
       - documentation/functions/vsphere-tanzu/Add-NamespacePermission.md
       - documentation/functions/vsphere-tanzu/Add-NamespaceVmClass.md
       - documentation/functions/vsphere-tanzu/Add-SupervisorClusterLicense.md
+      - documentation/functions/vsphere-tanzu/Add-SupervisorService.md
       - documentation/functions/vsphere-tanzu/Add-TanzuKubernetesCluster.md
       - documentation/functions/vsphere-tanzu/Add-VMClass.md
       - documentation/functions/vsphere-tanzu/Connect-WMCluster.md
@@ -856,6 +858,7 @@ nav:
       - documentation/functions/vsphere-tanzu/Undo-NamespacePermission.md
       - documentation/functions/vsphere-tanzu/Undo-Registry.md
       - documentation/functions/vsphere-tanzu/Undo-SupervisorCluster.md
+      - documentation/functions/vsphere-tanzu/Undo-SupervisorService.md
       - documentation/functions/vsphere-tanzu/Undo-TanzuKubernetesCluster.md
       - documentation/functions/vsphere-tanzu/Watch-WmClusterConfigStatus.md
     - Workspace ONE Access:

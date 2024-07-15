@@ -12,8 +12,7 @@ Invoke-UndoDriDeployment [-jsonFile] <String> [-kubectlPath] <String> [<CommonPa
 
 ## Description
 
-The `Invoke-UndoDriDeployment` cmdlet is a single function to remove the configuration of the Developer Ready
-Infrastructure for VMware Cloud Foundation validated solution.
+The `Invoke-UndoDriDeployment` cmdlet is a single function to remove the configuration of the Developer Ready Infrastructure for VMware Cloud Foundation validated solution.
 
 ## Examples
 

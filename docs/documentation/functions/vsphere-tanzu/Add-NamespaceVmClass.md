@@ -7,14 +7,12 @@ Add a Virtual Machine class to a Namespace
 ## Syntax
 
 ```powershell
-Add-NamespaceVmClass [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-namespace] <String> [[-vmClass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NamespaceVmClass [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-namespace] <String> [[-vmClass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-NamespaceVmClass` cmdlet adds a Virtual Machine Class to a Namespace.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Add-NamespaceVmClass` cmdlet adds a Virtual Machine Class to a Namespace. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

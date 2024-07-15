@@ -7,21 +7,19 @@ Removes a credential from VMware Aria Operations
 ## Syntax
 
 ```powershell
-Undo-vROPSCredential [-server] <String> [-user] <String> [-pass] <String> [-credentialName] <String>
- [-credentialType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vROPSCredential [-server] <String> [-user] <String> [-pass] <String> [-credentialName] <String> [-credentialType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-vROPSCredential` cmdlet removes a credential from VMware Aria Operations.
-The cmdlet connects to
-SDDC Manager using the -server, -user, and -password values.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates that the Credential is present
-- Deletes the credential from VMware Aria Operations.
+- Deletes the credential from VMware Aria Operations
 
 ## Examples
 

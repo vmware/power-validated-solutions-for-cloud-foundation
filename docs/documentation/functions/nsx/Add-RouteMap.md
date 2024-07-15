@@ -2,12 +2,8 @@
 
 ## Synopsis
 
-The `Add-RouteMap` cmdlet creates NSX Prefix List in the NSX Manager cluster.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+Creates NSX Prefix List in the NSX Manager cluster
 
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Create an NSX Route Map if not already created in NSX Manager
 
 ## Syntax
 
@@ -18,7 +14,12 @@ Add-RouteMap [-server] <String> [-user] <String> [-pass] <String> [-domain] <Str
 
 ## Description
 
-The `Add-RouteMap` cmdlet creates an NSX Route Map.
+The `Add-RouteMap` cmdlet creates an NSX Route Map in the NSX Manager cluster.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Create an NSX Route Map if not already created in NSX Manager
 
 ## Examples
 

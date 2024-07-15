@@ -22,7 +22,7 @@ The `Get-vRSLCMLockerCertificate` cmdlet gets a paginated list of certificates a
 Get-vRSLCMLockerCertificate
 ```
 
-This example gets all certificates in the locker
+This example gets all certificates in the locker.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example gets all certificates in the locker
 Get-vRSLCMLockerCertificate -vmid 83abd0fd-c92d-4d8f-a5e8-9a1fc4fa6009
 ```
 
-This example gets the details of a certificate based on the vmid
+This example gets the details of a certificate based on the vmid.
 
 ### Example 3
 

@@ -22,7 +22,7 @@ The `Get-vRSLCMLockerPassword` cmdlet gets a paginated list of passwords availab
 Get-vRSLCMLockerPassword
 ```
 
-This example gets all passwords in the locker
+This example gets all passwords in the locker.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example gets all passwords in the locker
 Get-vRSLCMLockerPassword -vmid 83abd0fd-c92d-4d8f-a5e8-9a1fc4fa6009
 ```
 
-This example gets the details of a password based on the vmid
+This example gets the details of a password based on the vmid.
 
 ### Example 3
 

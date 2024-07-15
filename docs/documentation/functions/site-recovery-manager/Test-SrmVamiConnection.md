@@ -13,8 +13,7 @@ Test-SrmVamiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Ac
 ## Description
 
 The `Test-SrmVamiConnection` cmdlet checks the network connectivity to a Site Recovery Manager instance VAMI.
-Supports testing a connection on ports 5480 (HTTPS/VAMI).
-Default: 5480 (HTTPS/VAMI).
+Supports testing a connection on ports 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
 
 ## Examples
 

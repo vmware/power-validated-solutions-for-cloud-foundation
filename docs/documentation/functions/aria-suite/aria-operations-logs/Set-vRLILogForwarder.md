@@ -7,8 +7,7 @@ Adds a log forwarder destination.
 ## Syntax
 
 ```powershell
-Set-vRLILogForwarder [-name] <String> [-server] <String> [-protocol] <String> [-port] <String>
- [[-transport] <String>] [-acceptCert] <String> [-sslEnabled] <String> [-testConnection] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLILogForwarder [-name] <String> [-server] <String> [-protocol] <String> [-port] <String> [[-transport] <String>] [-acceptCert] <String> [-sslEnabled] <String> [-testConnection] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Removes a license for Site Recovery Manager
 ## Syntax
 
 ```powershell
-Undo-SrmLicenseKey [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-srmLicenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SrmLicenseKey [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmLicenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Adds a vSphere Replication Adapter to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Add-vROPSAdapterVr [-server] <String> [-user] <String> [-pass] <String> [-vrFqdn] <String> [-vrUser] <String>
- [-vrPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAdapterVr [-server] <String> [-user] <String> [-pass] <String> [-vrFqdn] <String> [-vrUser] <String> [-vrPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -21,9 +20,9 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
 - Validates that the collector group exits in VMware Aria Operations
-- Validates that the Adapter and Credentials do not already exist in VMwar eAria Operations
+- Validates that the Adapter and Credentials do not already exist in VMware Aria Operations
 - Creates a new vSphere Replication Adapter in VMware Aria Operations
-- Starts the collection of the vSphere Replication Adapter in VMware Aria Operations.
+- Starts the collection of the vSphere Replication Adapter in VMware Aria Operations
 
 ## Examples
 

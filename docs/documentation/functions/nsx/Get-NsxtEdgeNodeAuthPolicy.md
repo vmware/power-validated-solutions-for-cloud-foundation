@@ -12,7 +12,7 @@ Get-NsxtEdgeNodeAuthPolicy [-nsxtManager] <String> [-nsxtEdgeNodeID] <String> [-
 
 ## Description
 
-The `Get-NsxtEdgeNodeAuthPolicy` cmdlet getss the authentication policy for NSX Edge Nodes.
+The `Get-NsxtEdgeNodeAuthPolicy` cmdlet gets the authentication policy for NSX Edge Nodes.
 
 ## Examples
 

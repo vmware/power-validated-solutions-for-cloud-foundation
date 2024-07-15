@@ -2,13 +2,12 @@
 
 ## Synopsis
 
-Configure Workspace ONE Access Intergration
+Configure Workspace ONE Access Integration
 
 ## Syntax
 
 ```powershell
-Set-vRLIAuthenticationWSA [-hostname] <String> [-port] <String> [-redirectUrl] <String> [-username] <String>
- [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLIAuthenticationWSA [-hostname] <String> [-port] <String> [-redirectUrl] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

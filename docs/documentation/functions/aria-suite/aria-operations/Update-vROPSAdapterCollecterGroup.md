@@ -7,14 +7,12 @@ Updates the assigned Collector Group for the specified Adapter type
 ## Syntax
 
 ```powershell
-Update-vROPSAdapterCollecterGroup [-server] <String> [-user] <String> [-pass] <String>
- [[-collectorGroupName] <String>] [-adapterType] <String> [[-adapterName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vROPSAdapterCollecterGroup [-server] <String> [-user] <String> [-pass] <String> [[-collectorGroupName] <String>] [-adapterType] <String> [[-adapterName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Update-vROPSAdapterCollecterGroup` cmdlet updates the assigned Collector group for all Adapters in
-VMware Aria Operations.
+The `Update-vROPSAdapterCollecterGroup` cmdlet updates the assigned Collector group for all Adapters in VMware Aria Operations.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -23,7 +21,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates the collector Group exits in VMware Aria Operations
 - Gathers the unique ID of the collector group
 - Gathers the given Adapter details from VMware Aria Operations
-- Updates the assigned Collector group for the Adapter in VMware Aria Operations.
+- Updates the assigned Collector group for the Adapter in VMware Aria Operations
 
 ## Examples
 

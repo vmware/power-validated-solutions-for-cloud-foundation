@@ -22,6 +22,8 @@ The `Test-vRSLCMAuthentication` cmdlet checks Authentication to VMware Aria Suit
 Test-vRSLCMAuthentication [-server] <String> [-user] <String> [-pass] <String>
 ```
 
+This examples tests authentication to VMware Aria Suite Lifecycle.
+
 ## Parameters
 
 ### -pass

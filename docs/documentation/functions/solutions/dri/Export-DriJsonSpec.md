@@ -12,8 +12,7 @@ Export-DriJsonSpec [-workbook] <String> [-jsonFile] <String> [<CommonParameters>
 
 ## Description
 
-The `Export-DriJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy
-and configure Developer Ready Infrastructure:
+The `Export-DriJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Developer Ready Infrastructure:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

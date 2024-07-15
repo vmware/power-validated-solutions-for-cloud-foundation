@@ -1,4 +1,4 @@
-# Set-VCenterCEIP
+# Set-VcenterCEIP
 
 ## Synopsis
 
@@ -7,25 +7,25 @@ Enables or Disables the Customer Experience Improvement Program (CEIP) setting f
 ## Syntax
 
 ```powershell
-Set-VCenterCEIP [-Enabled] [-Disabled] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-VcenterCEIP [-Enabled] [-Disabled] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-VCenterCEIP` cmdlet enables or disables the CEIP setting for vCenter Server.
+The `Set-VcenterCEIP` cmdlet enables or disables the CEIP setting for vCenter Server.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Set-VCenterCEIP  -Enabled
+Set-VcenterCEIP  -Enabled
 ```
 
 ### Example 2
 
 ```powershell
-Set-VCenterCEIP  -Disabled
+Set-VcenterCEIP  -Disabled
 ```
 
 ## Parameters

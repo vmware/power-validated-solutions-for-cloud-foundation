@@ -7,14 +7,12 @@ Starts the upgrade process for VMware Aria Suite Lifecycle
 ## Syntax
 
 ``` powershell
-Start-vRSLCMUpgrade [-server] <String> [-user] <String> [-pass] <String> [[-type] <String>]
- [<CommonParameters>]
+Start-vRSLCMUpgrade [-server] <String> [-user] <String> [-pass] <String> [[-type] <String>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Start-vRSLCMUpgrade` cmdlet starts the upgrade process of VMware Aria Suite Lifecycle.
-
 The cmdlet connects to sSDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -28,7 +26,8 @@ The cmdlet connects to sSDDC Manager using the -server, -user, and -password val
 ``` powershell
 Start-vRSLCMUpgrade -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -type CDROM
 ```
-This example disconnects the ISO from VMware Aria Suite Lifecycle
+
+This example disconnects the ISO from VMware Aria Suite Lifecycle.
 
 ## Parameters
 

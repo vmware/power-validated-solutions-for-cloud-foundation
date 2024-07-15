@@ -12,8 +12,7 @@ Request-vRSLCMProductBinary [-version] <String> [[-productId] <String>] [-produc
 
 ## Description
 
-The `Request-vRSLCMProductBinary` cmdlet downloads a VMware Aria suite product binary through the My VMware
-account to VMware Aria Suite Lifecycle.
+The `Request-vRSLCMProductBinary` cmdlet downloads a VMware Aria suite product binary through the My VMware account to VMware Aria Suite Lifecycle.
 
 ## Examples
 

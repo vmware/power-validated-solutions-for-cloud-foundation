@@ -7,8 +7,7 @@ Import a Group from Workspace ONE Access and assign access in VMware Aria Operat
 ## Syntax
 
 ```powershell
-Import-vROPSUserGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-groupName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vROPSUserGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-groupName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that Workspace ONE Access has been configured as an authentication source
 - Validates the user group provided can be found in VMware Aria Operations
 - Validated the role exists within VMware Aria Operations
-- Imports the group and assigns the VMware Aria Operations role.
+- Imports the group and assigns the VMware Aria Operations role
 
 ## Examples
 

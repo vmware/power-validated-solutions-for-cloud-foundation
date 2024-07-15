@@ -7,8 +7,7 @@ Configuer the index partitions
 ## Syntax
 
 ```powershell
-Set-vRLILogArchive [-id] <String> [-enable] <String> [[-retentionPeriodDays] <Int32>] [-archiveEnable] <String>
- [[-archiveLocation] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLILogArchive [-id] <String> [-enable] <String> [[-retentionPeriodDays] <Int32>] [-archiveEnable] <String> [[-archiveLocation] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

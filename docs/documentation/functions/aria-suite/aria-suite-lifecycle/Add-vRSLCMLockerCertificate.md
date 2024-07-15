@@ -7,8 +7,7 @@ Add a certificate to the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-Add-vRSLCMLockerCertificate [-vrslcmFQDN] <String> [-certificateAlias] <String>
- [[-certificatePassphrase] <String>] [[-certChainPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRSLCMLockerCertificate [-vrslcmFQDN] <String> [-certificateAlias] <String> [[-certificatePassphrase] <String>] [[-certChainPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

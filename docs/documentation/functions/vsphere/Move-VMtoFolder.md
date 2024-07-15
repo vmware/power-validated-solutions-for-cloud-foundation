@@ -7,8 +7,7 @@ Moves VMs to a folder
 ## Syntax
 
 ```powershell
-Move-VMtoFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vmList] <String>
- [-folder] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Move-VMtoFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vmList] <String> [-folder] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -17,7 +16,7 @@ The `Move-VMtoFolder` cmdlet moves the Virtual Machines to a folder.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Retrives the details of the vCenter Server for the Workload Domain provided
+- Retrieves the details of the vCenter Server for the Workload Domain provided
 - Validates that network connectivity and authentication is possible to vCenter Server
 - Validates the virtual machine exists in the vCenter Server inventory
 - Moves the virtual machines provided in the -vmlist parameter.

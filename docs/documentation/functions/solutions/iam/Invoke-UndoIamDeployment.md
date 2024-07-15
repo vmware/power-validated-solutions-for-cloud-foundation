@@ -12,8 +12,7 @@ Invoke-UndoIamDeployment [-jsonFile] <String> [-ProgressAction <ActionPreference
 
 ## Description
 
-The `Invoke-UndoIamDeployment` cmdlet is a single function to remove the configuration of the Identity and Access
-Management for VMware Cloud Foundation validated solution.
+The `Invoke-UndoIamDeployment` cmdlet is a single function to remove the configuration of the Identity and Access Management for VMware Cloud Foundation validated solution.
 
 ## Examples
 

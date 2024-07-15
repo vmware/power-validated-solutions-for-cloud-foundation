@@ -22,7 +22,7 @@ The `Add-vRLIGroup` cmdlet adds a group by authentication provider.
 Add-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
 ```
 
-This example adds a group assigned using the the vIDM authenitcation provider and assigns the Super Admin role.
+This example adds a group assigned using the the vIDM authentication provider and assigns the Super Admin role.
 
 ## Parameters
 

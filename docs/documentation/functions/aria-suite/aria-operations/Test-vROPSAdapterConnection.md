@@ -20,10 +20,12 @@ The `Test-vROPSAdapterConnection` cmdlet tests the connection in VMware Aria Ope
 
 ```powershell
 Test-vROPSAdapterConnection [-json] <String> 
-``
-This example tests the connection based on the JSON file provided`
+```
+
+This example tests the connection based on the JSON file provided.
 
 ### Example 2
+
 ```powershell
 Test-vROPSAdapterConnection [-json] <String> [-patch]
 ```

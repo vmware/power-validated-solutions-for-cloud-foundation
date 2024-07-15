@@ -7,9 +7,7 @@ Configure log archiving in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Add-vRLILogArchive [-server] <String> [-user] <String> [-pass] <String> [-emailAddress] <String>
- [-retentionNotificationDays] <Int32> [-retentionInterval] <String> [-retentionPeriodDays] <Int32>
- [-archiveLocation] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLILogArchive [-server] <String> [-user] <String> [-pass] <String> [-emailAddress] <String> [-retentionNotificationDays] <Int32> [-retentionInterval] <String> [-retentionPeriodDays] <Int32> [-archiveLocation] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -22,7 +20,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
 - Configure an email address to send notifications to in VMware Aria Operations for Logs
 - Configure the log retention threshold in VMware Aria Operations for Logs
-- Configure log archive location in VMware Aria Operations for Logs.
+- Configure log archive location in VMware Aria Operations for Logs
 
 ## Examples
 

@@ -2,23 +2,22 @@
 
 ## Synopsis
 
-The Function Set-DatastoreTag cmdlet creates and applies a vSphere Tag to the primary datastore.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to vCenter Server
-- Creates and applies a vSphere Tag to the primary datastore
+Creates and applies a vSphere Tag to the primary datastore
 
 ## Syntax
 
 ```powershell
-Set-DatastoreTag [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tagName] <String>
- [-tagCategoryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-DatastoreTag [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tagName] <String> [-tagCategoryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Set-DatastoreTag` cmdlet creates and applies a vSphere Tag to the primary datastore.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to vCenter Server
+- Creates and applies a vSphere Tag to the primary datastore
 
 ## Examples
 

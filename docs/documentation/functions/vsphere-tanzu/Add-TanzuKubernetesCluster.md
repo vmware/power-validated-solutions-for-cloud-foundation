@@ -7,15 +7,13 @@ Create a new Tanzu Kubernetes Cluster on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Add-TanzuKubernetesCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [[-yaml] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-TanzuKubernetesCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [[-yaml] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-TanzuKubernetesCluster` cmdlet creates a new Tanzu Kubernetes Cluster on a Supervisor Cluster.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

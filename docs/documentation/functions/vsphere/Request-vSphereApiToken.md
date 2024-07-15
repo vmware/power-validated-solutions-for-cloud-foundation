@@ -7,8 +7,7 @@ Request an authentication token for the vSphere REST API
 ## Syntax
 
 ```powershell
-Request-vSphereApiToken [-fqdn] <String> [-username] <String> [-password] <String> [-admin]
- [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vSphereApiToken [-fqdn] <String> [-username] <String> [-password] <String> [-admin] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `Request-vSphereApiToken` cmdlet requests an authentication token for the vS
 Request-vSphereApiToken -Fqdn sfo-w01-vc01.sfo.rainpole.io -Username administrator@vsphere.local -Password VMw@re1!
 ```
 
-This example requests a vSphere REST API authentication token for user <administrator@vsphere.local> from vCenter Server sfo-w01-vc01.sfo.rainpole.io
+This example requests a vSphere REST API authentication token for user <administrator@vsphere.local> from vCenter Server sfo-w01-vc01.sfo.rainpole.io.
 
 ### Example 2
 

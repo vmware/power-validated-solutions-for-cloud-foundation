@@ -22,4 +22,4 @@ The `Get-NsxtVidm` cmdlet gets the Identity Manager configuration.
 Get-NsxtVidm
 ```
 
-This example gets the Identity Manager configuration
+This example gets the Identity Manager configuration.

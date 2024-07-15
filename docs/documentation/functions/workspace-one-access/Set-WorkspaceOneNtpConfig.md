@@ -9,22 +9,18 @@ Configure NTP Server on a Workspace ONE Access appliance.
 ### standaloneWsa
 
 ```powershell
-Set-WorkspaceOneNtpConfig -server <String> -user <String> -pass <String> [-wsaFqdn <String>]
- [-rootPass <String>] [-ntpServer <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WorkspaceOneNtpConfig -server <String> -user <String> -pass <String> [-wsaFqdn <String>] [-rootPass <String>] [-ntpServer <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### vrslcmIntegrated
 
 ```powershell
-Set-WorkspaceOneNtpConfig -server <String> -user <String> -pass <String> [-ntpServer <String>]
- [-vrslcmIntegrated] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WorkspaceOneNtpConfig -server <String> -user <String> -pass <String> [-ntpServer <String>] [-vrslcmIntegrated] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-WorkspaceOneNtpConfig` cmdlet configures the NTP Server details of the Workspace ONE Access appliance using the primary NTP Server configured on SDDC Manager if no NTP Server is provided.
-
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Set-WorkspaceOneNtpConfig` cmdlet configures the NTP Server details of the Workspace ONE Access appliance using the primary NTP Server configured on SDDC Manager if no NTP Server is provided. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

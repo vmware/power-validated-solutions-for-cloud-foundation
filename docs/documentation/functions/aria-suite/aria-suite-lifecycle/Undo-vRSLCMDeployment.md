@@ -13,7 +13,6 @@ Undo-vRSLCMDeployment [-server] <String> [-user] <String> [-pass] <String> [-roo
 ## Description
 
 The `Undo-vRSLCMDeployment` cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

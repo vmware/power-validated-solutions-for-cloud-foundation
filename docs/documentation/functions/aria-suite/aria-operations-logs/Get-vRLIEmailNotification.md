@@ -22,4 +22,4 @@ The `Get-vRLIEmailNotification` cmdlet gets a list of the emails notifications w
 Get-vRLIEmailNotification
 ```
 
-This example gets a list of email notifications
+This example gets a list of email notifications.

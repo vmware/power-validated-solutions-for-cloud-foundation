@@ -7,15 +7,12 @@ Remove a vSphere role
 ## Syntax
 
 ```powershell
-Undo-vSphereRole [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-roleName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vSphereRole [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-roleName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-vSphereRole` cmdlet removes a role from vCenter Server.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-vSphereRole` cmdlet removes a role from vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

@@ -7,16 +7,13 @@ Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator.
 ## Syntax
 
 ```powershell
-Add-CEPTrustedCertificate [-extensibilityProxy] <String> [-environment] <String> [-apiToken] <String>
- [[-certFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-CEPTrustedCertificate [-extensibilityProxy] <String> [-environment] <String> [-apiToken] <String> [[-certFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROTrustedCertificateOnCEP` cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add
-trusted certificate.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-and then:
+The `Add-vROTrustedCertificateOnCEP` cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted certificate.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
 
 - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
 - Verifies the workflow exists.

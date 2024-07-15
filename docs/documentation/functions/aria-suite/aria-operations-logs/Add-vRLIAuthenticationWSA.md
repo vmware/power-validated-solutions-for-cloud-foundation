@@ -2,13 +2,12 @@
 
 ## Synopsis
 
-Configure VMware Aria Operations for Logs Intergration with Workspace ONE Access
+Configure VMware Aria Operations for Logs Integration with Workspace ONE Access
 
 ## Syntax
 
 ```powershell
-Add-vRLIAuthenticationWSA [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String>
- [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIAuthenticationWSA [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String> [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -20,7 +19,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
 - Validates that network connectivity is possible to Workspace ONE Access
-- Configures Workspace ONE Access Integration on VMware Aria Operations for Logs if not already configured.
+- Configures Workspace ONE Access Integration on VMware Aria Operations for Logs if not already configured
 
 ## Examples
 

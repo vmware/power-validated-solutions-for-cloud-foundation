@@ -12,8 +12,7 @@ Undo-vRLIAuthenticationWSA [-server] <String> [-user] <String> [-pass] <String> 
 
 ## Description
 
-The `Undo-vRLIAuthenticationWSA` cmdlet configures Workspace ONE Access as an authentication source in VMware
-Aria Operations for Logs.
+The `Undo-vRLIAuthenticationWSA` cmdlet configures Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -27,8 +26,9 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 
 ```powershell
 Undo-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
 ```
+
+This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
 
 ## Parameters
 

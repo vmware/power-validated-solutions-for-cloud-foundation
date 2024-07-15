@@ -13,7 +13,6 @@ Undo-vRSLCMMyVMwareAccount [-server] <String> [-user] <String> [-pass] <String> 
 ## Description
 
 The `Undo-vRSLCMMyVMwareAccount` cmdlet removes a VMware Customer Connect Account from VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

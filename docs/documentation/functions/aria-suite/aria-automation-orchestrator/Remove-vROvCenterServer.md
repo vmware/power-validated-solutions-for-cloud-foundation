@@ -7,15 +7,13 @@ Removes a vCenter Server instance from an embedded VMware Aria Automation Orches
 ## Syntax
 
 ```powershell
-Remove-vROvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vraUser] <String> [-vraPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vROvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vraUser] <String> [-vraPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Remove-vROvCenterServer` cmdlet invokes the workflow in VMware Aria Automation Orchestrator to remove a vCenter Server.
-The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
-to return the workload domain vCenter Server details from its inventory and then:
+The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values to return the workload domain vCenter Server details from its inventory and then:
 
 - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values
 - Verifies the workflow exists

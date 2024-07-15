@@ -7,8 +7,7 @@ Set the route redistriution policy for a Tier 0 Gateway
 ## Syntax
 
 ```powershell
-Set-NsxtRouteRedistributionPolicy [[-tier0Gateway] <String>] [[-routeMap] <String>]
- [[-removeRouteMap] <Boolean>] [-inputObject] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtRouteRedistributionPolicy [[-tier0Gateway] <String>] [[-routeMap] <String>] [[-removeRouteMap] <Boolean>] [-inputObject] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,16 +7,13 @@ Sets the DNS server and/or DNS search domains for all Workspace ONE Access appli
 ## Syntax
 
 ```powershell
-Set-WorkspaceOneDnsConfig [-server] <String> [-user] <String> [-pass] <String> [[-dnsServers] <String>]
- [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WorkspaceOneDnsConfig [-server] <String> [-user] <String> [-pass] <String> [[-dnsServers] <String>] [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-WorkspaceOneDnsConfig` cmdlet configures the DNS server and search domain details of all Workspace ONE
-Access appliances to the values stored in SDDC Manager.
-The cmdlet connects to SDDC Manager using the -server,
--user, and -password values:
+The `Set-WorkspaceOneDnsConfig` cmdlet configures the DNS server and search domain details of all Workspace ONE Access appliances to the values stored in SDDC Manager.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

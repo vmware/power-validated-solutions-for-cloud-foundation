@@ -22,7 +22,7 @@ The `Get-vRLIGroup` cmdlet gets a list of groups by authentication provider.
 Get-vRLIGroup -authProvider vidm
 ```
 
-This example gets a list groups assigned using the Identity Manager authenitcation provider
+This example gets a list groups assigned using the Identity Manager authentication provider
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example gets a list groups assigned using the Identity Manager authenitcati
 Get-vRLIGroup-authProvider ad
 ```
 
-This example gets a list groups assigned using the Active Directory authenitcation provider.
+This example gets a list groups assigned using the Active Directory authentication provider.
 
 ## Parameters
 

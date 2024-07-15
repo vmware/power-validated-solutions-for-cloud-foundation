@@ -13,8 +13,7 @@ Undo-WorkspaceOne [-server] <String> [-user] <String> [-pass] <String> [-wsaHost
 ## Description
 
 The `Undo-WorkspaceOne` cmdlet removes the Workspace ONE Access Virtual Appliance.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

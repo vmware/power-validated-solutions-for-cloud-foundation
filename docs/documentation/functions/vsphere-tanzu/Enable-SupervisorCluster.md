@@ -7,16 +7,7 @@ Enables Workload Management on a VCF cluster
 ## Syntax
 
 ```powershell
-Enable-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [-sizeHint] <String> [-managementNetworkMode] <String>
- [-managementVirtualNetwork] <String> [-managementNetworkStartIpAddress] <String>
- [-managementNetworkAddressRangeSize] <Int32> [-managementNetworkGateway] <String>
- [-managementNetworkSubnetMask] <String> [-masterDnsName] <Array> [-masterNtpServers] <Array>
- [-masterDnsServers] <Array> [-contentLibrary] <String> [-ephemeralStoragePolicy] <String>
- [-imageStoragePolicy] <String> [-masterStoragePolicy] <String> [-nsxEdgeCluster] <String>
- [-distributedSwitch] <String> [-podCIDRs] <String> [-serviceCIDR] <String> [-externalIngressCIDRs] <String>
- [-externalEgressCIDRs] <String> [-masterDnsSearchDomain] <String> [-workerDnsServers] <Array>
- [[-ConfigurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-sizeHint] <String> [-managementNetworkMode] <String> [-managementVirtualNetwork] <String> [-managementNetworkStartIpAddress] <String> [-managementNetworkAddressRangeSize] <Int32> [-managementNetworkGateway] <String> [-managementNetworkSubnetMask] <String> [-masterDnsName] <Array> [-masterNtpServers] <Array> [-masterDnsServers] <Array> [-contentLibrary] <String> [-ephemeralStoragePolicy] <String> [-imageStoragePolicy] <String> [-masterStoragePolicy] <String> [-nsxEdgeCluster] <String> [-distributedSwitch] <String> [-podCIDRs] <String> [-serviceCIDR] <String> [-externalIngressCIDRs] <String> [-externalEgressCIDRs] <String> [-masterDnsSearchDomain] <String> [-workerDnsServers] <Array> [[-ConfigurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

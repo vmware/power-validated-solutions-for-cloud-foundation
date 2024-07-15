@@ -12,8 +12,7 @@ Get-SrmRecoveryPlanVm [-rpName] <String> [[-vmName] <String>] [-ProgressAction <
 
 ## Description
 
-The `Get-SrmRecoveryPlanVm` cmdlet changes the startup priority for virtual machines in a named Recovery
-Plan from a Site Recovery Manager instance.
+The `Get-SrmRecoveryPlanVm` cmdlet changes the startup priority for virtual machines in a named Recovery Plan from a Site Recovery Manager instance.
 
 ## Examples
 

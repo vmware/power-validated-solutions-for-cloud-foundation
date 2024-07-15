@@ -10,7 +10,8 @@ End-to-end removal of Site Protection and Disaster Recovery.
 Invoke-UndoPdrDeployment [-jsonFile] <String> [<CommonParameters>]
 ```
 
-## DESCRIPTION
+## Description
+
 The `Invoke-UndoPdrDeployment` cmdlet is a single function to remove the configuration of the Site Protection and Disaster Recovery for VMware Cloud Foundation validated solution.
 
 ## Examples

@@ -13,7 +13,6 @@ Request-VrmsTokenREST [-fqdn] <String> [[-username] <String>] [[-password] <Stri
 ## Description
 
 The `Request-VrmsToken` cmdlet connects to the specified vSphere Replication appliance and obtains an authorization token.
-
 It is required once per session before running all other cmdlets.
 
 This authorization is separate from the VAMI token acquired using `Request-VrmsToken`.

@@ -7,8 +7,7 @@ Creates a Tier-0 Gateway IP Prefix List
 ## Syntax
 
 ```powershell
-New-NsxtPrefixList [[-name] <String>] [[-tier0Gateway] <String>] [[-subnetCIDR] <String>] [[-GE] <String>]
- [[-LE] <String>] [[-action] <String>] [[-json] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtPrefixList [[-name] <String>] [[-tier0Gateway] <String>] [[-subnetCIDR] <String>] [[-GE] <String>] [[-LE] <String>] [[-action] <String>] [[-json] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

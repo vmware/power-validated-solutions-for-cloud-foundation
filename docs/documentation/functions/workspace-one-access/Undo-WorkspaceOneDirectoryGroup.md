@@ -7,8 +7,7 @@ Removes Active Directory Group from Workspace ONE Access.
 ## Syntax
 
 ```powershell
-Undo-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

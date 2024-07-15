@@ -12,7 +12,7 @@ New-VMOvfProduct [-vm] <PSObject> [-product] <PSObject> [-ProgressAction <Action
 
 ## Description
 
-Accepts a object with product details, parses it and adds it to supplied VM.
+The `New-VMOvfProduct` cmdlet accepts an object with product details, parses it and adds it to supplied VM.
 
 ## Examples
 

@@ -29,6 +29,7 @@ This example retrieves a list of VMware Aria Suite Lifecycle group assignments.
 ``` PowerShell
 Get-vRSLCMGroup -providerVmid 2d90903c-b753-4f52-905e-5421d11f6572
 ```
+
 This example retrieves a list of VMware Aria Suite Lifecycle group assignments for the given identity provider.
 
 ## Parameters

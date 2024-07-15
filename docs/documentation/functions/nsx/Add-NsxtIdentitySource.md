@@ -7,9 +7,7 @@ Add Active Directory over LDAP/LDAPS as an Identity Provider to NSX Manager.
 ## Syntax
 
 ```powershell
-Add-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String>
- [-baseDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String> [-baseDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -30,7 +28,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-nsx-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
 ```
 
-This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP
+This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP.
 
 ### Example 2
 

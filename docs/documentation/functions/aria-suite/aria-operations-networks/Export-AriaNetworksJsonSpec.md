@@ -12,9 +12,7 @@ Export-AriaNetworksJsonSpec -server <String> -user <String> -pass <String> -json
 
 ## Description
 
-The `Export-AriaNetworksJsonSpec` cmdlet creates the JSON specification file using the Intelligent
-Network Visibility JSON specification file generated from the Planning and Preparation Workbook to
-deploy VMware Aria Operations for Networks using VMware Aria Suite Lifecycle:
+The `Export-AriaNetworksJsonSpec` cmdlet creates the JSON specification file using the Intelligent Network Visibility JSON specification file generated from the Planning and Preparation Workbook to deploy VMware Aria Operations for Networks using VMware Aria Suite Lifecycle:
 
 - Validates that network connectivity is available to VMware Aria Suite Lifecycle.
 - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible.

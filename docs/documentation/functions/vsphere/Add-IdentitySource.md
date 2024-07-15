@@ -7,17 +7,13 @@ Add Active Directory over LDAP/LDAPS as an Identity Provider to vCenter Server
 ## Syntax
 
 ```powershell
-Add-IdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String>
- [-baseGroupDn] <String> [-baseUserDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-IdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String> [-baseGroupDn] <String> [-baseUserDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-IdentitySource` cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the vCenter
-Server and configures is as the default provider.
-The cmdlet connects to SDDC Manager using the -server,
--user, and -password values:
+The `Add-IdentitySource` cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the vCenter Server and configures is as the default provider.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
@@ -33,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server,
 Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldap
 ```
 
-This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAP
+This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAP.
 
 ### Example 2
 

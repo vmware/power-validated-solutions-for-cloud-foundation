@@ -30,7 +30,7 @@ This example gets all vCenter Servers for a Datacenter
 Get-vRSLCMDatacenterVcenter [-datacenterVmid] <String> -vcenterName sfo-m01-vc01
 ```
 
-This example gets a named vCenter Server for a datacenter
+This example gets a named vCenter Server for a datacenter.
 
 ### Example 3
 
@@ -38,7 +38,7 @@ This example gets a named vCenter Server for a datacenter
 Get-vRSLCMDatacenterVcenter [-datacenterVmid] <String> -vcenterName sfo-m01-vc01 -environments
 ```
 
-This example gets all vCenter Servers for a Datacenter that is assigned to an Environemnt.
+This example gets all vCenter Servers for a Datacenter that is assigned to an Environment.
 
 ## Parameters
 

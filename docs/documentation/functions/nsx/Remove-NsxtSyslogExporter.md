@@ -30,7 +30,7 @@ The `Remove-NsxtSyslogExporter` cmdlet deletes the Syslog exporters for NSX comp
 Remove-NsxtSyslogExporter -node -exporterName Syslog1
 ```
 
-This example deletes the syslog exporters for NSX Manager node
+This example deletes the syslog exporters for NSX Manager node.
 
 ### Example 2
 

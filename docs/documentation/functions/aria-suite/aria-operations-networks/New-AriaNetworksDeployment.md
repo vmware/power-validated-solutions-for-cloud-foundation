@@ -13,7 +13,6 @@ New-AriaNetworksDeployment -server <String> -user <String> -pass <String> -jsonF
 ## Description
 
 The `New-AriaNetworksDeployment` cmdlet deploys VMware Aria Operations for Networks via VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

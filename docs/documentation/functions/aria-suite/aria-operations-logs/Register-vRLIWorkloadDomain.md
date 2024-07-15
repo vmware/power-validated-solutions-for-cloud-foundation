@@ -7,8 +7,7 @@ Connect a Workload Domain to VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Register-vRLIWorkloadDomain [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Register-vRLIWorkloadDomain [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -30,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
 ```
 
-This example ENABLES the Workload Domain in VMware Aria Operations for Logs
+This example enables the Workload Domain in VMware Aria Operations for Logs.
 
 ### Example 2
 
@@ -38,7 +37,7 @@ This example ENABLES the Workload Domain in VMware Aria Operations for Logs
 Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
 ```
 
-This example DISABLES the Workload Domain in VMware Aria Operations for Logs.
+This example disbales the Workload Domain in VMware Aria Operations for Logs.
 
 ## Parameters
 

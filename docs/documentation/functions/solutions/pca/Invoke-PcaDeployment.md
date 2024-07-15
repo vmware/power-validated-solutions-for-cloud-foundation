@@ -12,8 +12,7 @@ Invoke-PcaDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <
 
 ## Description
 
-The `Invoke-PcaDeployment` cmdlet is a single function to implement the configuration of the Private Cloud Automation
-for VMware Cloud Foundation validated solution.
+The `Invoke-PcaDeployment` cmdlet is a single function to implement the configuration of the Private Cloud Automation for VMware Cloud Foundation validated solution.
 
 ## Examples
 

@@ -7,9 +7,7 @@ Install a Signed Certificate on Workspace ONE Access Appliance
 ## Syntax
 
 ```powershell
-Install-WorkspaceOneCertificate [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String>
- [-rootPass] <String> [-sshUserPass] <String> [[-rootCa] <String>] [[-wsaCertKey] <String>]
- [[-wsaCert] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-WorkspaceOneCertificate [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String> [-rootPass] <String> [-sshUserPass] <String> [[-rootCa] <String>] [[-wsaCertKey] <String>] [[-wsaCert] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

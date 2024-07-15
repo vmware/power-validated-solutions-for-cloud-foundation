@@ -7,8 +7,7 @@ Adds virtual machine based alerts in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Add-vRLIAlertVirtualMachine [-server] <String> [-user] <String> [-pass] <String> [-sddcDomainName] <String>
- [-vmName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIAlertVirtualMachine [-server] <String> [-user] <String> [-pass] <String> [-sddcDomainName] <String> [-vmName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +23,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates that the Virtual Machine object provided is valid in the vCenter Server inventory
 - Creates the alert in VMware Aria Operations for Logs for the Virtual Machine object if not already configured
-- Integrates with VMware Aria Operations if the -vropsIntegration switch is provided.
+- Integrates with VMware Aria Operations if the -vropsIntegration switch is provided
 
 ## Examples
 

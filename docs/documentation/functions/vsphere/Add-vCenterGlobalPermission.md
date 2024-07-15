@@ -7,9 +7,7 @@ Adds a Global Permission to a user or group
 ## Syntax
 
 ```powershell
-Add-vCenterGlobalPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [[-domainBindUser] <String>] [[-domainBindPass] <String>] [-principal] <String>
- [-role] <String> [-propagate] <String> [-type] <String> [-localDomain] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vCenterGlobalPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [[-domainBindUser] <String>] [[-domainBindPass] <String>] [-principal] <String> [-role] <String> [-propagate] <String> [-type] <String> [-localDomain] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

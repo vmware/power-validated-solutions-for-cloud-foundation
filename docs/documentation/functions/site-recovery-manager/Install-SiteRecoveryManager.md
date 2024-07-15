@@ -7,18 +7,13 @@ Deploy Site Recovery Manager Virtual Appliance
 ## Syntax
 
 ```powershell
-Install-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-srmFqdn] <String> [-srmIpAddress] <String> [-srmGateway] <String> [-srmNetPrefix] <String>
- [-srmNetworkSearchPath] <String> [-srmFolder] <String> [-srmVaRootPassword] <String>
- [-srmVaAdminPassword] <String> [-srmDbPassword] <String> [[-srmOvfPath] <String>]
- [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmFqdn] <String> [-srmIpAddress] <String> [-srmGateway] <String> [-srmNetPrefix] <String> [-srmNetworkSearchPath] <String> [-srmFolder] <String> [-srmVaRootPassword] <String> [-srmVaAdminPassword] <String> [-srmDbPassword] <String> [[-srmOvfPath] <String>] [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Install-SiteRecoveryManager` cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
-vCenter Server details from its inventory and then:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Gathers vSphere configuration from vCenter Server
 - Gathers DNS and NTP configuration from SDDC Manager

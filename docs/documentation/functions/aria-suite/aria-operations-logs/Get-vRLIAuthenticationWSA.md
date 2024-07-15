@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get configuration of Workspace ONE Access
+Get authentication configuration of Workspace ONE Access
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Get-vRLIAuthenticationWSA [-status] [-ProgressAction <ActionPreference>] [<Commo
 
 ## Description
 
-The Get-vRLIAuthenticationWSA cmdlet gets the configuration for Workspace ONE Access Integration.
+The `Get-vRLIAuthenticationWSA` cmdlet gets the configuration for Workspace ONE Access Integration.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The Get-vRLIAuthenticationWSA cmdlet gets the configuration for Workspace ONE Ac
 Get-vRLIAuthenticationWSA
 ```
 
-This example gets the configuration for the Workspace ONE Access Integration
+This example gets the configuration for the Workspace ONE Access Integration.
 
 ### Example 2
 

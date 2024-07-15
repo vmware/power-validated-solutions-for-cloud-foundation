@@ -7,19 +7,17 @@ Adds an NTP server to all VMware Aria Operations appliances
 ## Syntax
 
 ```powershell
-Add-vROPSNtpServer [-server] <String> [-user] <String> [-pass] <String> [-environmentName] <String>
- [-ntpServer] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSNtpServer [-server] <String> [-user] <String> [-pass] <String> [-environmentName] <String> [-ntpServer] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The Add-vROPSNtpServer cmdlet adds an NTP server to all VMware Aria Operations appliances.
+The `Add-vROPSNtpServer` cmdlet adds an NTP server to all VMware Aria Operations appliances.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-- Configures all VMware Aria Operations appliances to use an additional NTP server defined using the value
-passed to the function using -ntpServer.
+- Configures all VMware Aria Operations appliances to use an additional NTP server defined using the value passed to the function using -ntpServer
 
 ## Examples
 

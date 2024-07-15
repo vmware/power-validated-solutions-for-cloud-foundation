@@ -12,14 +12,13 @@ Update-vRLIContentPack [-server] <String> [-user] <String> [-pass] <String> [-co
 
 ## Description
 
-The `Update-vRLIContentPack` cmdlet updates a designated VMware Aria Operations for Logs content pack from the
-online Content Pack Marketplace hosted on GitHub.
+The `Update-vRLIContentPack` cmdlet updates a designated VMware Aria Operations for Logs content pack from the online Content Pack Marketplace hosted on GitHub.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
 - Validates that network connectivity is possible to VMware Aria Operations for Logs
-- Updates the VMware Aria Operations for Logs content pack selected from the marketplace.
+- Updates the VMware Aria Operations for Logs content pack selected from the marketplace
 
 ## Examples
 

@@ -7,19 +7,16 @@ Remove a VM Folder
 ## Syntax
 
 ```powershell
-Undo-VMFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-folderName] <String>
- [-folderType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-VMFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-folderName] <String> [-folderType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-VMFolder` cmdlet removes a VM and Template folder.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-VMFolder` cmdlet removes a VM and Template folder. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that the Workload Domain exists in the SDDC Manager inventory
-- Retrives the details of the vCenter Server for the Workload Domain provided
+- Validates that the workload domain exists in the SDDC Manager inventory
+- Retrieves the details of the vCenter Server for the workload domain provided
 - Validates that network connectivity and authentication is possible to vCenter Server
 - Validates that the VM and Template folder is present in the vCenter Server inventory
 - Removes the VM and Template folder from the vCenter Server inventory.

@@ -7,14 +7,12 @@ Get NSX details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-NsxtServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [[-domain] <String>]
- [[-domainType] <String>] [-listNodes] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [[-domain] <String>] [[-domainType] <String>] [-listNodes] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Get-NsxtServerDetail` cmdlet retrieves the FQDN, root and admin credentials of NSX for a given
-Workload Domain.
+The `Get-NsxtServerDetail` cmdlet retrieves the FQDN, root and admin credentials of NSX for a given Workload Domain.
 
 ## Examples
 
@@ -24,7 +22,7 @@ Workload Domain.
 Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domainType MANAGEMENT
 ```
 
-This example retrieves the vCenter Server details for the Workload Domain with a type of MANAGEMENT
+This example retrieves the vCenter Server details for the Workload Domain with a type of MANAGEMENT.
 
 ### Example 2
 

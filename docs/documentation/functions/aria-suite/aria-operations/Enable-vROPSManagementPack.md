@@ -7,8 +7,7 @@ Install a Management Pack in VMware Aria Operations
 ## Syntax
 
 ```powershell
-Enable-vROPSManagementPack [-server] <String> [-user] <String> [-pass] <String> [-packType] <String>
- [[-pakFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-vROPSManagementPack [-server] <String> [-user] <String> [-pass] <String> [-packType] <String> [[-pakFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -22,7 +21,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates the Management Pack does not exist in VMware Aria Operations
 - Uploads the Management Pack file to VMware Aria Operations
-- Installs the Management Pack to VMware Aria Operations.
+- Installs the Management Pack to VMware Aria Operations
 
 ## Examples
 

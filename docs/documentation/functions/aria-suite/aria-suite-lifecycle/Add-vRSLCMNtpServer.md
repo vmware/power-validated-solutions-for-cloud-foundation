@@ -7,20 +7,17 @@ Add an NTP Server for the VMware Aria Suite Lifecycle appliance.
 ## Syntax
 
 ```powershell
-Add-vRSLCMNtpServer [-server] <String> [-user] <String> [-pass] <String> [-ntpServer] <String>
- [-ntpServerDesc] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRSLCMNtpServer [-server] <String> [-user] <String> [-pass] <String> [-ntpServer] <String> [-ntpServerDesc] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vRSLCMNtpServer` cmdlet configures the NTP Server details of the VMware Aria Suite Lifecycle
-appliance using one or more NTP servers passed as a parameter.
-The cmdlet connects to SDDC Manager using
-the -server, -user, and -password values:
+The `Add-vRSLCMNtpServer` cmdlet configures the NTP Server details of the VMware Aria Suite Lifecycle appliance using one or more NTP servers passed as a parameter.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-- Configures the VMware Aria Suite Lifecycle appliance NTP configuration.
+- Configures the VMware Aria Suite Lifecycle appliance NTP configuration
 
 ## Examples
 

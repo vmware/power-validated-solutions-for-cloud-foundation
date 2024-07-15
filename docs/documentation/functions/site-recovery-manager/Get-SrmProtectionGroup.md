@@ -2,8 +2,7 @@
 
 ## Synopsis
 
-Retrieves either a named protection group or all protection groups from a Site Recovery Manager instance using the
-REST API.
+Retrieves either a named protection group or all protection groups from a Site Recovery Manager instance using the REST API.
 
 ## Syntax
 
@@ -13,8 +12,7 @@ Get-SrmProtectionGroup [[-pgName] <String>] [-ProgressAction <ActionPreference>]
 
 ## Description
 
-The `Get-SrmProtectionGroup` cmdlet retrieves either a named protection group or all protection groups from a
-Site Recovery Manager instance.
+The `Get-SrmProtectionGroup` cmdlet retrieves either a named protection group or all protection groups from a Site Recovery Manager instance.
 
 ## Examples
 

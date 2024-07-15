@@ -7,19 +7,18 @@ Configure Syslog settings on NSX Edge Cluster Nodes
 ## Syntax
 
 ```powershell
-Set-vRLISyslogEdgeCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-exportName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLISyslogEdgeCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-exportName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRLISyslogEdgeCluster` cmdlet configures Syslog settings on NSX Edge Cluster The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+The `Set-vRLISyslogEdgeCluster` cmdlet configures Syslog settings on NSX Edge Cluster. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to NSX Manager cluster
 - Gathers the NSX Edge Node details from NSX Manager cluster
-- Configures the Syslog settings on the NSX Edge Node if not already configured.
+- Configures the Syslog settings on the NSX Edge Node if not already configured
 
 ## Examples
 

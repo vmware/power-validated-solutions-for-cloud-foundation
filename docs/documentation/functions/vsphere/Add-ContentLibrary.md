@@ -9,21 +9,18 @@ Creates a content library
 ### Subscription
 
 ```powershell
-Add-ContentLibrary -server <String> -user <String> -pass <String> -domain <String> -contentLibraryName <String>
- [-datastore <String>] [-subscriptionUrl <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-ContentLibrary -server <String> -user <String> -pass <String> -domain <String> -contentLibraryName <String> [-datastore <String>] [-subscriptionUrl <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### Local
 
 ```powershell
-Add-ContentLibrary -server <String> -user <String> -pass <String> -domain <String> -contentLibraryName <String>
- [-datastore <String>] [-published] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-ContentLibrary -server <String> -user <String> -pass <String> -domain <String> -contentLibraryName <String> [-datastore <String>] [-published] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-ContentLibrary` cmdlet creates a subscribed or published content library.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Add-ContentLibrary` cmdlet creates a subscribed or published content library. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server
@@ -37,7 +34,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -published
 ```
 
-This example creates published content library named sfo-w01-lib01 on the primary datastore in workload domain sfo-w01
+This example creates published content library named sfo-w01-lib01 on the primary datastore in workload domain sfo-w01.
 
 ### Example 2
 
@@ -45,7 +42,7 @@ This example creates published content library named sfo-w01-lib01 on the primar
 Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -datastore sfo-w01-ds-nfs01 -published
 ```
 
-This example creates published content library named sfo-w01-lib01 on a specific datastore in workload domain sfo-w01
+This example creates published content library named sfo-w01-lib01 on a specific datastore in workload domain sfo-w01.
 
 ### Example 3
 

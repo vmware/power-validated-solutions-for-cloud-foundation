@@ -7,19 +7,16 @@ Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle ap
 ## Syntax
 
 ```powershell
-Set-vRSLCMDnsConfig [-server] <String> [-user] <String> [-pass] <String> [[-dnsServers] <String>]
- [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRSLCMDnsConfig [-server] <String> [-user] <String> [-pass] <String> [[-dnsServers] <String>] [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRSLCMDnsConfig` cmdlet configures the DNS server and search domain details of the VMware Aria Suite
-Lifecycle appliance using one or more DNS servers and/or DNS search domains passed as a parameter.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Set-vRSLCMDnsConfig` cmdlet configures the DNS server and search domain details of the VMware Aria Suite Lifecycle appliance using one or more DNS servers and/or DNS search domains passed as a parameter. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-- Configures the VMware Aria Suite Lifecycle appliance DNS configuration.
+- Configures the VMware Aria Suite Lifecycle appliance DNS configuration
 
 ## Examples
 
@@ -29,7 +26,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
 ```
 
-This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
+This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain.
 
 ### Example 2
 

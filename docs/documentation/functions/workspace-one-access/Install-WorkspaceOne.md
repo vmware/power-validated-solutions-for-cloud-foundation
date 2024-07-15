@@ -7,16 +7,13 @@ Deploy Workspace ONE Access Virtual Appliance
 ## Syntax
 
 ```powershell
-Install-WorkspaceOne [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String>
- [-wsaIpAddress] <String> [-wsaGateway] <String> [-wsaSubnetMask] <String> [-wsaFolder] <String>
- [[-wsaOvaPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-WorkspaceOne [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String> [-wsaIpAddress] <String> [-wsaGateway] <String> [-wsaSubnetMask] <String> [-wsaFolder] <String> [[-wsaOvaPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Install-WorkspaceOne` cmdlet deploys the Workspace ONE Access Virtual Appliance OVA.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

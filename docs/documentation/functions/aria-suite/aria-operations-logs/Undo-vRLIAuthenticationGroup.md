@@ -7,8 +7,7 @@ Remove a group from the authentication provider in VMware Aria Operations for Lo
 ## Syntax
 
 ```powershell
-Undo-vRLIAuthenticationGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-group] <String> [-authProvider] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLIAuthenticationGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-group] <String> [-authProvider] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -30,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Undo-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -authProvider vidm
 ```
 
-This example removes the group gg-vrli-admins assigned via Workspace ONE Access from its assigned role in VMware Aria Operations for Logs
+This example removes the group gg-vrli-admins assigned via Workspace ONE Access from its assigned role in VMware Aria Operations for Logs.
 
 ### Example 2
 

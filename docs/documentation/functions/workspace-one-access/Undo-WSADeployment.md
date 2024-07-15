@@ -7,8 +7,7 @@ Remove the Workspace ONE Access from VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-Undo-WSADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>]
- [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WSADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>] [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

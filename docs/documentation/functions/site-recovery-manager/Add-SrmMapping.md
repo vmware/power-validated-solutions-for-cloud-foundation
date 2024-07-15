@@ -13,7 +13,8 @@ Add-SrmMapping [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcM
 
 ## Description
 
-The `Add-SrmMapping` cmdlet creates a mapping between objects (folder, network, or compute resource) in the protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
+The `Add-SrmMapping` cmdlet creates a mapping between objects (folder, network, or compute resource) in the protected and failover instances in Site Recovery Manager.
+The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to both SDDC Manager instances
 - Validates that network connectivity and authentication is possible to both vCenter Server instances

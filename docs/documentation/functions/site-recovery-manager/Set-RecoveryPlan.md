@@ -7,16 +7,12 @@ Configures a Site Recovery Manager recovery plan.
 ## Syntax
 
 ```powershell
-Set-RecoveryPlan [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-rpName] <String>
- [-setVmPriority] <Boolean> [[-vmName] <Array>] [[-priority] <String>] [-addCallout] <Boolean>
- [[-calloutType] <String>] [[-calloutName] <String>] [[-calloutContent] <String>]
- [[-calloutPositionBefore] <String>] [[-calloutTimeoutSeconds] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-RecoveryPlan [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-rpName] <String> [-setVmPriority] <Boolean> [[-vmName] <Array>] [[-priority] <String>] [-addCallout] <Boolean> [[-calloutType] <String>] [[-calloutName] <String>] [[-calloutContent] <String>] [[-calloutPositionBefore] <String>] [[-calloutTimeoutSeconds] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The Set-RecoveryPlan cmdlet configures a Site Recovery Manager recovery plan.
+The `Set-RecoveryPlan` cmdlet configures a Site Recovery Manager recovery plan.
 The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.

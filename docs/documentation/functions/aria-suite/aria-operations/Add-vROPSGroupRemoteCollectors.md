@@ -2,21 +2,18 @@
 
 ## Synopsis
 
-Creates a Collector group and assigns nodes in VMwre Aria Operations
+Creates a Collector group and assigns nodes in VMware Aria Operations
 
 ## Syntax
 
 ```powershell
-Add-vROPSGroupRemoteCollectors [-server] <String> [-user] <String> [-pass] <String>
- [-collectorGroupName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSGroupRemoteCollectors [-server] <String> [-user] <String> [-pass] <String> [-collectorGroupName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROPSGroupRemoteCollectors` cmdlet creates a collector group in VMware Aria Operations and
-assigns the remote collector nodes.
-The cmdlet connects to SDDC Manager using the -server, -user, and
--password values.
+The `Add-vROPSGroupRemoteCollectors` cmdlet creates a collector group in VMware Aria Operations and assigns the remote collector nodes.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details

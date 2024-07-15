@@ -7,8 +7,7 @@ Enable / Disable a Management Pack
 ## Syntax
 
 ```powershell
-Register-vROPSManagementPack [-server] <String> [-user] <String> [-pass] <String> [-state] <String>
- [-packType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Register-vROPSManagementPack [-server] <String> [-user] <String> [-pass] <String> [-state] <String> [-packType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -20,7 +19,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates if the Management Pack is activated or deactivated in VMware Aria Operations
-- Activates or deactivates the Management Pack.
+- Activates or deactivates the Management Pack
 
 ## Examples
 
@@ -30,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Register-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -state enable -packType Ping
 ```
 
-This example activates the Ping management pack in VMware Aria Operations
+This example activates the Ping management pack in VMware Aria Operations.
 
 ### Example 2
 

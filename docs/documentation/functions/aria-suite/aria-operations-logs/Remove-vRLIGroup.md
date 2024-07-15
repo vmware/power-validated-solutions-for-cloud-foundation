@@ -22,7 +22,7 @@ The `Remove-vRLIGroup` cmdlet removes a group by authentication provider.
 Remove-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins
 ```
 
-This example removes a group assigned using the the vIDM authenitcation provider.
+This example removes a group assigned using the the vIDM authentication provider.
 
 ## Parameters
 

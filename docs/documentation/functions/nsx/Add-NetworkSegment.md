@@ -3,24 +3,20 @@
 ## Synopsis
 
 The Add-NetworkSegment cmdlet creates an NSX segment.
-The cmdlet connects to SDDC Manager using the -server,
--user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Create the NSX segment if not already created in NSX Manager
 
 ## Syntax
 
 ```powershell
-Add-NetworkSegment [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-segmentName] <String> [-connectedGateway] <String> [-cidr] <String> [-transportZone] <String>
- [-gatewayType] <String> [-segmentType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NetworkSegment [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-segmentName] <String> [-connectedGateway] <String> [-cidr] <String> [-transportZone] <String> [-gatewayType] <String> [-segmentType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-NetworkSegment` cmdlet creates an NSX Segment.
+The `Add-NetworkSegment` cmdlet creates an NSX segment The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Create the NSX segment if not already created in NSX Manager
 
 ## Examples
 

@@ -1,4 +1,4 @@
-# Set-NsxtSyslogExporter
+ # Set-NsxtSyslogExporter
 
 ## Synopsis
 
@@ -9,8 +9,7 @@ Sets Syslog exporters
 ### node
 
 ```powershell
-Set-NsxtSyslogExporter [-node] -exporterName <String> -logLevel <String> -port <Int32> -protocol <String>
- -server <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtSyslogExporter [-node] -exporterName <String> -logLevel <String> -port <Int32> -protocol <String> -server <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### transport
@@ -32,7 +31,7 @@ The `Set-NsxtSyslogExporter` cmdlet Sets the Syslog exporters configures for NSX
 Set-NsxtSyslogExporter -node -exporterName Syslog1 -logLevel INFO -port 514 -protocol TCP -server sfo-vrli01.sfo.rainpole.io
 ```
 
-This example gets the status of the syslog service for NSX Manager node
+This example gets the status of the syslog service for NSX Manager node.
 
 ### Example 2
 

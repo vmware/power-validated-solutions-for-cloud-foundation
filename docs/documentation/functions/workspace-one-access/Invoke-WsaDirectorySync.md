@@ -7,14 +7,12 @@ Starts a directory synchronization
 ## Syntax
 
 ``` powershell
-Invoke-WsaDirectorySync [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [<CommonParameters>]
+Invoke-WsaDirectorySync [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [<CommonParameters>]
 ```
 
 ## Description
 
 The `Invoke-WsaDirectorySync` cmdlet trigger a synchronization of the domain.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -29,7 +27,8 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ``` powershell
 Invoke-WsaDirectorySync -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
 ```
-This example shows how to trigger a directory synchronization of the domain sfo.rainpole.io
+
+This example shows how to trigger a directory synchronization of the domain sfo.rainpole.io.
 
 ## Parameters
 

@@ -12,10 +12,8 @@ Undo-vROPSNtpServer [-server] <String> [-user] <String> [-pass] <String> [-envir
 
 ## Description
 
-The `Undo-vROPSNtpServer` cmdlet removes any added NTP server(s) to all VMware Aria Operations appliances by
-returning their configuration to match that of SDDC Manager.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-vROPSNtpServer` cmdlet removes any added NTP server(s) to all VMware Aria Operations appliances by returning their configuration to match that of SDDC Manager.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

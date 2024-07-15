@@ -7,15 +7,12 @@ Adds a Supervisor Cluster license
 ## Syntax
 
 ```powershell
-Add-SupervisorClusterLicense [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [-licenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-SupervisorClusterLicense [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-licenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-SupervisorClusterLicense` cmdlet adds a Supervisor Cluster licence.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The `Add-SupervisorClusterLicense` cmdlet adds a Supervisor Cluster license. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server
@@ -29,7 +26,7 @@ using the -server, -user, and -password values:
 Add-SupervisorClusterLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -LicenseKey "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
 ```
 
-This example adds a license to the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+This example adds a license to the Supervisor Cluster sfo-w01-cl01 in workload domain sfo-w01.
 
 ## Parameters
 

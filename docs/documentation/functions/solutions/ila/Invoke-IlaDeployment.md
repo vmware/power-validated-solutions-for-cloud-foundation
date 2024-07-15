@@ -7,8 +7,7 @@ End-to-end Deployment of Intelligent Logging and Analytics.
 ## Syntax
 
 ```powershell
-Invoke-IlaDeployment -jsonFile <String> -certificates <String> -binaries <String> [-useContentLibrary]
- [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-IlaDeployment -jsonFile <String> -certificates <String> -binaries <String> [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -22,7 +22,7 @@ The `Get-NsxtEdgeCluster` cmdlet retrieves NSX Edge Cluster(s).
 Get-NsxtEdgeCluster
 ```
 
-This example returns any NSX Edge Clusters
+This example returns any NSX Edge Clusters.
 
 ### Example 2
 

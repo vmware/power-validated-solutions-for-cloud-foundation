@@ -7,8 +7,7 @@ Removes a log forwarder destination to VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Undo-vRLILogForwarder [-server] <String> [-user] <String> [-pass] <String> [-name] <String> [-fqdn] <String>
- [-protocol] <String> [-port] <String> [[-transport] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLILogForwarder [-server] <String> [-user] <String> [-pass] <String> [-name] <String> [-fqdn] <String> [-protocol] <String> [-port] <String> [[-transport] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-- Removes a log forwarder destination from VMware Aria Operations for Logs.
+- Removes a log forwarder destination from VMware Aria Operations for Logs
 
 ## Examples
 

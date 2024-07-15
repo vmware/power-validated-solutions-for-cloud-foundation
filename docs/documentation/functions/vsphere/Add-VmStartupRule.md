@@ -7,8 +7,7 @@ Creates a VM to VM DRS rule
 ## Syntax
 
 ```powershell
-Add-VmStartupRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String>
- [-vmGroup] <String> [-dependOnVmGroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-VmStartupRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String> [-vmGroup] <String> [-dependOnVmGroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

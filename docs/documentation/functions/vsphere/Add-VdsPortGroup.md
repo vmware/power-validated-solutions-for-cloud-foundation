@@ -7,15 +7,13 @@ Create vSphere Distributed port group
 ## Syntax
 
 ```powershell
-Add-VdsPortGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-portgroup] <String>
- [-vlan] <Int32> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-VdsPortGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-portgroup] <String> [-vlan] <Int32> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-VdsPortGroup` cmdlet creates a vSphere Distributed port groups in vCenter Server.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible the SDDC Manager instance
 - Validates that network connectivity and authentication is possible the vCenter Server instance

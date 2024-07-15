@@ -20,7 +20,6 @@ The `Get-vRSLCMProductPassword` cmdlet gets the product password for a specified
 
 ```powershell
  Get-vRSLCMProductPassword -productId vrops -vrslcmRootPass VMware123!
-
 ```
 
 This example gets product level password in VMware Aria Suite Lifecycle.

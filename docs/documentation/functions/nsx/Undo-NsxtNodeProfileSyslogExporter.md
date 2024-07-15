@@ -7,19 +7,16 @@ Removes all syslog exporters on an NSX node profile.
 ## Syntax
 
 ```powershell
-Undo-NsxtNodeProfileSyslogExporter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NsxtNodeProfileSyslogExporter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-NsxtNodeProfileSyslogExporter` cmdlet removes a syslog exporter for VMware Aria Operations for Logs from
-an NSX node profile for configuration of syslog on the NSX components included in the node profile.
-The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
+The `Undo-NsxtNodeProfileSyslogExporter` cmdlet removes a syslog exporter for VMware Aria Operations for Logs from an NSX node profile for configuration of syslog on the NSX components included in the node profile. The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager
-- Removes all syslog exporters on the default (All NSX Nodes) or specified node profile for NSX.
+- Removes all syslog exporters on the default (All NSX Nodes) or specified node profile for NSX
 
 ## Examples
 

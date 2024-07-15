@@ -7,8 +7,7 @@ Removes a static route from ESXi hosts for vSphere Replication traffic
 ## Syntax
 
 ```powershell
-Undo-EsxiVrmsStaticRoute [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-network] <IPAddress> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-EsxiVrmsStaticRoute [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-network] <IPAddress> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

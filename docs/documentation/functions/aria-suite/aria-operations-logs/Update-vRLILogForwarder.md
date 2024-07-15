@@ -12,14 +12,14 @@ Update-vRLILogForwarder [-id] <String> [-json] <String> [-ProgressAction <Action
 
 ## Description
 
-The `Updates-vRLILogForwarder` cmdlet updates a log forwarder destination from VMware Aria Operations for Logs.
+The `Update-vRLILogForwarder` cmdlet updates a log forwarder destination from VMware Aria Operations for Logs.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Updates-vRLILogForwarder
+Update-vRLILogForwarder
 ```
 
 This example updates a log forwarder destination from VMware Aria Operations for Logs.
@@ -27,7 +27,7 @@ This example updates a log forwarder destination from VMware Aria Operations for
 ### Example 2
 
 ```powershell
-Updates-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022" -json $json
+Update-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022" -json $json
 ```
 
 This example updates a log forwarder destination from VMware Aria Operations for Logs.

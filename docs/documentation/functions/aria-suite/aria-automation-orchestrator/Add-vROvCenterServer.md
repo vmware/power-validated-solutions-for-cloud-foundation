@@ -7,15 +7,13 @@ Adds a vCenter Server instance to an embedded VMware Aria Automation Orchestrato
 ## Syntax
 
 ```powershell
-Add-vROvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vraUser] <String> [-vraPass] <String> [-vcUser] <String> [-vcPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vraUser] <String> [-vraPass] <String> [-vcUser] <String> [-vcPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-vROvCenterServer` cmdlet invokes the workflow in VMware Aria Automation Orchestrator to add a vCenter Server.
-The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
-to return the workload domain vCenter Server details from its inventory and then:
+The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values to return the workload domain vCenter Server details from its inventory and then:
 
 - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
 - Verifies the workflow exists.

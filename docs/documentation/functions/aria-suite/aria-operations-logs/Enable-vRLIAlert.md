@@ -7,8 +7,7 @@ Enables alerts in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Enable-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [-email] <String>
- [[-alertDefinition] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [-email] <String> [[-alertDefinition] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-- Enables the alert in VMware Aria Operations for Logs.
+- Enables the alert in VMware Aria Operations for Logs
 
 ## Examples
 

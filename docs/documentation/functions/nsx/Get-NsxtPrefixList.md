@@ -22,7 +22,7 @@ The `Get-NsxtTier0PrefixList` cmdlet retrieves the IP Prefix Lists assigned to a
 Get-NsxtPrefixList -tier0Gateway sfo-w01-ec01-t0-gw01
 ```
 
-This example returns all IP Prefix Lists
+This example returns all IP Prefix Lists.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example returns all IP Prefix Lists
 Get-NsxtPrefixList -tier0Gateway sfo-w01-ec01-t0-gw01 -name sfo-w01-cl01-prefix-list
 ```
 
-This example returns the IP Prefix List based on the prefix name provided
+This example returns the IP Prefix List based on the prefix name provided.
 
 ### Example 3
 

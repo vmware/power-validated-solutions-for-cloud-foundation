@@ -22,7 +22,7 @@ The `Get-NsxtTier1Gateway` cmdlet retrieves a list of Tier 1 Gateways.
 Get-NsxtTier1Gateway
 ```
 
-This example returns all Tier 1 Gateways
+This example returns all Tier 1 Gateways.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example returns all Tier 1 Gateways
 Get-NsxtTier1Gateway -name sfo-w01-ec01-t1-gw01
 ```
 
-This example returns the Tier 1 Gateway named sfo-w01-ec01-t1-gw01
+This example returns the Tier 1 Gateway named sfo-w01-ec01-t1-gw01.
 
 ### Example 3
 

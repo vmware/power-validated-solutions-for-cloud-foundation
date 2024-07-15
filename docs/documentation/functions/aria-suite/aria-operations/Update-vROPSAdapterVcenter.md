@@ -12,8 +12,7 @@ Update-vROPSAdapterVcenter [-server] <String> [-user] <String> [-pass] <String> 
 
 ## Description
 
-The `Update-vROPSAdapterVcenter` cmdlet updates the assigned collector group for all vCenter Adapters in
-VMware Aria Operations.
+The `Update-vROPSAdapterVcenter` cmdlet updates the assigned collector group for all vCenter Adapters in VMware Aria Operations.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -22,7 +21,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that the collector group exits in VMware Aria Operations
 - Gathers the unique ID of the collector group
 - Gathers the vCenter Adapter details from VMware Aria Operations
-- Updates the assigned collector group for the vCenter Adapter in VMware Aria Operations.
+- Updates the assigned collector group for the vCenter Adapter in VMware Aria Operations
 
 ## Examples
 

@@ -2,24 +2,22 @@
 
 ## Synopsis
 
-The Function Undo-DatastoreTag cmdlet removes a vSphere Category and Tag.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+Removes a vSphere Category and Tag.
 
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to vCenter Server
-- Removes the vSphere Tag
 
 ## Syntax
 
 ```powershell
-Undo-DatastoreTag [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tagName] <String>
- [-tagCategoryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-DatastoreTag [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tagName] <String> [-tagCategoryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-DatastoreTag` cmdlet removes the vSphere Tag.
+The `Undo-DatastoreTag` cmdlet removes the vSphere Tag. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to vCenter Server
+- Removes the vSphere Tag
 
 ## Examples
 

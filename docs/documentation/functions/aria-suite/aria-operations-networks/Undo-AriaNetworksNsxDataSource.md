@@ -7,21 +7,16 @@ Removes a NSX Manager data source to VMware Aria Operations for Networks.
 ## Syntax
 
 ```powershell
-Undo-AriaNetworksNsxDataSource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-environmentName] <String> [-ariaNetworksFqdn] <String> [-ariaNetworksUser] <String>
- [-ariaNetworksPass] <String> [<CommonParameters>]
+Undo-AriaNetworksNsxDataSource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-environmentName] <String> [-ariaNetworksFqdn] <String> [-ariaNetworksUser] <String> [-ariaNetworksPass] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-AriaNetworksNsxDataSource` cmdlet removes a NSX Manager data source from VMware Aria Operations
-for Networks.
-The cmdlet connects to SDDC Manager using the -server, -user, and -pass values
-and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
-and -ariaNetworksPass as well to do the following:
+The `Undo-AriaNetworksNsxDataSource` cmdlet removes a NSX Manager data source from VMware Aria Operations for Networks.
+The cmdlet connects to SDDC Manager using the -server, -user, and -pass values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-- Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+- Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Gathers NSX Manager details from the SDDC Manager instance
 - Removes a NSX Manager data source from a domain

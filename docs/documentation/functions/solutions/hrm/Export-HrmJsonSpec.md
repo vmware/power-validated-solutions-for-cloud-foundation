@@ -12,8 +12,7 @@ Export-HrmJsonSpec [-workbook] <String> [-jsonFile] <String> [<CommonParameters>
 
 ## Description
 
-The `Export-HrmJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation
-workbook to deploy and configure Health Reporting and Monitoring validated solution:
+The `Export-HrmJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook to deploy and configure Health Reporting and Monitoring validated solution:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

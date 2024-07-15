@@ -8,54 +8,54 @@ Select an option for the solution.
 
     The following functions can be use to perform the solution deployment.
 
-    | Function                                                                          | Type                  |
-    | --------------------------------------------------------------------------------- | --------------------- |
-    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                 | Prerequisites         |
-    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                     | End-to-End Deployment |
-    | [`Invoke-CbwDeployment`](Invoke-CbwDeployment.md)                                 | End-to-End Deployment |
-    | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                           | Procedure             |
-    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)   | Procedure             |
-    | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                 | Procedure             |
-    | [`Add-ResourcePool`](./../../vsphere/Add-ResourcePool.md)                         | Procedure             |
-    | [`Add-NsxtLdapRole`](./../../nsx/Add-NsxtLdapRole.md)                             | Procedure             |
-    | [`Add-SsoUser`](./../../vsphere/Add-SsoUser.md)                                   | Procedure             |
-    | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                 | Procedure             |
-    | [`Add-VmGroup`](./../../vsphere/Add-VmGroup.md)                                   | Procedure             |
+    | Function                                                                                      | Type                  |
+    | --------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                             | Prerequisites         |
+    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                 | End-to-End Deployment |
+    | [`Invoke-CbwDeployment`](Invoke-CbwDeployment.md)                                             | End-to-End Deployment |
+    | [`Add-vSphereRole`](./../../vsphere/Add-vSphereRole.md)                                       | Procedure             |
+    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)               | Procedure             |
+    | [`Add-VMFolder`](./../../vsphere/Add-VMFolder.md)                                             | Procedure             |
+    | [`Add-ResourcePool`](./../../vsphere/Add-ResourcePool.md)                                     | Procedure             |
+    | [`Add-NsxtLdapRole`](./../../nsx/Add-NsxtLdapRole.md)                                         | Procedure             |
+    | [`Add-SsoUser`](./../../vsphere/Add-SsoUser.md)                                               | Procedure             |
+    | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                             | Procedure             |
+    | [`Add-VmGroup`](./../../vsphere/Add-VmGroup.md)                                               | Procedure             |
 
 === ":material-location-exit: &nbsp; Solution Removal"
 
     The following functions can be use to remove the solution deployment.
 
-    | Function                                                                          | Type                  |
-    | --------------------------------------------------------------------------------- | --------------------- |
-    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                 | Prerequisites         |
-    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                     | End-to-End Removal    |
-    | [`Invoke-UndoCbwDeployment`](Invoke-UndoCbwDeployment.md)                         | End-to-End Removal    |
-    | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                         | Procedure             |
-    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md) | Procedure             |
-    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                               | Procedure             |
-    | [`Undo-ResourcePool`](./../../vsphere/Undo-ResourcePool.md)                       | Procedure             |
-    | [`Undo-NsxtLdapRole`](./../../nsx/Undo-NsxtLdapRole.md)                           | Procedure             |
-    | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)               | Procedure             |
+    | Function                                                                                      | Type                  |
+    | --------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Test-CbwPrerequisite`](Test-CbwPrerequisite.md)                                             | Prerequisites         |
+    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                 | End-to-End Removal    |
+    | [`Invoke-UndoCbwDeployment`](Invoke-UndoCbwDeployment.md)                                     | End-to-End Removal    |
+    | [`Undo-vSphereRole`](./../../vsphere/Undo-vSphereRole.md)                                     | Procedure             |
+    | [`Undo-vCenterGlobalPermission`](./../../vsphere/Undo-vCenterGlobalPermission.md)             | Procedure             |
+    | [`Undo-VMFolder`](./../../vsphere/Undo-VMFolder.md)                                           | Procedure             |
+    | [`Undo-ResourcePool`](./../../vsphere/Undo-ResourcePool.md)                                   | Procedure             |
+    | [`Undo-NsxtLdapRole`](./../../nsx/Undo-NsxtLdapRole.md)                                       | Procedure             |
+    | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)                           | Procedure             |
 
 === ":material-transit-connection-variant: &nbsp; Solution Interoperability"
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                                                       | Type                  |
-    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
-    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                                  | End-to-End Deployment |
-    | [`Invoke-CbwSolutionInterop`](Invoke-CbwSolutionInterop.md)                                                    | End-to-End Deployment |
-    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                           | Procedure             |
+    | Function                                                                                      | Type                  |
+    | --------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                 | End-to-End Deployment |
+    | [`Invoke-CbwSolutionInterop`](Invoke-CbwSolutionInterop.md)                                   | End-to-End Deployment |
+    | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)          | Procedure             |
 
 === ":material-transit-connection-variant: &nbsp; Solution Interoperability Removal"
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                                                       | Type                  |
-    | -------------------------------------------------------------------------------------------------------------- | --------------------- |
-    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                                  | End-to-End Removal    |
-    | [`Invoke-UndoCbwSolutionInterop`](Invoke-UndoCbwSolutionInterop.md)                                            | End-to-End Removal    |
-    | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                                 | Procedure             |
+    | Function                                                                                      | Type                  |
+    | ----------------------------------------------------------------------------------------------| --------------------- |
+    | [`Export-CbwJsonSpec`](Export-CbwJsonSpec.md)                                                 | End-to-End Removal    |
+    | [`Invoke-UndoCbwSolutionInterop`](Invoke-UndoCbwSolutionInterop.md)                           | End-to-End Removal    |
+    | [`Undo-vROPSAdapter`](./../../aria-suite/aria-operations/Undo-vROPSAdapter.md)                | Procedure             |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-cloud-based-workload-protection-v1/GUID-CA584EBB-04F6-4F37-9496-3C29DD8D7DC2.html

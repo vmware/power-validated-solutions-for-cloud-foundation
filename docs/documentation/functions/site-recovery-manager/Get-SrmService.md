@@ -30,7 +30,7 @@ This example retrieves information about all services on the Site Recovery Manag
 Get-SrmService -serviceId hms
 ```
 
-This example retrieves information about hms service on .
+This example retrieves information about hms service.
 
 ## Parameters
 

@@ -14,8 +14,7 @@ Invoke-HrmDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <
 
 ## Description
 
-The `Invoke-HrmDeployment` cmdlet is a single function to implement the configuration of the Health Reporting
-and Monitoring for VMware Cloud Foundation validated solution.
+The `Invoke-HrmDeployment` cmdlet is a single function to implement the configuration of the Health Reporting and Monitoring for VMware Cloud Foundation validated solution.
 
 ## Examples
 

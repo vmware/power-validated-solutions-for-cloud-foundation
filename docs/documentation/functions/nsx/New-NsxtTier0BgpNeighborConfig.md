@@ -7,8 +7,7 @@ Create or update a BGP neighbor config for NSX Tier-0 gateways
 ## Syntax
 
 ```powershell
- New-NsxtTier0BgpNeighborConfig [-id] <string> [-localeservices] <String> [-neighborID] <String>
- [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ New-NsxtTier0BgpNeighborConfig [-id] <string> [-localeservices] <String> [-neighborID] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

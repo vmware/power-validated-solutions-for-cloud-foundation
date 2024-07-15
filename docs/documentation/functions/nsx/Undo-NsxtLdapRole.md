@@ -13,8 +13,7 @@ Undo-NsxtLdapRole [-server] <String> [-user] <String> [-pass] <String> [-domain]
 ## Description
 
 The `Undo-NsxtLdapRole` cmdlet removes role assignments in NSX Manager for LDAP users/groups.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager

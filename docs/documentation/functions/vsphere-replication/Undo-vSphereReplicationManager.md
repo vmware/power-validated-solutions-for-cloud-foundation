@@ -7,8 +7,7 @@ Remove vSphere Replication Virtual Appliance
 ## Syntax
 
 ```powershell
-Undo-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vrmsHostname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vrmsHostname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

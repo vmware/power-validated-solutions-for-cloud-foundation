@@ -4103,7 +4103,7 @@ Function Install-SiteRecoveryManager {
 
         .DESCRIPTION
         The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet
-        connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
+        connects to SDDC Manager using the -server, -user, and -password values to retrieve the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -4338,7 +4338,7 @@ Function Install-vSphereReplicationManager {
 
         .DESCRIPTION
         The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -5651,7 +5651,7 @@ Function Get-NSXLBDetails {
 
         .DESCRIPTION
         The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs and pool members for the NSX Load Balancer for VMware Aria.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX load balancer configurationn
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the NSX load balancer configurationn
 
         .EXAMPLE
         Get-NSXLBDetails -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
@@ -22880,7 +22880,7 @@ Function Add-AriaNetworksLdapConfiguration {
         The Add-AriaNetworksLdapConfiguration cmdlet adds a new LDAP configuration to VMware Aria Operations
         for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Adds a new LDAP configuration to VMware Aria Operations for Networks.
 
@@ -22949,7 +22949,7 @@ Function Undo-AriaNetworksLdapConfiguration {
         The Undo-AriaNetworksLdapConfiguration cmdlet removes a LDAP configuration from VMware Aria Operations
         for Networks. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Removes a LDAP configuration from VMware Aria Operations for Networks.
 
@@ -23020,7 +23020,7 @@ Function Add-AriaNetworksVcenterDataSource {
         and uses the -sddcDomain, -serviceAccount, -serviceAccountPass, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
         and -ariaNetworksPass as well to do the following:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers vCenter Server details from the SDDC Manager instance
         - Adds a new vCenter Server data source for a domain
@@ -23121,7 +23121,7 @@ Function Undo-AriaNetworksVcenterDataSource {
         and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
         and -ariaNetworksPass as well to do the following:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers vCenter Server details from the SDDC Manager instance
         - Removes a vCenter Server data source from a domain
@@ -23214,7 +23214,7 @@ Function Add-AriaNetworksNsxDataSource {
         and uses the -sddcDomain, -serviceAccount, -serviceAccountPass, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
         and -ariaNetworksPass as well to do the following:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers NSX Manager details from SDDC Manager instance
         - Adds a new NSX Manager data source for a domain
@@ -23339,7 +23339,7 @@ Function Undo-AriaNetworksNsxDataSource {
         and uses the -sddcDomain, -environmentName, -ariaNetworksFqdn, -ariaNetworksUser,
         and -ariaNetworksPass as well to do the following:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+        - Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
         - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
         - Gathers NSX Manager details from the SDDC Manager instance
         - Removes a NSX Manager data source from a domain
@@ -29310,9 +29310,9 @@ Function New-vRSLCMDeployment {
                             Start-Sleep 5
                             Do { $request = Get-VCFTask -id $newRequest.id } While ($request.status -in "In Progress", "IN_PROGRESS")
                             if ($request.status -eq "Failed") {
-                                Write-Error "Deployment of VMware Aria Suite Lifecyle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
+                                Write-Error "Deployment of VMware Aria Suite Lifecycle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
                             } else {
-                                Write-Output "Deployment of VMware Aria Suite Lifecyle Finished with a Status: SUCCESSFUL"
+                                Write-Output "Deployment of VMware Aria Suite Lifecycle Finished with a Status: SUCCESSFUL"
                             }
                         } else {
                             Write-Error "VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) on SDDC Manager. Not Found: PRE_VALIDATION_FAILED"
@@ -29501,21 +29501,21 @@ Function Install-vRSLCMCertificate {
                                     Start-Sleep 3
                                     Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                     if ($request.status -eq "FAILED") {
-                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
+                                        Write-Error "Generating VMware Aria Suite Lifecycle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
                                     } else {
                                         $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmRequestCertificateSpec.json")
                                         Start-Sleep 3
                                         Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                         if ($request.status -eq "FAILED") {
-                                            Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                            Write-Error "Generating VMware Aria Suite Lifecycle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
                                         } else {
                                             $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "vrslcmUpdateCertificateSpec.json")
                                             Start-Sleep 3
                                             Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
                                             if ($request.status -eq "FAILED") {
-                                                Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                                Write-Error "Installing VMware Aria Suite Lifecycle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
                                             } else {
-                                                Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
+                                                Write-Output "Installing VMware Aria Suite Lifecycle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
                                             }
                                         }
                                     }
@@ -29531,7 +29531,7 @@ Function Install-vRSLCMCertificate {
                     }
                 }
             } else {
-                Write-Warning "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SKIPPED"
+                Write-Warning "Installing VMware Aria Suite Lifecycle ($($jsonInput.aslcmFqdn)) Certifcate: SKIPPED"
             }
         } else {
             Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
@@ -32527,7 +32527,7 @@ Function Add-ResourcePool {
 
         .DESCRIPTION
         The Add-ResourcePool cmdlet creates a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-        to retrive the vCenter Server details from the SDDC Manager inventory and then:
+        to retrieve the vCenter Server details from the SDDC Manager inventory and then:
         - Connects to the vCenter Server
         - Verifies that the resource pool has not already been created
         - Creates the resource pool
@@ -32600,7 +32600,7 @@ Function Undo-ResourcePool {
 
         .DESCRIPTION
         The Undo-ResourcePool cmdlet removes a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-        to retrive the vCenter Server details from the SDDC Manager inventory and then:
+        to retrieve the vCenter Server details from the SDDC Manager inventory and then:
         - Connects to the vCenter Server
         - Verifies that the resource pool exists in the vCenter Server inventory
         - Removes the resource pool
@@ -38443,6 +38443,7 @@ Function Set-WsaPasswordPolicy {
 
         .EXAMPLE
         Set-WsaPasswordPolicy -minLen 15 -minLower 1 -minUpper 1 -minDigit 1 -minSpecial 1 -history 5 -maxConsecutiveIdenticalCharacters 1 -maxPreviousPasswordCharactersReused 0 -tempPasswordTtlInHrs 24 -passwordTtlInDays 999 -notificationThresholdInDays 14 -notificationIntervalInDays 7.
+        This example configures the password policy for Workspace ONE Access.
 
         .PARAMETER minLen
         The minimum length of the password.
@@ -58945,6 +58946,37 @@ Function Test-SrmSdkAuthentication {
 Export-ModuleMember -Function Test-SrmSdkAuthentication
 
 Function Test-SrmAuthenticationREST {
+    <#
+        .SYNOPSIS
+        Check authentication to a Site Recovery Manager REST API.
+
+        .DESCRIPTION
+        The Test-SrmAuthenticationREST cmdlet checks the authentication to a Site Recovery Manager instance REST API.
+
+        .EXAMPLE
+        Test-SrmAuthenticationREST -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example checks authentication with a Site Recovery Manager instance REST API.
+
+        .EXAMPLE
+        Test-SrmAuthenticationREST -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -remoteUser administrator@vsphere.local -remotePass VMw@re1!
+        This example checks authentication with a Site Recovery Manager instance and a remote Site Recovery Manager instance REST API.
+
+        .PARAMETER server
+        The fully qualified domain name of the Site Recovery Manager instance.
+
+        .PARAMETER user
+        The username to authenticate to the Site Recovery Manager instance.
+
+        .PARAMETER pass
+        The password to authenticate to the Site Recovery Manager instance.
+
+        .PARAMETER remoteUser
+        The username to authenticate to the remote Site Recovery Manager instance.
+
+        .PARAMETER remotePass
+        The password to authenticate to the remote Site Recovery Manager instance.
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,

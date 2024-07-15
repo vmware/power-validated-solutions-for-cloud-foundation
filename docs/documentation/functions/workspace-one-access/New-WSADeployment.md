@@ -28,7 +28,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\wsaDeploySpec.json
 ```
 
-This example starts a deployment of a clustered Cross-Instance Workspace ONE Access using data from the JSON Specification file
+This example starts a deployment of a clustered Cross-Instance Workspace ONE Access using data from the JSON Specification file.
 
 ### Example 2
 
@@ -36,7 +36,7 @@ This example starts a deployment of a clustered Cross-Instance Workspace ONE Acc
 New-WSADeployment -jsonFile .\wsaDeploySpec.json -standard
 ```
 
-This example starts a deployment of a standard Cross-Instance Workspace ONE Access using data from the JSON Specification file
+This example starts a deployment of a standard Cross-Instance Workspace ONE Access using data from the JSON Specification file.
 
 ### Example 3
 
@@ -44,7 +44,7 @@ This example starts a deployment of a standard Cross-Instance Workspace ONE Acce
 New-WSADeployment -jsonFile .\wsaDeploySpec.json -customVersion 3.3.7
 ```
 
-This example starts a deployment of Workspace ONE Access using a custom version using data from the JSON Specification file
+This example starts a deployment of Workspace ONE Access using a custom version using data from the JSON Specification file.
 
 ### Example 4
 

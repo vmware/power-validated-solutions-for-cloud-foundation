@@ -22,7 +22,7 @@ The `Get-vRSLCMRequest` cmdlet gets all requests in VMware Aria Suite Lifecycle.
 Get-vRSLCMRequest
 ```
 
-This example gets all requests VMware Aria Suite Lifecycle
+This example gets all requests VMware Aria Suite Lifecycle.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example gets all requests VMware Aria Suite Lifecycle
 Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398
 ```
 
-This example gets the request by id from VMware Aria Suite Lifecycle
+This example gets the request by id from VMware Aria Suite Lifecycle.
 
 ### Example 3
 

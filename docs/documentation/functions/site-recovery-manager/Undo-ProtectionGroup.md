@@ -7,14 +7,12 @@ Removes a Site Recovery Manager protection group.
 ## Syntax
 
 ```powershell
-Undo-ProtectionGroup [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-pgName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-ProtectionGroup [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-pgName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-ProtectionGroup` cmdlet removes a Site Recovery Manager protection group.
-
 The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.

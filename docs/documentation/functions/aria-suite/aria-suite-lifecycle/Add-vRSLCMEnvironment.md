@@ -19,7 +19,7 @@ The `Add-vRSLCMEnvironment` cmdlet to create an environment in VMware Aria Suite
 ### Example 1
 
 ```powershell
-Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json)
+Add-vRSLCMEnvironment -json (Get-Content -Raw .\ariaLogs.json)
 ```
 
 This example creates an environment in VMware Aria Suite Lifecycle
@@ -27,7 +27,7 @@ This example creates an environment in VMware Aria Suite Lifecycle
 ### Example 2
 
 ```powershell
-Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json) -vmid c907c25b-1c61-465b-b7cb-4100ac1ce331 -addProduct
+Add-vRSLCMEnvironment -json (Get-Content -Raw .\ariaLogs.json) -vmid c907c25b-1c61-465b-b7cb-4100ac1ce331 -addProduct
 ```
 
 This example adds a new product to an existing environment in VMware Aria Suite Lifecycle.

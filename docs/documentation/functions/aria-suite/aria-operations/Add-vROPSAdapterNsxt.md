@@ -7,14 +7,12 @@ Adds an NSX Adapter to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Add-vROPSAdapterNsxt [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAdapterNsxt [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROPSAdapterNsxt` cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to VMware Aria
-Operations.
+The `Add-vROPSAdapterNsxt` cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to VMware Aria Operations.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -35,7 +33,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -collectorGroupName "sfo-remote-collectors"
 ```
 
-This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the collector group defined
+This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the collector group defined.
 
 ### Example 2
 
@@ -44,7 +42,7 @@ Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphe
 This example creates an NSX Adapter for the VI Workload Domain named in VMware  Aria Operations and assigns to the collector group defined
 ```
 
-This example creates an NSX Adapter for the VI Workload Domain named in VMware  Aria Operations and assigns to the collector group defined
+This example creates an NSX Adapter for the VI Workload Domain named in VMware  Aria Operations and assigns to the collector group defined.
 
 ### Example 3
 

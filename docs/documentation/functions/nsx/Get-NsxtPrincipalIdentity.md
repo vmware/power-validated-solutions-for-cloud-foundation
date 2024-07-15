@@ -22,7 +22,7 @@ The `Get-NsxtPrincipalIdentity` cmdlet gets a list of NSX Principal Identities.
 Get-NsxtPrincipalIdentity
 ```
 
-This example gets a list of NSX Principal Identities
+This example gets a list of NSX Principal Identities.
 
 ### Example 2
 

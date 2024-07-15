@@ -12,8 +12,7 @@ Get-vROPsServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <St
 
 ## Description
 
-The `Get-vROPsServerDetail` cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of
-VMware Aria Operations from SDDC Manager.
+The `Get-vROPsServerDetail` cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of VMware Aria Operations from SDDC Manager.
 
 ## Examples
 

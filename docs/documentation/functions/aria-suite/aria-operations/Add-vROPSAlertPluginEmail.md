@@ -7,22 +7,19 @@ Adds an Email based Alert Plugin
 ## Syntax
 
 ```powershell
-Add-vROPSAlertPluginEmail [-server] <String> [-user] <String> [-pass] <String> [-pluginName] <String>
- [-smtpServer] <String> [-smtpPort] <String> [-senderAddress] <String> [-secureConnection] <String>
- [[-protocol] <String>] [-authentication] <String> [[-authUser] <String>] [[-authPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAlertPluginEmail [-server] <String> [-user] <String> [-pass] <String> [-pluginName] <String> [-smtpServer] <String> [-smtpPort] <String> [-senderAddress] <String> [-secureConnection] <String> [[-protocol] <String>] [-authentication] <String> [[-authUser] <String>] [[-authPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-vROPSAlertPluginEmail` cmdlet adds an Email based Alert Plugin in VMware Aria Operations.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates that the Email Alert Plugin does not exist in VMware Aria Operations
-- Creates a new Email Alert Plugin and enables it in VMware Aria Operations.
+- Creates a new Email Alert Plugin and enables it in VMware Aria Operations
 
 ## Examples
 
@@ -32,7 +29,7 @@ cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 Add-vROPSAlertPluginEmail -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -pluginName "Email-Alert-Plugin" -smtpServer smtp.rainpole.io -smtpPort 25 -senderAddress "vrops-alerts@rainpole.io" -secureConnection true -protocol TLS -authentication false
 ```
 
-This example creates and enables an Email Alert Plugin in VMware Aria Operations without authentication
+This example creates and enables an Email Alert Plugin in VMware Aria Operations without authentication.
 
 ### Example 2
 

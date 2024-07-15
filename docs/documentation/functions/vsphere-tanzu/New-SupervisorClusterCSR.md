@@ -7,16 +7,12 @@ Create a new certificate signing request for the defined Supervisor Cluster
 ## Syntax
 
 ```powershell
-New-SupervisorClusterCSR [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [-commonName] <String> [-organization] <String> [-organizationalUnit] <String>
- [-country] <String> [-stateOrProvince] <String> [-locality] <String> [-adminEmailAddress] <String>
- [[-keySize] <String>] [-filePath] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-SupervisorClusterCSR [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-commonName] <String> [-organization] <String> [-organizationalUnit] <String> [-country] <String> [-stateOrProvince] <String> [-locality] <String> [-adminEmailAddress] <String> [[-keySize] <String>] [-filePath] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-SupervisorClusterCSR` cmdlet creates a new certificate signing request for the defined Supervisor
-Cluster.
+The `New-SupervisorClusterCSR` cmdlet creates a new certificate signing request for the defined Supervisor Cluster.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -31,7 +27,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -commonName sfo-m01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
 ```
 
-This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in workload domain sfo-w01.
 
 ## Parameters
 

@@ -12,8 +12,7 @@ Invoke-UndoPcaDeployment [-jsonFile] <String> [-ProgressAction <ActionPreference
 
 ## Description
 
-The `Invoke-UndoPcaDeployment` cmdlet is a single function to removal the configuration of the Private Cloud Automation
-for VMware Cloud Foundation validated solution.
+The `Invoke-UndoPcaDeployment` cmdlet is a single function to removal the configuration of the Private Cloud Automation for VMware Cloud Foundation validated solution.
 
 ## Examples
 

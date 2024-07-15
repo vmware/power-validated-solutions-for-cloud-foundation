@@ -7,14 +7,12 @@ Connects to the specified VMware Aria Operations for Networks platform node inte
 ## Syntax
 
 ```powershell
-Request-AriaNetworksInternalApiToken [-fqdn] <String> [[-username] <String>] [[-password] <String>]
- [<CommonParameters>]
+Request-AriaNetworksInternalApiToken [-fqdn] <String> [[-username] <String>] [[-password] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-The `Request-AriaNetworksInternalApiToken` cmdlet connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token.
-It is required once per session before running all other cmdlets.
+The `Request-AriaNetworksInternalApiToken` cmdlet connects to the specified VMware Aria Operations for Networks platform node internal API and obtains an authorization token. It is required once per session before running all other cmdlets.
 
 ## Examples
 

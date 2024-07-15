@@ -1,4 +1,4 @@
-# Set-vRLISmtpConfiguration
+ # Set-vRLISmtpConfiguration
 
 ## Synopsis
 
@@ -7,8 +7,7 @@ Configure the SMTP server settings
 ## Syntax
 
 ```powershell
-Set-vRLISmtpConfiguration [-smtpServer] <String> [-port] <String> [-sender] <String> [[-username] <String>]
- [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLISmtpConfiguration [-smtpServer] <String> [-port] <String> [-sender] <String> [[-username] <String>][[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

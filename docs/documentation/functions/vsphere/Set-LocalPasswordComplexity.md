@@ -7,9 +7,7 @@ Configure password complexity for local users
 ## Syntax
 
 ```powershell
-Set-LocalPasswordComplexity [-vmName] <String> [-guestUser] <String> [-guestPassword] <String>
- [-minLength] <Int32> [[-uppercase] <Int32>] [[-lowercase] <Int32>] [[-numerical] <Int32>] [[-special] <Int32>]
- [[-unique] <Int32>] [[-history] <Int32>] [[-retry] <Int32>] [[-class] <Int32>] [[-sequence] <Int32>] [-nsx] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-LocalPasswordComplexity [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-minLength] <Int32> [[-uppercase] <Int32>] [[-lowercase] <Int32>] [[-numerical] <Int32>] [[-special] <Int32>] [[-unique] <Int32>] [[-history] <Int32>] [[-retry] <Int32>] [[-class] <Int32>] [[-sequence] <Int32>] [-nsx] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +22,7 @@ The `Set-LocalPasswordComplexity` cmdlets configures the password complexity loc
 Set-LocalPasswordComplexity -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -minLength 7 -uppercase 1 -lowercase 1 -numerical 1 -special 1 -unique 5 -history 3
 ```
 
-This example updates the vCenter Server sfo-w01-vc01 with new values for each element
+This example updates the vCenter Server sfo-w01-vc01 with new values for each element.
 
 ### Example 2
 
@@ -32,7 +30,7 @@ This example updates the vCenter Server sfo-w01-vc01 with new values for each el
 Set-LocalPasswordComplexity -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -minLength 6 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 4 -history 5
 ```
 
-This example updates the vCenter Server sfo-w01-vc01 with the default values
+This example updates the vCenter Server sfo-w01-vc01 with the default values.
 
 ### Example 3
 

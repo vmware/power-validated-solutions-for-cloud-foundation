@@ -7,8 +7,7 @@ Remove vSphere Replication Virtual Appliance
 ## Syntax
 
 ```powershell
-Undo-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-srmHostname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmHostname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

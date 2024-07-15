@@ -13,13 +13,12 @@ Undo-vRSLCMDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddc
 ## Description
 
 The `Undo-vRSLCMDnsConfig` cmdlet configures the DNS server and search domain details of the VMware Aria Suite Lifecycle appliance to the values stored in SDDC Manager.
-The cmdlet connects to SDDC Manager using
-the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
 - Retrieves the DNS server and search domain values from SDDC Manager
-- Configures the VMware Aria Suite Lifecycle appliance DNS configuration to match the values retrieved from SDDC Manager.
+- Configures the VMware Aria Suite Lifecycle appliance DNS configuration to match the values retrieved from SDDC Manager
 
 ## Examples
 

@@ -7,15 +7,13 @@ Remove access for a user/group in SDDC Manager
 ## Syntax
 
 ```powershell
-Undo-SddcManagerRole [-server] <String> [-user] <String> [-pass] <String> [-principal] <String>
- [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SddcManagerRole [-server] <String> [-user] <String> [-pass] <String> [-principal] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-SddcManagerRole` cmdlet removes access for a user or group in SDDC Manager.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Removes the user or group from SDDC Manager if present.

@@ -7,20 +7,18 @@ Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-New-vRSLCMDatacenterVcenter [-server] <String> [-user] <String> [-pass] <String> [-datacenterName] <String>
- [-vcenterFqdn] <String> [-userLockerAlias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRSLCMDatacenterVcenter [-server] <String> [-user] <String> [-pass] <String> [-datacenterName] <String> [-vcenterFqdn] <String> [-userLockerAlias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `New-vRSLCMDatacenterVcenter` cmdlet adds a vCenter Server to a Datacenter to the VMware Aria Suite Lifecycle
-Manager inventory.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+Manager inventory. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Validates that the vCenter Server has not already been added to the Datacenter
-- Adds the vCenter Server to the Datacenter.
+- Adds the vCenter Server to the Datacenter
 
 ## Examples
 
