@@ -7,8 +7,7 @@ Create a new NSX Segment
 ## Syntax
 
 ```powershell
-New-NsxtSegment [-Name] <String> [[-ConnectedGateway] <String>] [[-Cidr] <String>] [-TransportZone] <String>
- [[-GatewayType] <String>] [-SegmentType] <String> [[-VlanId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtSegment [-Name] <String> [[-ConnectedGateway] <String>] [[-Cidr] <String>] [-TransportZone] <String> [[-GatewayType] <String>] [-SegmentType] <String> [[-VlanId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

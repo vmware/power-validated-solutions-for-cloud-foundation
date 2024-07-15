@@ -14,13 +14,12 @@ New-vRSLCMDatacenter [-server] <String> [-user] <String> [-pass] <String> [-data
 ## Description
 
 The `New-vRSLCMDatacenter` cmdlet adds a datacenter to the VMware Aria Suite Lifecycle inventory.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Validates that the datacenter has not already been created in the inventory
-- Creates the datacenter in the inventory.
+- Creates the datacenter in the inventory
 
 ## Examples
 

@@ -13,7 +13,7 @@ Get-NSXLBDetails [-server] <String> [-user] <String> [-pass] <String> [-Progress
 ## Description
 
 The `Get-NSXLBDetails` cmdlet gets the IP addresses of the VIPs and pool members for the NSX Load Balancer for VMware Aria.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX load balancer configurationn.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the NSX load balancer configuration.
 
 ## Examples
 

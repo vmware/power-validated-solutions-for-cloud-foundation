@@ -7,8 +7,7 @@ Remove user/group from vCenter Single Sign-On Group
 ## Syntax
 
 ```powershell
-Undo-SsoPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-principal] <String> [-ssoGroup] <String> [-type] <String> [-source] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SsoPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [-principal] <String> [-ssoGroup] <String> [-type] <String> [-source] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -29,7 +28,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Undo-SsoPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -principal gg-sso-admins -ssoGroup "Administrators" -type group -source external
 ```
 
-This example removes the group gg-sso-admins in domain sfo.rainpole.io from the Administrators vCenter Single Sign-On Group
+This example removes the group gg-sso-admins in domain sfo.rainpole.io from the Administrators vCenter Single Sign-On Group.
 
 ### Example 2
 

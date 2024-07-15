@@ -7,14 +7,12 @@ Removes the Photon appliance.
 ## Syntax
 
 ```photon
-Remove-PhotonAppliance [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-vmName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-PhotonAppliance [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-vmName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Remove-PhotonAppliance` cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

@@ -7,8 +7,7 @@ End-to-end Deployment of Intelligent Operations and Management.
 ## Syntax
 
 ```powershell
-Invoke-IomDeployment -jsonFile <String> -certificates <String> -binaries <String> [-useContentLibrary]
- [-contentLibrary <String>] [-nested] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-IomDeployment -jsonFile <String> -certificates <String> -binaries <String> [-useContentLibrary] [-contentLibrary <String>] [-nested] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

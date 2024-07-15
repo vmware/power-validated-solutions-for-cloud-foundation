@@ -22,7 +22,7 @@ The `Get-vRSLCMPSPack` cmdlet retrieves a list of available Product Support Pack
 Get-vRSLCMPSPack
 ```
 
-This example retrieves a list of available Product Support Packs for VMware Aria Suite Lifecycle
+This example retrieves a list of available Product Support Packs for VMware Aria Suite Lifecycle.
 
 ### Example 2
 

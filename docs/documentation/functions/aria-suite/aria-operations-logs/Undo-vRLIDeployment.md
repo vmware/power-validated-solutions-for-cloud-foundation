@@ -7,20 +7,18 @@ Remove the VMware Aria Operations for Logs Environment from VMware Aria Suite Li
 ## Syntax
 
 ```powershell
-Undo-vRLIDeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>]
- [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLIDeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>] [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-vRLIDeployment` cmdlet removes VMware Aria Operations for Logs from VMware Aria Suite Lifecycle.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Validates that the environment exist in VMware Aria Suite Lifecycle
-- Requests a the deletion of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle.
+- Requests a the deletion of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle
 
 ## Examples
 

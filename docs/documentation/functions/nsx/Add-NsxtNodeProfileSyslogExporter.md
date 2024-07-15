@@ -7,21 +7,19 @@ Sets a syslog exporter on an NSX node profile to VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Add-NsxtNodeProfileSyslogExporter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NsxtNodeProfileSyslogExporter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-NsxtNodeProfileSyslogExporter` cmdlet adds a syslog exporter for VMware Aria Operations for Logs to an NSX node
-profile for configuration of syslog on the NSX components included in the node profile.
+The `Add-NsxtNodeProfileSyslogExporter` cmdlet adds a syslog exporter for VMware Aria Operations for Logs to an NSX node profile for configuration of syslog on the NSX components included in the node profile.
 The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-- Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX.
+- Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX
 
 ## Examples
 

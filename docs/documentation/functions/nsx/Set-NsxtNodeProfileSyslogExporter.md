@@ -7,14 +7,12 @@ Sets a node profile syslog exporter.
 ## Syntax
 
 ```powershell
-Set-NsxtNodeProfileSyslogExporter [-id] <String> [-server] <String> [-port] <Int32> [-protocol] <String>
- [-logLevel] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtNodeProfileSyslogExporter [-id] <String> [-server] <String> [-port] <Int32> [-protocol] <String> [-logLevel] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-NsxtNodeProfileSyslogExporter` cmdlet adds a syslog exporter to an NSX node profie for configuration
-of NSX components included in the node profile.
+The `Set-NsxtNodeProfileSyslogExporter` cmdlet adds a syslog exporter to an NSX node profile for configuration of NSX components included in the node profile.
 
 ## Examples
 
@@ -25,7 +23,6 @@ Set-NsxtNodeProfileSyslogExporter -id "00000000-0000-0000-0000-000000000001" -se
 ```
 
 This example add a single syslog exporter to the NSX node profile the id of the profile.
-
 Note: This function only supports a single syslog exporter.
 
 ## Parameters

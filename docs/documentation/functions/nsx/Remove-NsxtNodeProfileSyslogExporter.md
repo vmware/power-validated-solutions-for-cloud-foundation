@@ -12,8 +12,7 @@ Remove-NsxtNodeProfileSyslogExporter [-id] <String> [-ProgressAction <ActionPref
 
 ## Description
 
-The `Remove-NsxtNodeProfileSyslogExporter` cmdlet removes all syslog exporters from an NSX node profie for configuration
-of NSX components included in the node profile.
+The `Remove-NsxtNodeProfileSyslogExporter` cmdlet removes all syslog exporters from an NSX node profile for configuration of NSX components included in the node profile.
 
 ## Examples
 

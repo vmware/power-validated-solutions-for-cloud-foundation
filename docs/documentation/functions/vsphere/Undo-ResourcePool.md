@@ -7,15 +7,12 @@ Remove a resource pool
 ## Syntax
 
 ```powershell
-Undo-ResourcePool [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-resourcePoolName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-ResourcePool [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-resourcePoolName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-ResourcePool` cmdlet removes a resource pool.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-to retrive the vCenter Server details from the SDDC Manager inventory and then:
+The `Undo-ResourcePool` cmdlet removes a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
 
 - Connects to the vCenter Server
 - Verifies that the resource pool exists in the vCenter Server inventory

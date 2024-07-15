@@ -7,14 +7,12 @@ Removes a vSphere Replication for a specified virtual machine.
 ## Syntax
 
 ```powershell
-Undo-vSphereReplication [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-vmName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vSphereReplication [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-vmName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-vSphereReplication` cmdlet adds vSphere Replication for a specified virtual machine.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.

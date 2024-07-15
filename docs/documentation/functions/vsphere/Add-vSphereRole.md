@@ -7,15 +7,12 @@ Add a vSphere role
 ## Syntax
 
 ```powershell
-Add-vSphereRole [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-roleName] <String> [[-template] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vSphereRole [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-roleName] <String> [[-template] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vSphereRole` cmdlet creates a role in vCenter Server.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Add-vSphereRole` cmdlet creates a role in vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

@@ -7,8 +7,7 @@ Set the vCenter Server registration
 ## Syntax
 
 ```powershell
-Set-SrmConfiguration [-vcenterFqdn] <String> [-vcenterInstanceId] <String> [-ssoUser] <String>
- [-ssoPassword] <String> [-adminEmail] <String> [-siteName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-SrmConfiguration [-vcenterFqdn] <String> [-vcenterInstanceId] <String> [-ssoUser] <String> [-ssoPassword] <String> [-adminEmail] <String> [-siteName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -13,8 +13,7 @@ Test-VsphereConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Ac
 ## Description
 
 The `Test-VsphereConnection` cmdlet Checks the network connectivity to a vCenter Server instance.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 

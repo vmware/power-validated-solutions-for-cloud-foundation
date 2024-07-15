@@ -12,7 +12,7 @@ Get-WMRegistry [[-cluster] <String>] [[-inputObject] <PSObject>] [-ProgressActio
 
 ## Description
 
-The Get-WMRegistry cmdlet retrieves the embedded Harbor Registry on a Supervisor Cluster.
+The `Get-WMRegistry` cmdlet retrieves the embedded Harbor Registry on a Supervisor Cluster.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The Get-WMRegistry cmdlet retrieves the embedded Harbor Registry on a Supervisor
 Get-WMRegistry
 ```
 
-This example retrieves all embedded Harbor Registries in vCenter Server inventory
+This example retrieves all embedded Harbor Registries in vCenter Server inventory.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example retrieves all embedded Harbor Registries in vCenter Server inventor
 Get-WMRegistry -Cluster sfo-w01-cl01
 ```
 
-This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01"
+This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01".
 
 ### Example 3
 

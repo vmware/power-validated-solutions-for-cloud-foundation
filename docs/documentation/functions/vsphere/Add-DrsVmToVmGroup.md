@@ -7,8 +7,7 @@ Creates a vSphere VM to VM Group
 ## Syntax
 
 ```powershell
-Add-DrsVmToVmGroup [-name] <String> [-vmGroup] <String> [-dependOnVmGroup] <String> [-cluster] <String>
- [-enabled] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-DrsVmToVmGroup [-name] <String> [-vmGroup] <String> [-dependOnVmGroup] <String> [-cluster] <String> [-enabled] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

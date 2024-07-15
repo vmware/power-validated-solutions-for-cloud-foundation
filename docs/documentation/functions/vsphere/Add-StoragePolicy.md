@@ -2,24 +2,21 @@
 
 ## Synopsis
 
-The Add-StoragePolicy cmdlet creates a vSphere Storage Policy.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to vCenter Server
-- Creates a VM vSphere Storage Policy
+Creates a vSphere Storage Policy
 
 ## Syntax
 
 ```powershell
-Add-StoragePolicy [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-policyName] <String> [-tagName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-StoragePolicy [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-policyName] <String> [-tagName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-StoragePolicy` cmdlet creates a VM vSphere Storage Policy.
+The `Add-StoragePolicy` cmdlet creates a VM vSphere Storage Policy. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to vCenter Server
+- Creates a VM vSphere Storage Policy
 
 ## Examples
 
@@ -29,7 +26,7 @@ The `Add-StoragePolicy` cmdlet creates a VM vSphere Storage Policy.
 Add-StoragePolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -policyName vsphere-with-tanzu-storage-policy -tagName vsphere-with-tanzu-tag
 ```
 
-This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the Wrkload Domain vCenter Server.
+This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the workload domain vCenter Server.
 
 ## Parameters
 

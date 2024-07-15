@@ -22,4 +22,4 @@ The `Get-NsxtUser` cmdlet gets all users and groups in NSX Manager.
 Get-NsxtUser
 ```
 
-This example gets all users and grops in NSX Manager
+This example gets all users and groups in NSX Manager.

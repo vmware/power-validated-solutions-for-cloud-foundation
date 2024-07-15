@@ -12,8 +12,7 @@ Test-IomPrerequisite [-jsonFile] <String> [-binaries] <String> [<CommonParameter
 
 ## Description
 
-The `Test-IomPrerequisite` cmdlet verifies the prerequisites for Intelligent Operations Management for VMware
-Cloud Foundation validated solution.
+The `Test-IomPrerequisite` cmdlet verifies the prerequisites for Intelligent Operations Management for VMware Cloud Foundation validated solution.
 
 ## Examples
 

@@ -8,8 +8,7 @@ This overrides any existing Global Permissions for the user or group in the vCen
 ## Syntax
 
 ```powershell
-Set-vCenterPermission -server <String> -user <String> -pass <String> -domain <String> -workloadDomain <String>
- -principal <String> -role <String> [-folderName <String>] [-folderType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vCenterPermission -server <String> -user <String> -pass <String> -domain <String> -workloadDomain <String> -principal <String> -role <String> [-folderName <String>] [-folderType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

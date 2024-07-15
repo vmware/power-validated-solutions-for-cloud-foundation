@@ -7,10 +7,7 @@ Set password complexity and expiration policies
 ## Syntax
 
 ```powershell
-Set-WsaPasswordPolicy [-minLen] <String> [-minLower] <String> [-minUpper] <String> [-minDigit] <String>
- [-minSpecial] <String> [-history] <String> [-maxConsecutiveIdenticalCharacters] <String>
- [-maxPreviousPasswordCharactersReused] <String> [-tempPasswordTtlInHrs] <String> [-passwordTtlInDays] <String>
- [-notificationThresholdInDays] <String> [-notificationIntervalInDays] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WsaPasswordPolicy [-minLen] <String> [-minLower] <String> [-minUpper] <String> [-minDigit] <String> [-minSpecial] <String> [-history] <String> [-maxConsecutiveIdenticalCharacters] <String> [-maxPreviousPasswordCharactersReused] <String> [-tempPasswordTtlInHrs] <String> [-passwordTtlInDays] <String> [-notificationThresholdInDays] <String> [-notificationIntervalInDays] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,6 +21,8 @@ The `Set-WsaPasswordPolicy` cmdlet set configuration of the password complexity 
 ```powershell
 Set-WsaPasswordPolicy -minLen 15 -minLower 1 -minUpper 1 -minDigit 1 -minSpecial 1 -history 5 -maxConsecutiveIdenticalCharacters 1 -maxPreviousPasswordCharactersReused 0 -tempPasswordTtlInHrs 24 -passwordTtlInDays 999 -notificationThresholdInDays 14 -notificationIntervalInDays 7
 ```
+
+This example configures the password policy for Workspace ONE Access.
 
 ## Parameters
 

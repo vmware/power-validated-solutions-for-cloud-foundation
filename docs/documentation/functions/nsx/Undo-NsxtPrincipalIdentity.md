@@ -7,19 +7,17 @@ Remove a principal identity from NSX Manager.
 ## Syntax
 
 ```powershell
-Undo-NsxtPrincipalIdentity [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-principalId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NsxtPrincipalIdentity [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principalId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-NsxtPrincipalIdentity` cmdlet removes a principal identity from NSX Manager.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager
-- Removes a principal identity from NSX Manager.
+- Removes a principal identity from NSX Manager
 
 ## Examples
 

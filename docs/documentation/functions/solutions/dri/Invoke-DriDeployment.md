@@ -12,8 +12,7 @@ Invoke-DriDeployment [-jsonFile] <String> [-certificates] <String> [-kubectlPath
 
 ## Description
 
-The `Invoke-DriDeployment` cmdlet is a single function to implement the configuration of the Developer Ready
-Infrastructure for VMware Cloud Foundation validated solution.
+The `Invoke-DriDeployment` cmdlet is a single function to implement the configuration of the Developer Ready Infrastructure for VMware Cloud Foundation validated solution.
 
 ## Examples
 

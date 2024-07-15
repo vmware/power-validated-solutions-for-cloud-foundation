@@ -7,8 +7,7 @@ Configure the password expiration policy for a local user.
 ## Syntax
 
 ```powershell
-Set-LocalUserPasswordExpiration [-vmName] <String> [-guestUser] <String> [-guestPassword] <String>
- [-localUser] <String> [[-minDays] <String>] [-maxDays] <String> [[-warnDays] <String>] [-sudo] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-LocalUserPasswordExpiration [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-localUser] <String> [[-minDays] <String>] [-maxDays] <String> [[-warnDays] <String>] [-sudo] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

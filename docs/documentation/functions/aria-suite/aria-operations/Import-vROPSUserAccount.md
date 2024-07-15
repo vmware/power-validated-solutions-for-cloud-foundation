@@ -7,8 +7,7 @@ Import a user from Workspace ONE Access and assign access in VMware Aria Operati
 ## Syntax
 
 ```powershell
-Import-vROPSUserAccount [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-userName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vROPSUserAccount [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-userName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -22,7 +21,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that Workspace ONE Access has been configured as an authentication source
 - Validates the user account provided can be found in VMware Aria Operations
 - Validated the role exists within VMware Aria Operations
-- Imports the user and assigns the VMware Aria Operations role.
+- Imports the user and assigns the VMware Aria Operations role
 
 ## Examples
 

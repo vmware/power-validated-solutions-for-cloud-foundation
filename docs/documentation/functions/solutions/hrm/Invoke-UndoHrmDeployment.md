@@ -12,8 +12,7 @@ Invoke-UndoHrmDeployment [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Invoke-UndoHrmDeployment` cmdlet is a single function to remove the configuration of the Health Reporting
-and Monitoring for VMware Cloud Foundation validated solution.
+The `Invoke-UndoHrmDeployment` cmdlet is a single function to remove the configuration of the Health Reporting and Monitoring for VMware Cloud Foundation validated solution.
 
 ## Examples
 

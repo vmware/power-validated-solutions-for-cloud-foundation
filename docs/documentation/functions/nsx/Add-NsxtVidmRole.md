@@ -7,15 +7,13 @@ Configure Role-Based Access Control for NSX Manager
 ## Syntax
 
 ```powershell
-Add-NsxtVidmRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String>
- [-type] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NsxtVidmRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String> [-type] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-NsxtVidmRole` cmdlet configures role assignments in NSX Manager.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager cluster
@@ -29,15 +27,15 @@ using the -server, -user, and -password values:
 Add-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type group -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -role enterprise_admin
 ```
 
-This example assigns the group <gg-nsx-enterprise-admins@sfo.rainpole.io> with the enterprise_admin role in NSX Manager
+This example assigns the group 'gg-nsx-enterprise-admins@sfo.rainpole.io' with the enterprise_admin role in NSX Manager.
 
 ### Example 2
 
 ```powershell
-Add-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type user -principal "svc-vra-nsx@rainpole.io" -role enterprise_admin
+Add-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type user -principal "svc-cmp-nsx@rainpole.io" -role enterprise_admin
 ```
 
-This example assigns the user <svc-vra-nsx@rainpole.io> with the enterprise_admin role in NSX Manager.
+This example assigns the user 'svc-cmp-nsx@rainpole.io' with the enterprise_admin role in NSX Manager.
 
 ## Parameters
 

@@ -12,7 +12,7 @@ New-VMOvfProperty [-vm] <PSObject> [-property] <PSObject> [-ProgressAction <Acti
 
 ## Description
 
-Accepts a object with propery details, parses it and adds it to supplied VM.
+The `New-VMOvfPropert`y` cmldet accepts a object with property details, parses it and adds it to supplied VM.
 
 ## Examples
 

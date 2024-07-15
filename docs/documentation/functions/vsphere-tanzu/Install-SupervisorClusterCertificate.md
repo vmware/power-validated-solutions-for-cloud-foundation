@@ -7,19 +7,17 @@ Add a signed TLS certificate for the defined Supervisor Cluster
 ## Syntax
 
 ```powershell
-Install-SupervisorClusterCertificate [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [[-filePath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-SupervisorClusterCertificate [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [[-filePath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Install-SupervisorClusterCertificate` cmdlet adds a signed TLS certificate for the defined Supervisor
-Cluster.
+The `Install-SupervisorClusterCertificate` cmdlet adds a signed TLS certificate for the defined Supervisor Cluster.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server
-- Installs the Signed Certificate to the Supervisor Cluster.
+- Installs the Signed Certificate to the Supervisor Cluster
 
 ## Examples
 

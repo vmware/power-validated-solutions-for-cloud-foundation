@@ -12,9 +12,7 @@ Install-vRSLCMCertificate [-server] <String> [-user] <String> [-pass] <String> [
 
 ## Description
 
-The `Install-vRSLCMCertificate` cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
-Lifecycle.
-
+The `Install-vRSLCMCertificate` cmdlet installs a Certificate Authority signed certificate on VMware Aria Suite Lifecycle.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -29,7 +27,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Install-vRSLCMCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
 ```
 
-This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle.
+This example installs a Certificate Authority signed certificate on VMware Aria Suite Lifecycle.
 
 ## Parameters
 

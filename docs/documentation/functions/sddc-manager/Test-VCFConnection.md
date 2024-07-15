@@ -13,8 +13,7 @@ Test-VCFConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Action
 ## Description
 
 The `Test-VCFConnection` cmdlet checks the network connectivity to an SDDC Manager instance.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 

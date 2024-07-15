@@ -22,7 +22,7 @@ The `Get-NsxtSegment` cmdlet retrieves a list of Segments.
 Get-NsxtSegment
 ```
 
-This example gets all Segments
+This example gets all Segments.
 
 ### Example 2
 

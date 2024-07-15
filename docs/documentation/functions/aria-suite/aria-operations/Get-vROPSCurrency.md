@@ -22,4 +22,4 @@ The `Get-vROPSCurrency` cmdlet gets the currency configuration for VMware Aria O
 Get-vROPSCurrency
 ```
 
-This example gets the currency configuration for VMware Aria Operations
+This example gets the currency configuration for VMware Aria Operations.

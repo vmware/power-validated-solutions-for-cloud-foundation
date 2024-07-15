@@ -22,4 +22,4 @@ The `Get-vRSLCMMyVmwareAccount` cmdlet retrieves the My VMware accounts assigned
 Get-vRSLCMMyVmwareAccount
 ```
 
-This example retrieves all the My VMware Accounts assigned in VMware Aria Suite Lifecycle
+This example retrieves all the My VMware Accounts assigned in VMware Aria Suite Lifecycle.

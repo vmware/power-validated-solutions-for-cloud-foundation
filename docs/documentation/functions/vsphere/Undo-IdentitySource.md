@@ -7,14 +7,12 @@ Removes Active Directory over LDAP/LDAPS as an Identity Provider from vCenter Se
 ## Syntax
 
 ```powershell
-Undo-IdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-IdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-IdentitySource` cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from the
-vCenter Server.
+The `Undo-IdentitySource` cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from the vCenter Server.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

@@ -7,15 +7,12 @@ Removes a vSphere Anti-Affinity rule
 ## Syntax
 
 ```powershell
-Undo-AntiAffinityRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-ruleName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-AntiAffinityRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-AntiAffinityRule` cmdlet removes a vSphere Anti-Affinity rule.
-The cmdlet connects to SDDC Manager using
-the -server, -user, and -password values:
+The `Undo-AntiAffinityRule` cmdlet removes a vSphere Anti-Affinity rule. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

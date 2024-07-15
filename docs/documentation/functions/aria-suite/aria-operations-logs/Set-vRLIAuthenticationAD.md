@@ -7,14 +7,12 @@ Configure Active Directory as an authentication provider.
 ## Syntax
 
 ```powershell
-Set-vRLIAuthenticationAD [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String>
- [-domainServers] <Array> [[-connectionType] <String>] [[-requireSsl] <Boolean>] [[-port] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLIAuthenticationAD [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-domainServers] <Array> [[-connectionType] <String>] [[-requireSsl] <Boolean>] [[-port] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRLIAuthenticationAD` cmdlet configures Active Directory as an authentication provider in VMware
-Operations for Logs
+The `Set-vRLIAuthenticationAD` cmdlet configures Active Directory as an authentication provider in VMware Operations for Logs
 
 ## Examples
 
@@ -22,15 +20,17 @@ Operations for Logs
 
 ```powershell
 Set-vRLIAuthenticationAD -domain sfo.rainpole.io -domainServers sfo-ad01.sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -connectionType STANDARD
-This example configures Active Directory as an authentication provider
 ```
+
+This example configures Active Directory as an authentication provider.
 
 ### Example 2
 
 ```powershell
 Set-vRLIAuthenticationAD -domain sfo.rainpole.io -domainServers sfo-ad01.sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -connectionType CUSTOM -port 636 -requireSsl:$true
-This example configures Active Directory as an authentication provider using custom configuration.
 ```
+
+This example configures Active Directory as an authentication provider using custom configuration.
 
 ## Parameters
 

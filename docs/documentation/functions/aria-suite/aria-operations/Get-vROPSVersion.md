@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get version informartion
+Get version information
 
 ## Syntax
 

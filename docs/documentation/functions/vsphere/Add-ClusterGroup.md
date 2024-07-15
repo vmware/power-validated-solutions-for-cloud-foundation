@@ -7,15 +7,12 @@ Creates a vSphere DRS Cluster Group
 ## Syntax
 
 ```powershell
-Add-ClusterGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-drsGroupName] <String> [-drsGroupVMs] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-ClusterGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-drsGroupName] <String> [-drsGroupVMs] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-ClusterGroup` cmdlet creates a vSphere DRS Cluster Group.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Add-ClusterGroup` cmdlet creates a vSphere DRS Cluster Group. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

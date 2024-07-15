@@ -7,14 +7,12 @@ Removes a Site Recovery Manager recovery plan.
 ## Syntax
 
 ```powershell
-Undo-RecoveryPlan [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-rpName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-RecoveryPlan [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-rpName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-RecoveryPlan` cmdlet adds a Site Recovery Manager recovery plan.
-
 The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.

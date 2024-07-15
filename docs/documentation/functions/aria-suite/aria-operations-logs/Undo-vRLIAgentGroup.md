@@ -18,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-- Deletes an agent group from the VMware Aria Operations for Logs if not already configured.
+- Deletes an agent group from the VMware Aria Operations for Logs if not already configured
 
 ## Examples
 

@@ -7,15 +7,12 @@ Check authentication to the VMware Aria Operations for Networks instance for usi
 ## Syntax
 
 ```powershell
-Test-AriaNetworksInternalAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [<CommonParameters>]
+Test-AriaNetworksInternalAuthentication [-server] <String> [-user] <String> [-pass] <String> [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-AriaNetworksInternalAuthentication` cmdlet checks authentication to a VMware Aria Operations for Networks
-
-instance for using the internal API.
+The `Test-AriaNetworksInternalAuthentication` cmdlet checks authentication to a VMware Aria Operations for Networks instance for using the internal API.
 
 ## Example
 

@@ -12,8 +12,7 @@ Set-SrmVamiCertificate [[-pkcs12CertFile] <String>] [-certPassword] <String> [-P
 
 ## Description
 
-The `Set-SrmVamiCertificate` cmdlet replaces the certificate on the VAMI interface of the Site Recovery
-Manager appliance.
+The `Set-SrmVamiCertificate` cmdlet replaces the certificate on the VAMI interface of the Site Recovery Manager appliance.
 
 ## Examples
 

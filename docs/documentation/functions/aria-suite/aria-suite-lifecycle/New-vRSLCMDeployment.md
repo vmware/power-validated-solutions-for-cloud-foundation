@@ -13,7 +13,6 @@ New-vRSLCMDeployment [-server] <String> [-user] <String> [-pass] <String> [-json
 ## Description
 
 The `New-vRSLCMDeployment` cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

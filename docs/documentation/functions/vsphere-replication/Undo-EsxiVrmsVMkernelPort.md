@@ -7,15 +7,13 @@ Removes VMkernel ports on ESXi hosts
 ## Syntax
 
 ```powershell
-Undo-EsxiVrmsVMkernelPort [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-portgroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-EsxiVrmsVMkernelPort [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-portgroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-EsxiVrmsVMkernelPort` cmdlet removes the VMkernel port on each ESXi host for vSphere Replication traffic.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the vCenter Server instance

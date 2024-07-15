@@ -6,9 +6,8 @@ Adds an VMware Cloud Foundation Adapter to VMware Aria Operations
 
 ## Syntax
 
-``` powersehll
-Add-vROPSAdapterVcf [-server] <String> [-user] <String> [-pass] <String> [[-collectorGroupName] <String>]
- [<CommonParameters>]
+``` powershell
+Add-vROPSAdapterVcf [-server] <String> [-user] <String> [-pass] <String> [[-collectorGroupName] <String>] [<CommonParameters>]
 ```
 
 ## Description

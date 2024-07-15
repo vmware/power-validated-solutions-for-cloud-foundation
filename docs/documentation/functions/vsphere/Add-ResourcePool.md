@@ -7,15 +7,12 @@ Create a resource pool
 ## Syntax
 
 ```powershell
-Add-ResourcePool [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-resourcePoolName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-ResourcePool [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-resourcePoolName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-ResourcePool` cmdlet creates a resource pool.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-to retrive the vCenter Server details from the SDDC Manager inventory and then:
+The `Add-ResourcePool` cmdlet creates a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Connects to the vCenter Server
 - Verifies that the resource pool has not already been created

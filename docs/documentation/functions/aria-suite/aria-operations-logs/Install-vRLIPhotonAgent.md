@@ -7,15 +7,12 @@ Install VMware Aria Operations for Logs Photon Agent in a Virtual Machine
 ## Syntax
 
 ```powershell
-Install-vRLIPhotonAgent [-server] <String> [-user] <String> [-pass] <String> [-vmName] <String>
- [-vmRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-vRLIPhotonAgent [-server] <String> [-user] <String> [-pass] <String> [-vmName] <String> [-vmRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Install-vRLIPhotonAgent` cmdlet installs and configures the VMware Aria Operations for Logs Photon Agent on
-a virtual machine.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+The `Install-vRLIPhotonAgent` cmdlet installs and configures the VMware Aria Operations for Logs Photon Agent on a virtual machine. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
@@ -23,7 +20,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to vCenter Server
 - Validates that the Virtual Machine exists in the vCenter Server inventory
 - Downloads and Installs the Photon Agent on the Virtual Machne
-- Configures the liagent.ini file to communicate with VMware Aria Operations for Logs.
+- Configures the liagent.ini file to communicate with VMware Aria Operations for Logs
 
 ## Examples
 

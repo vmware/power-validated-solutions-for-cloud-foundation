@@ -18,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Verifies that the password is present in the VMware Aria Suite Lifecycle locker
-- Removes the password from the VMware Aria Suite Lifecycle locker.
+- Removes the password from the VMware Aria Suite Lifecycle locker
 
 ## Examples
 

@@ -7,8 +7,7 @@ Install a new certificate for a VAMI interface
 ## Syntax
 
 ```powershell
-Install-VamiCertificate [-server] <String> [-user] <String> [-pass] <String> [[-certFile] <String>]
- [-certPassword] <String> [-solution] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-VamiCertificate [-server] <String> [-user] <String> [-pass] <String> [[-certFile] <String>] [-certPassword] <String> [-solution] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

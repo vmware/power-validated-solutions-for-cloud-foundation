@@ -22,7 +22,7 @@ The `Get-vRSLCMDatacenter` cmdlet gets a paginated list of datacenters in VMware
 Get-vRSLCMDatacenter
 ```
 
-This example gets all datacenters in VMware Aria Suite Lifecycle
+This example gets all datacenters in VMware Aria Suite Lifecycle.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example gets all datacenters in VMware Aria Suite Lifecycle
 Get-vRSLCMDatacenter -vmid 2b54b028-9eba-4d2f-b6ee-66428ea2b297
 ```
 
-This example gets the details of a datacenter based on the vmid
+This example gets the details of a datacenter based on the vmid.
 
 ### Example 3
 

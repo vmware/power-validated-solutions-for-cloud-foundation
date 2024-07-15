@@ -7,8 +7,7 @@ Adds a vCenter Server Credential
 ## Syntax
 
 ```powershell
-Add-vROPSVcenterCredential [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-serviceUser] <String> [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSVcenterCredential [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-serviceUser] <String> [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

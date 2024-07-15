@@ -7,8 +7,7 @@ Adds a VMware Cloud Foundation Credential
 ## Syntax
 
 ```powershell
-Add-vROPSVcfCredential [-server] <String> [-user] <String> [-pass] <String> [-serviceUser] <String>
- [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSVcfCredential [-server] <String> [-user] <String> [-pass] <String> [-serviceUser] <String> [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

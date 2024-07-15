@@ -13,8 +13,7 @@ Test-vRSLCMConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Act
 ## Description
 
 The `Test-vRSLCMConnection` cmdlet Checks the network connectivity to a VMware  Aria Suite Lifecycle instance.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 

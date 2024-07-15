@@ -27,12 +27,11 @@ Get-vROVersion [-extensibility] [-ProgressAction <ActionPreference>] [<CommonPar
 ## Description
 
 The `Get-vROVersion` cmdlet retrieves the VMware Aria Automation Orchestrator version information.
-It supports
-the following: (Requires an access token before a connection can be made)
+It supports the following: (Requires an access token before a connection can be made)
 
 - Standalone VMware Aria Automation Orchestrator
 - Embedded VMware Aria Automation Orchestrator with VMware Aria Automation
-- Cloud Extensibility Proxy with VMware Aria Automation Orchestrator.
+- Cloud Extensibility Proxy with VMware Aria Automation Orchestrator
 
 ## Examples
 
@@ -42,7 +41,7 @@ the following: (Requires an access token before a connection can be made)
 Get-vROVersion -standalone
 ```
 
-This examples retrieves the version details from a standlaone VMware Aria Automation Orchestrator appliance
+This examples retrieves the version details from a standalone VMware Aria Automation Orchestrator appliance.
 
 ### Example 2
 

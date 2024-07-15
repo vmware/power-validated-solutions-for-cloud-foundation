@@ -12,8 +12,7 @@ Test-vROPsAdapterStatus [-resourceId] <String> [-ProgressAction <ActionPreferenc
 
 ## Description
 
-The `Test-vROPsAdapterStatus` cmdlet validates the integration status between VMware Aria Operations and
-configured adapter.
+The `Test-vROPsAdapterStatus` cmdlet validates the integration status between VMware Aria Operations and configured adapter.
 
 ## Examples
 

@@ -7,8 +7,7 @@ Check authentication to a Site Recovery Manager instance.
 ## Syntax
 
 ```powershell
-Test-SrmAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
- [[-remotePass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-SrmAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>] [[-remotePass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

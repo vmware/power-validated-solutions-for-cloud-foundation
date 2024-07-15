@@ -12,8 +12,7 @@ Add-SrmProtectionGroup [-pgName] <String> [-vmName] <Array> [-ProgressAction <Ac
 
 ## Description
 
-The `Add-SrmProtectionGroup` cmdlet Retrieves either a named protection group or all protection groups from a
-Site Recovery Manager instance.
+The `Add-SrmProtectionGroup` cmdlet Retrieves either a named protection group or all protection groups from a Site Recovery Manager instance.
 
 ## Examples
 
@@ -23,7 +22,7 @@ Site Recovery Manager instance.
 Add-SrmProtectionGroup
 ```
 
-This example adds a ProtectionGroup to the Site Recovery Manager instance.
+This example adds a Protection Group to the Site Recovery Manager instance.
 
 ## Parameters
 

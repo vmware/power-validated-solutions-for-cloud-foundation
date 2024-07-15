@@ -7,15 +7,13 @@ Remove permissions from a Namespace
 ## Syntax
 
 ```powershell
-Undo-NamespacePermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-namespace] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NamespacePermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-namespace] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-NamespacePermission` cmdlet removes a permissions from a Namespace.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

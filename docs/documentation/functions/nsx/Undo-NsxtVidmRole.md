@@ -12,20 +12,18 @@ Undo-NsxtVidmRole [-server] <String> [-user] <String> [-pass] <String> [-domain]
 
 ## Description
 
-The `Undo-NsxtVidmRole` cmdlet removes role assignments in NSX Manager.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The `Undo-NsxtVidmRole` cmdlet removes role assignments in NSX Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager cluster
-- Removes user or group's from NSX Manager roles based on the -principal.
+- Removes user or group's from NSX Manager roles based on the -principal
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
+Undo-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
 ```
 
 This example removes the group <gg-nsx-enterprise-admins@sfo.rainpole.io> from NSX Manager.

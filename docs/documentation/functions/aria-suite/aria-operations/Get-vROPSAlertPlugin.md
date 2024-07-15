@@ -22,4 +22,4 @@ The `Get-vROPSAlertPlugin` cmdlet gets the configured alert plugins in VMware Ar
 Get-vROPSAlertPlugin
 ```
 
-This example gets a list of the alert plugins configure in VMware Aria Operations
+This example gets a list of the alert plugins configure in VMware Aria Operations.

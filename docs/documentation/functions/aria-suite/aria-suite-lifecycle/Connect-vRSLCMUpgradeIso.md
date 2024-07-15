@@ -13,7 +13,6 @@ Connect-vRSLCMUpgradeIso [-server] <String> [-user] <String> [-pass] <String> [-
 ## Description
 
 The `Connect-vRSLCMUpgradeIso` cmdlet connects the upgrade ISO to VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

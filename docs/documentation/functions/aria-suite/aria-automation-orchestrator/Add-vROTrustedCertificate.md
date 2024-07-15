@@ -7,14 +7,12 @@ Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator
 ## Syntax
 
 ```powershell
-Add-vROTrustedCertificate [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String>
- [-vraPass] <String> [[-certFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROTrustedCertificate [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String> [[-certFile] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROTrustedCertificate` cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted
-certificate.
+The `Add-vROTrustedCertificate` cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted certificate.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
 
 - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values

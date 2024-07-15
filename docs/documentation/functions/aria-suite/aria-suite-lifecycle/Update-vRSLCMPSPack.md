@@ -12,14 +12,12 @@ Update-vRSLCMPSPack [-server] <String> [-user] <String> [-pass] <String> [[-psPa
 
 ## Description
 
-The `Update-vRSLCMPSPack` cmdlet refreshes the available Product Support Packs and installs the required version
-to VMware Aria Suite Lifecycle.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password
-values.
+The `Update-vRSLCMPSPack` cmdlet refreshes the available Product Support Packs and installs the required version to VMware Aria Suite Lifecycle.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-- Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle.
+- Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 
 ## Examples
 

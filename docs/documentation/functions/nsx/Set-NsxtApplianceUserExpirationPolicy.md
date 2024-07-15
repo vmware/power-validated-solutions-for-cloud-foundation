@@ -7,8 +7,7 @@ Updates the password expiration policy for NSX appliance user.
 ## Syntax
 
 ```powershell
-Set-NsxtApplianceUserExpirationPolicy [-userId] <String> [-maxDays] <Int32> [[-transportNodeId] <String>]
- [[-clusterNodeId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtApplianceUserExpirationPolicy [-userId] <String> [-maxDays] <Int32> [[-transportNodeId] <String>] [[-clusterNodeId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

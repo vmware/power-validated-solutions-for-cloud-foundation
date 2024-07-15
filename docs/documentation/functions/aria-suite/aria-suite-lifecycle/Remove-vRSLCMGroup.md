@@ -28,7 +28,7 @@ This example removes a group and its role assignments from VMware Aria Suite Lif
 
 ### -vmid
 
-The unique identifier of the group in VMware Aria Sute Lifecycle.
+The unique identifier of the group in VMware Aria Suite Lifecycle.
 
 ```yaml
 Type: String

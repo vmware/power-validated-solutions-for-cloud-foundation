@@ -22,4 +22,4 @@ The `Get-WSASmtpConfiguration` cmdlets retrieves the SMTP configurtion of Worksp
 Get-WSASmtpConfiguration
 ```
 
-This example gets the current SMTP configuration of Workspace ONE Access
+This example gets the current SMTP configuration of Workspace ONE Access.

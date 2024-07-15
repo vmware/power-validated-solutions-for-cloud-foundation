@@ -7,8 +7,7 @@ Integrate NSX Manager with Workspace ONE Access
 ## Syntax
 
 ```powershell
-Set-WorkspaceOneNsxtIntegration [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-wsaFqdn] <String> [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WorkspaceOneNsxtIntegration [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-wsaFqdn] <String> [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

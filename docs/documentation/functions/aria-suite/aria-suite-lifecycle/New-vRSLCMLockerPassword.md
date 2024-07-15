@@ -7,8 +7,7 @@ Add a password to the VMware Aria Suite Lifecycle locker Locker
 ## Syntax
 
 ```powershell
-New-vRSLCMLockerPassword [-server] <String> [-user] <String> [-pass] <String> [-alias] <String>
- [-password] <String> [[-description] <String>] [-userName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRSLCMLockerPassword [-server] <String> [-user] <String> [-pass] <String> [-alias] <String> [-password] <String> [[-description] <String>] [-userName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Verifies that the password is not present in the VMware Aria Suite Lifecycle locker
-- Adds the password to the VMware Aria Suite Lifecycle locker.
+- Adds the password to the VMware Aria Suite Lifecycle locker
 
 ## Examples
 

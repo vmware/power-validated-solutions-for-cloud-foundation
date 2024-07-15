@@ -22,7 +22,7 @@ The `Get-NsxtRouteMap` cmdlet retrieves the Route Maps assigned to a specified T
 Get-NsxtRouteMap -tier0Gateway sfo-w01-ec01-t0-gw01
 ```
 
-This example gets all Route Maps on the Tier-0 Gateway
+This example gets all Route Maps on the Tier-0 Gateway.
 
 ### Example 2
 

@@ -12,9 +12,7 @@ Add-VMFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <Str
 
 ## Description
 
-The `Add-VMFolder` cmdlet creates a VM and Template folder.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Add-VMFolder` cmdlet creates a VM and Template folder. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that the Workload Domain exists in the SDDC Manager inventory

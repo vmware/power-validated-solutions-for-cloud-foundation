@@ -7,8 +7,7 @@ Add a license to the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-New-vRSLCMLockerLicense [-server] <String> [-user] <String> [-pass] <String> [-alias] <String>
- [-license] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRSLCMLockerLicense [-server] <String> [-user] <String> [-pass] <String> [-alias] <String> [-license] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

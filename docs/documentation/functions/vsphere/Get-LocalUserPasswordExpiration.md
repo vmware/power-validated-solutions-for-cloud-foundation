@@ -7,8 +7,7 @@ Retrieve the password expiration policy for a local user.
 ## Syntax
 
 ```powershell
-Get-LocalUserPasswordExpiration [-vmName] <String> [-guestUser] <String> [-guestPassword] <String>
- [-localUser] <String> [-sudo] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-LocalUserPasswordExpiration [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-localUser] <String> [-sudo] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

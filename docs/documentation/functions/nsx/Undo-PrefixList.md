@@ -2,24 +2,21 @@
 
 ## Synopsis
 
-The Undo-PrefixList cmdlet removes the NSX Prefix List from NSX Manager.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Removes an NSX Prefix List if not already removed from NSX Manager
+Removes an NSX Prefix list from NSX Manager
 
 ## Syntax
 
 ```powershell
-Undo-PrefixList [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-tier0Gateway] <String> [-prefixListName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-PrefixList [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String> [-prefixListName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-PrefixList` cmdlet removes an NSX Prefix List.
+The `Undo-PrefixList` cmdlet removes the NSX Prefix List from NSX Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Removes an NSX Prefix List if not already removed from NSX Manager
 
 ## Examples
 

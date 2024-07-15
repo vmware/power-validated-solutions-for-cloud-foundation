@@ -30,7 +30,7 @@ This example restarts the Site Recovery Manager appliance.
 Set-SrmApplianceState -action stop
 ```
 
-This example shutsdown the Site Recovery Manager appliance.
+This example shuts down the Site Recovery Manager appliance.
 
 ## Parameters
 

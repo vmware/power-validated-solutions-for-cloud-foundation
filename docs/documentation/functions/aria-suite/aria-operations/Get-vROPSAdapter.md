@@ -22,7 +22,7 @@ The `Get-vROPSAdapter` cmdlet gets a list of adapters in VMware Aria Operations.
 Get-vROPSAdapter
 ```
 
-This example gets a list of all adapters
+This example gets a list of all adapters.
 
 ### Example 2
 

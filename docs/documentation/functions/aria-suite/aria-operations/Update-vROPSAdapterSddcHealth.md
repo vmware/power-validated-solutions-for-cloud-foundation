@@ -12,8 +12,7 @@ Update-vROPSAdapterSddcHealth [-server] <String> [-user] <String> [-pass] <Strin
 
 ## Description
 
-The `Update-vROPSAdapterSddcHealth` cmdlet updates the names of the SDDC Health Adapters in VMware Aria
-Operations.
+The `Update-vROPSAdapterSddcHealth` cmdlet updates the names of the SDDC Health Adapters in VMware Aria Operations.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

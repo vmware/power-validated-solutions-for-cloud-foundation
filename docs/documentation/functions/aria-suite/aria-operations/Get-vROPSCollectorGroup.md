@@ -22,7 +22,7 @@ The `Get-vROPSCollectorGroup` cmdlet gets a list of collector groups in VMware A
 Get-vROPSCollectorGroup
 ```
 
-This example gets a list of collector groups
+This example gets a list of collector groups.
 
 ### Example 2
 

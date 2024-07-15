@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Returns the vSAN healthcheck tests from a vSAN cluster in vCenter Server.
+Returns the vSAN health check tests from a vSAN cluster in vCenter Server.
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Get-VsanHealthTest [-cluster] <String> [-ProgressAction <ActionPreference>] [<Co
 
 ## Description
 
-The `Get-VsanHealthTest` cmdlet returns all vSAN healthcheck tests from a VSAN cluster in vCenter Server.
+The `Get-VsanHealthTest` cmdlet returns all vSAN health check tests from a VSAN cluster in vCenter Server.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The `Get-VsanHealthTest` cmdlet returns all vSAN healthcheck tests from a VSAN c
 Get-VsanHealthTest -cluster sfo-m01-c01
 ```
 
-This example returns all vSAN healthcheck tests from vSAN cluster sfo-m01-c01 in connected vCenter Server.
+This example returns all vSAN health check tests from vSAN cluster sfo-m01-c01 in connected vCenter Server.
 
 ## Parameters
 

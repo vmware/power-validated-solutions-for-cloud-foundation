@@ -7,20 +7,18 @@ Add a certificate to the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-Import-vRSLCMLockerCertificate [-server] <String> [-user] <String> [-pass] <String>
- [-certificateAlias] <String> [[-certificatePassphrase] <String>] [[-certChainPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vRSLCMLockerCertificate [-server] <String> [-user] <String> [-pass] <String> [-certificateAlias] <String> [[-certificatePassphrase] <String>] [[-certChainPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Import-vRSLCMLockerCertificate` cmdlet imports a PEM encoded chain file to the VMware Aria Suite Lifecycle
-Manager Locker.
+The `Import-vRSLCMLockerCertificate` cmdlet imports a PEM encoded chain file to the VMware Aria Suite Lifecycle Manager Locker.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Verifies that the certificate is not present in the VMware Aria Suite Lifecycle locker
-- Imports the certificate chain to the VMware Aria Suite Lifecycle locker.
+- Imports the certificate chain to the VMware Aria Suite Lifecycle locker
 
 ## Examples
 

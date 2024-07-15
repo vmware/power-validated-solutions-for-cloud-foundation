@@ -20,10 +20,9 @@ The `Add-vROPSAdapter` cmdlet adds an adapter to VMware Aria Operations.
 
 ```powershell
 Add-vROPSAdapter -json .\addAdapter.json
-This example adds an adapter useing the json specification file
 ```
 
-This example adds an adapter useing the json specification file.
+This example adds an adapter using the json specification file.
 
 ## Parameters
 

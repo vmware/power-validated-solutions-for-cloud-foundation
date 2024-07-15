@@ -21,12 +21,15 @@ The `Get-vRSLCMProductDetails` cmdlet gets the product details for a specified p
 ```powershell
 Get-vRSLCMProductDetails -productid vrli
 ```
+
 This example gets all environments in VMware Aria Suite Lifecycle.
 
 ### Example 2
+
 ```powershell
 Get-vRSLCMProductDetails -vmid 12345678-1234-1234-1234-123456789012 -productid vrli
 ```
+
 This example gets the details for a specific product in VMware Aria Suite Lifecycle.
 
 ## Parameters

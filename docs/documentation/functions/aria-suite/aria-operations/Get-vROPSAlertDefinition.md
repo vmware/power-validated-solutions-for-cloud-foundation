@@ -43,7 +43,7 @@ in VMare Aria Operations.
 Get-vROPSAlertDefinition
 ```
 
-This example gets all alert definitions
+This example gets all alert definitions.
 
 ### Example 2
 
@@ -51,7 +51,7 @@ This example gets all alert definitions
 Get-vROPSAlertDefinition -id SrmAdapter
 ```
 
-This example gets an alert definition by its id
+This example gets an alert definition by its id.
 
 ### Example 3
 
@@ -59,7 +59,7 @@ This example gets an alert definition by its id
 Get-vROPSAlertDefinition -adapterKind SrmAdapter
 ```
 
-This example gets all alert definitions for the adapter type SrmAdapter
+This example gets all alert definitions for the adapter type SrmAdapter.
 
 ### Example 4
 

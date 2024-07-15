@@ -12,12 +12,11 @@ Add-AriaNetworksLdapConfiguration [-jsonFile] <String> [<CommonParameters>]
 
 ## Description
 
-The `Add-AriaNetworksLdapConfiguration` cmdlet adds a new LDAP configuration to VMware Aria Operations
-for Networks.
+The `Add-AriaNetworksLdapConfiguration` cmdlet adds a new LDAP configuration to VMware Aria Operations for Networks.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-- Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecyle instance
+- Validates that network connectivity and authentication is possible to the VMware Aria Suite Lifecycle instance
 - Validates that network connectivity and authentication is possible to the VMware Aria Operations for Networks instance
 - Adds a new LDAP configuration to VMware Aria Operations for Networks.
 

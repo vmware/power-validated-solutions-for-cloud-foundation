@@ -13,8 +13,7 @@ Test-EsxiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Actio
 ## Description
 
 The `Test-EsxiConnection` cmdlet checks the network connectivity to an ESXi host.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 

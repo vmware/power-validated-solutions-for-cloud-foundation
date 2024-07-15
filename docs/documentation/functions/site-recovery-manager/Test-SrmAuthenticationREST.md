@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-{{ Fill in the Synopsis }}
+Check authentication to a Site Recovery Manager REST API.
 
 ## Syntax
 
@@ -12,23 +12,31 @@ Test-SrmAuthenticationREST [-server] <String> [-user] <String> [-pass] <String> 
 
 ## Description
 
-{{ Fill in the Description }}
+The `Test-SrmAuthenticationREST` cmdlet checks the authentication to a Site Recovery Manager instance REST API.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-PS C:\> {{ Add example code here }}
+Test-SrmAuthenticationREST -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
 ```
 
-{{ Add example description here }}
+This example checks authentication with a Site Recovery Manager instance REST API.
+
+### Example 2
+
+```powershell
+Test-SrmAuthenticationREST -server sfo-m01-srm01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -remoteUser administrator@vsphere.local -remotePass VMw@re1!
+```
+
+This example checks authentication with a Site Recovery Manager instance and a remote Site Recovery Manager instance REST API.
 
 ## Parameters
 
 ### -pass
 
-{{ Fill pass Description }}
+The password to authenticate to the Site Recovery Manager instance.
 
 ```yaml
 Type: String
@@ -44,7 +52,7 @@ Accept wildcard characters: False
 
 ### -remotePass
 
-{{ Fill remotePass Description }}
+The password to authenticate to the remote Site Recovery Manager instance.
 
 ```yaml
 Type: String
@@ -60,7 +68,7 @@ Accept wildcard characters: False
 
 ### -remoteUser
 
-{{ Fill remoteUser Description }}
+The username to authenticate to the remote Site Recovery Manager instance.
 
 ```yaml
 Type: String
@@ -76,7 +84,7 @@ Accept wildcard characters: False
 
 ### -server
 
-{{ Fill server Description }}
+The fully qualified domain name of the Site Recovery Manager instance.
 
 ```yaml
 Type: String
@@ -92,7 +100,7 @@ Accept wildcard characters: False
 
 ### -user
 
-{{ Fill user Description }}
+The username to authenticate to the Site Recovery Manager instance.
 
 ```yaml
 Type: String

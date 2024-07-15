@@ -9,23 +9,19 @@ Adds an NSX Credential
 ### credential (Default)
 
 ```powershell
-Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <String> [-serviceUser <String>]
- [-servicePassword <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <String> [-serviceUser <String>] [-servicePassword <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### certificate
 
 ```powershell
-Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <String> [-certificate]
- [-certificateData <String>] [-certificateKey <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <String> [-certificate] [-certificateData <String>] [-certificateKey <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROPSNsxCredential` cmdlet adds an NSX credential to VMware Aria Operations, this can be either a
-regular user or a Principal Identity (certificate based).
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Add-vROPSNsxCredential` cmdlet adds an NSX credential to VMware Aria Operations, this can be either a regular user or a Principal Identity (certificate based).
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
@@ -41,7 +37,7 @@ The cmdlet connects to SDDC Manager using the
 Add-vROPSNsxCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -serviceUser svc-iom-nsx@sfo.rainpole.io -servicePassword VMw@re1!
 ```
 
-This example adds an NSX credential to VMware Aria Operations
+This example adds an NSX credential to VMware Aria Operations.
 
 ### Example 2
 

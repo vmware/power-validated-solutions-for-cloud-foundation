@@ -7,22 +7,19 @@ Configure Active Directory as an authentication source for VMware Aria Operation
 ## Syntax
 
 ```powershell
-Add-vRLIAuthenticationAD [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-domainBindUser] <String> [-domainBindPass] <String> [-domainServers] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIAuthenticationAD [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-domainServers] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vRLIAuthenticationAD` cmdlet configures Active Diretory as an authentication source in VMware Aria
-Operations for Logs with an SSL connection.
-The cmdlet connects to SDDC Manager using the -server, -user,and
--password values.
+The `Add-vRLIAuthenticationAD` cmdlet configures Active Diretory as an authentication source in VMware Aria Operations for Logs with an SSL connection.
+The cmdlet connects to SDDC Manager using the -server, -user,and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
 - Validates that network connectivity is possible to Active Directory
-- Configures Active Diretory as an authentication source in VMware Aria Operations for Logs
+- Configures Active Directory as an authentication source in VMware Aria Operations for Logs
 
 ## Examples
 
@@ -30,8 +27,9 @@ The cmdlet connects to SDDC Manager using the -server, -user,and
 
 ```powershell
 Add-vRLIAuthenticationAD -server sfo-vrl01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -domainServers sfo-ad01.sfo.rainpole.io
-This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
 ```
+
+This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
 
 ## Parameters
 

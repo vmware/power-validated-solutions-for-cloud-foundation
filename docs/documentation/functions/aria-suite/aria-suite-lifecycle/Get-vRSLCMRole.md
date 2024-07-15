@@ -12,7 +12,7 @@ Get-vRSLCMRole
 
 ## Description
 
-The Get-vRSLCMRole cmdlet retrieves a list of VMware Aria Suite Lifecycle roles.
+The `Get-vRSLCMRole` cmdlet retrieves a list of VMware Aria Suite Lifecycle roles.
 
 ## Examples
 

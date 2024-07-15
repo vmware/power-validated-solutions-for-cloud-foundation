@@ -12,8 +12,7 @@ Invoke-IamDeployment [-jsonFile] <String> [-certificates] <String> [-ProgressAct
 
 ## Description
 
-The `Invoke-IamDeployment` cmdlet is a single function to implement the configuration of the Identity and Access
-Management for VMware Cloud Foundation validated solution.
+The `Invoke-IamDeployment` cmdlet is a single function to implement the configuration of the Identity and Access Management for VMware Cloud Foundation validated solution.
 
 ## Examples
 

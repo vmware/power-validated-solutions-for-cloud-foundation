@@ -22,4 +22,4 @@ The `Get-vRSLCMApplianceNtpConfig` cmdlet gets appliance NTP configuration in VM
 Get-vRSLCMApplianceNtpConfig
 ```
 
-This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle
+This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle.

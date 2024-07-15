@@ -7,8 +7,7 @@ Add an LDAP identity source
 ## Syntax
 
 ```powershell
-New-NsxtLdap [-dcMachineName] <String> [-protocol] <String> [-startTtls] <String> [-domain] <String>
- [-baseDn] <String> [-bindUser] <String> [-bindPassword] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtLdap [-dcMachineName] <String> [-protocol] <String> [-startTtls] <String> [-domain] <String> [-baseDn] <String> [-bindUser] <String> [-bindPassword] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `New-NsxtLdap` cmdlet adds an LDAP identity source.
 New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAPS -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-nsx-ad@sfo.rainpole.io -bindPassword VMw@re1! -certificate Root64.cer
 ```
 
-This example create an Active Directory Identity Source over LDAPS
+This example create an Active Directory Identity Source over LDAPS.
 
 ### Example 2
 

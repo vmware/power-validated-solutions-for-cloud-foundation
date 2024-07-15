@@ -7,8 +7,7 @@ Connect a Workload Domain to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Register-vROPSWorkloadDomain [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Register-vROPSWorkloadDomain [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -20,7 +19,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates if the Workload Domain is already connected to VMware Aria Operations
-- Enables/Disables connecting the Workload Domain to VMware Aria Operations.
+- Enables/Disables connecting the Workload Domain to VMware Aria Operations
 
 ## Examples
 
@@ -30,7 +29,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
 ```
 
-This example ENABLES the Workload Domain in VMware Aria Operations
+This example enables the Workload Domain in VMware Aria Operations.
 
 ### Example 2
 
@@ -38,7 +37,7 @@ This example ENABLES the Workload Domain in VMware Aria Operations
 Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
 ```
 
-This example DISABLES the Workload Domain in VMware Aria Operations.
+This example disables the Workload Domain in VMware Aria Operations.
 
 ## Parameters
 

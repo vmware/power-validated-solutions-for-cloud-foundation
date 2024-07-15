@@ -22,7 +22,7 @@ The `New-NsxtLBServiceMonitor` cmdlet creates a Load Balancer Service Monitor.
 New-NsxtLBServiceMonitor -monitorName -json
 ```
 
-This example creates a Load Balancer Serviec Monitor.
+This example creates a Load Balancer Service Monitor.
 
 ## Parameters
 

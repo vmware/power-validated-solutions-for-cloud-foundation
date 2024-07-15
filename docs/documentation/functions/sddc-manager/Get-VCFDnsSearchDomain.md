@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get the search domains configured in an SDDC Manager appliance.
+Get the search domains configured in an SDDC Manager appliance
 
 ## Syntax
 

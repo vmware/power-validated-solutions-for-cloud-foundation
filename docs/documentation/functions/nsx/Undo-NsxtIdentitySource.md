@@ -7,14 +7,12 @@ Remove Active Directory over LDAP/LDAPS as an Identity Provider from NSX Manager
 ## Syntax
 
 ```powershell
-Undo-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String> [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-NsxtIdentitySource` cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from NSX
-Managr.
+The `Undo-NsxtIdentitySource` cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from NSX Manager.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

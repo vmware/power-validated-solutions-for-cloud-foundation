@@ -7,8 +7,7 @@ Updates the password for NSX appliance user.
 ## Syntax
 
 ```powershell
-Set-NsxtApplianceUserPassword [-userId] <String> [-password] <String> [[-transportNodeId] <String>]
- [[-clusterNodeId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtApplianceUserPassword [-userId] <String> [-password] <String> [[-transportNodeId] <String>] [[-clusterNodeId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

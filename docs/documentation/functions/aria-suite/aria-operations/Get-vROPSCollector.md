@@ -22,7 +22,7 @@ The `Get-vROPSCollector` cmdlet gets a list of collectors in VMware Aria Operati
 Get-vROPSCollector
 ```
 
-This example gets a list of collectors
+This example gets a list of collectors.
 
 ### Example 2
 

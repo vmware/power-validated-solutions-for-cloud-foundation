@@ -30,7 +30,7 @@ The `Get-NsxtSyslogExporter` cmdlet gets the Syslog exporters configures for NSX
 Get-NsxtSyslogExporter -node
 ```
 
-This example gets the configuration of the syslog exporters for NSX Manager node
+This example gets the configuration of the syslog exporters for NSX Manager node.
 
 ### Example 2
 

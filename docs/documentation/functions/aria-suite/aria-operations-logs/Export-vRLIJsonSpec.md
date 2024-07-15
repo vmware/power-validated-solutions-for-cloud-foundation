@@ -7,16 +7,12 @@ Create VMware Aria Operations for Logs Deployment JSON specification using the P
 ## Syntax
 
 ```powershell
-Export-vRLIJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Export-vRLIJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Export-vRLIJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy VMware Aria Operations for Logs using VMware Aria Suite Lifecycle.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values.
+The `Export-vRLIJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook to deploy VMware Aria Operations for Logs using VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that the Planning and Preparation provided is available
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -25,7 +21,7 @@ using the -server, -user, and -password values.
 - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
 created in VMware Aria Suite Lifecycle locker
 - Generates the deployment JSON specification file using the Planning and Preparation Workbook and details
-from VMware Aria Suite Lifecycle named '\<management_domain_name\>-vrliDeploymentSpec.json'.
+from VMware Aria Suite Lifecycle named '\<management_domain_name\>-vrliDeploymentSpec.json'
 
 ## Examples
 
@@ -35,7 +31,7 @@ from VMware Aria Suite Lifecycle named '\<management_domain_name\>-vrliDeploymen
 Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
 ```
 
-This example creates a JSON specification file for deploying VMware Aria Operations for Logs using the Planning and Preparation Workbook data
+This example creates a JSON specification file for deploying VMware Aria Operations for Logs using the Planning and Preparation Workbook data.
 
 ### Example 2
 
@@ -43,7 +39,7 @@ This example creates a JSON specification file for deploying VMware Aria Operati
 Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.4
 ```
 
-This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and the Planning and Preparation Workbook data
+This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and the Planning and Preparation Workbook data.
 
 ### Example 3
 

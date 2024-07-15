@@ -7,8 +7,7 @@ Creates a Route Map on a specified Tier-0 Gateway
 ## Syntax
 
 ```powershell
-New-NsxtRouteMap [[-Name] <String>] [[-Tier0Gateway] <String>] [[-PrefixList] <String>] [[-Action] <String>]
- [[-Json] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtRouteMap [[-Name] <String>] [[-Tier0Gateway] <String>] [[-PrefixList] <String>] [[-Action] <String>] [[-Json] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `New-NsxtRouteMap` cmdlet creates a Route Map on a specified Tier-0 Gateway.
 New-NsxtRouteMap -Name sfo-w01-cl01-route-map -Tier0Gateway sfo-w01-ec01-t0-gw01 -PrefixList sfo-w01-ec01-prefix-list
 ```
 
-This example creates a new Route Map on a Tier-0 Gateway
+This example creates a new Route Map on a Tier-0 Gateway.
 
 ### Example 2
 

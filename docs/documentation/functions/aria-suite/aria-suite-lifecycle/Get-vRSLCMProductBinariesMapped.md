@@ -22,4 +22,4 @@ The `Get-vRSLCMProductBinariesMapped` cmdlet retrieves a list of mapped product 
 Get-vRSLCMProductBinariesMapped
 ```
 
-This example retrieves a list of mapped Product Binaries in VMware Aria Suite Lifecycle
+This example retrieves a list of mapped Product Binaries in VMware Aria Suite Lifecycle.

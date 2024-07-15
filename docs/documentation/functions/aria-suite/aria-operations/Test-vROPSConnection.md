@@ -13,8 +13,7 @@ Test-vROPSConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <Acti
 ## Description
 
 The `Test-vROPSConnection` cmdlet checks the network connectivity to a VMware Aria Operations cluster or analytics node.
-Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
-Default: 443 (HTTPS).
+Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
 

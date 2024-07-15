@@ -1,4 +1,4 @@
-# Install-vSphereReplicationManager
+ # Install-vSphereReplicationManager
 
 ## Synopsis
 
@@ -7,17 +7,13 @@ Deploy vSphere Replication Manager Virtual Appliance
 ## Syntax
 
 ```powershell
-Install-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vrmsFqdn] <String> [-vrmsIpAddress] <String> [-vrmsGateway] <String> [-vrmsNetPrefix] <String>
- [-vrmsNetworkSearchPath] <String> [-vrmsFolder] <String> [-vrmsVaRootPassword] <String>
- [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vrmsFqdn] <String> [-vrmsIpAddress] <String> [-vrmsGateway] <String> [-vrmsNetPrefix] <String> [-vrmsNetworkSearchPath] <String> [-vrmsFolder] <String> [-vrmsVaRootPassword] <String> [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Install-vSphereReplicationManager` cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
-vCenter Server details from its inventory and then:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the management domain vCenter Server details from its inventory and then:
 
 - Gathers vSphere configuration from vCenter Server
 - Gathers DNS and NTP configuration from SDDC Manager

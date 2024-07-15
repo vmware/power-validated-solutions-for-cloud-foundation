@@ -12,8 +12,7 @@ Set-NsxtRoutingConfigRedistributionRule [-logicalRouterId] <String> [-json] <Str
 
 ## Description
 
-The `Set-NsxtRoutingConfigRedistributionRule` cmdlet configures the route redistribution rules for the specified
-logical router.
+The `Set-NsxtRoutingConfigRedistributionRule` cmdlet configures the route redistribution rules for the specified logical router.
 
 ## Examples
 

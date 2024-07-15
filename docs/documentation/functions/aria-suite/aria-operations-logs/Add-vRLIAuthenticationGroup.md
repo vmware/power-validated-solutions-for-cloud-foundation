@@ -7,13 +7,12 @@ Adds a group from the authentication provider in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Add-vRLIAuthenticationGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-group] <String> [[-role] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIAuthenticationGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-group] <String> [[-role] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vRLIAuthenticationGroup` cmdlet assigns access to a group based on the authentication providor.
+The `Add-vRLIAuthenticationGroup` cmdlet assigns access to a group based on the authentication provider.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -21,7 +20,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
 - Validates that integration with Workspace ONE Access has been enabled
 - Validates that the group has not already been assigned access to VMware Aria Operations for Logs
-- Adds the group to the access control assigning the role provided in VMware Aria Operations for Logs.
+- Adds the group to the access control assigning the role provided in VMware Aria Operations for Logs
 
 ## Examples
 

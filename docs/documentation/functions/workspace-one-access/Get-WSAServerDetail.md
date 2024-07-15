@@ -12,8 +12,7 @@ Get-WSAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <Stri
 
 ## Description
 
-The `Get-WSAServerDetail` cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of Workspace ONE Access
-from SDDC Manager.
+The `Get-WSAServerDetail` cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of Workspace ONE Access from SDDC Manager.
 
 ## Examples
 

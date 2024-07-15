@@ -13,8 +13,7 @@ Undo-vRSLCMDatacenter [-server] <String> [-user] <String> [-pass] <String> [-dat
 ## Description
 
 The `Undo-vRSLCMDatacenter` cmdlet deletes a datacenter from the VMware Aria Suite Lifecycle inventory.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle

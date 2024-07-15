@@ -12,8 +12,7 @@ Add-SupervisorService [-server] <String> [-user] <String> [-pass] <String> [-sdd
 
 ## Description
 
-The `Add-SupervisorService` cmdlets adds Supervisor Service to a Kubernetes Cluster.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The `Add-SupervisorService` cmdlets adds Supervisor Service to a Kubernetes Cluster. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the vCenter Server instance

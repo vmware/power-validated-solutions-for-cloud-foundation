@@ -7,8 +7,7 @@ Configure account lockoput for local users
 ## Syntax
 
 ```powershell
-Set-LocalAccountLockout [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-failures] <Int32>
- [[-unlockInterval] <Int32>] [[-rootUnlockInterval] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-LocalAccountLockout [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-failures] <Int32> [[-unlockInterval] <Int32>] [[-rootUnlockInterval] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +22,7 @@ The `Set-LocalAccountLockout` cmdlets configures the account lockout policy loca
 Set-LocalAccountLockout -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 300
 ```
 
-This example updates the account lockout policy for vCenter Server
+This example updates the account lockout policy for vCenter Server.
 
 ### Example 2
 
@@ -31,7 +30,7 @@ This example updates the account lockout policy for vCenter Server
 Set-LocalAccountLockout -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 86400 -rootUnlockInterval 300
 ```
 
-This example updates the account lockout policy for SDDC Manager
+This example updates the account lockout policy for SDDC Manager.
 
 ### Example 3
 

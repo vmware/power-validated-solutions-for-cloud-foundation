@@ -7,8 +7,7 @@ Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-New-vRLIDeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRLIDeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -31,7 +30,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
 ```
 
-This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
+This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data.
 
 ### Example 2
 
@@ -39,7 +38,7 @@ This example starts a deployment of VMware Aria Operations for Logs via VMware A
 New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customversion x.y.z
 ```
 
-This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
+This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data.
 
 ### Example 3
 

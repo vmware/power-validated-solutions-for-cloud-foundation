@@ -22,4 +22,4 @@ The `Get-NsxtRole` cmdlet gets the roles in NSX Manager.
 Get-NsxtRole
 ```
 
-This example gets all roles in NSX Manager
+This example gets all roles in NSX Manager.

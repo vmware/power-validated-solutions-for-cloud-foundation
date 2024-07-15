@@ -3,23 +3,22 @@
 ## Synopsis
 
 The `Add-PrefixList` cmdlet creates NSX Prefix List in the NSX Manager cluster.
+
+## Syntax
+
+```powershell
+Add-PrefixList [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String> [-prefixListName] <String> [-subnetCidr] <String> [-ingressSubnetCidr] <String> [-egressSubnetCidr] <String> [[-GE] <String>] [[-LE] <String>] [-action] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+```
+
+## Description
+
+The `Add-PrefixList` cmdlet creates an NSX Prefix List.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to NSX Manager
 - Create an NSX Prefix List if not already created in NSX Manager
 
-## Syntax
-
-```powershell
-Add-PrefixList [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String>
- [-prefixListName] <String> [-subnetCidr] <String> [-ingressSubnetCidr] <String> [-egressSubnetCidr] <String>
- [[-GE] <String>] [[-LE] <String>] [-action] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
-```
-
-## Description
-
-The `Add-PrefixList` cmdlet creates an NSX Prefix List.
 
 ## Examples
 

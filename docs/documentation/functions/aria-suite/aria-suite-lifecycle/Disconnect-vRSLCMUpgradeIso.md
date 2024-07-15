@@ -13,7 +13,6 @@ Disconnect-vRSLCMUpgradeIso [-server] <String> [-user] <String> [-pass] <String>
 ## Description
 
 The `Disconnect-vRSLCMUpgradeIso` cmdlet disconnects the upgrade ISO from VMware Aria Suite Lifecycle.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

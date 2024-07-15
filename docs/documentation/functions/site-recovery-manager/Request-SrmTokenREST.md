@@ -14,7 +14,6 @@ Request-SrmTokenREST [-fqdn] <String> [[-username] <String>] [[-password] <Strin
 ## Description
 
 The `Request-SrmToken` cmdlet connects to the specified Site Recovery Manager and obtains an authorization token.
-
 It is required once per session before running all other cmdlets.
 
 This authorization is separate from the VAMI token acquired using `Request-SrmToken`.

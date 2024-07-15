@@ -7,9 +7,7 @@ Create vRealize Load Balancer Spec
 ## Syntax
 
 ```powershell
-New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array>
- [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>]
- [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array> [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>] [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -21,9 +19,7 @@ The `New-vRealizeLoadBalancerSpec` cmdlet will build the vRealize Load Balancer 
 ### Example 1
 
 ```powershell
-New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array>
- [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>]
- [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array> [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>] [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Parameters

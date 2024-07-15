@@ -7,8 +7,7 @@ Adds a Site Recovery Manager Adapter to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Add-vROPSAdapterSrm [-server] <String> [-user] <String> [-pass] <String> [-srmFqdn] <String>
- [-srmUser] <String> [-srmPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAdapterSrm [-server] <String> [-user] <String> [-pass] <String> [-srmFqdn] <String> [-srmUser] <String> [-srmPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

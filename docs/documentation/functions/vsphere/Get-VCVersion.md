@@ -1,25 +1,25 @@
-# Get-VCVersion
+# Get-VcVersion
 
 ## Synopsis
 
-Get the version
+Get the vCenter Server version
 
 ## Syntax
 
 ```powershell
-Get-VCVersion
+Get-VcVersion
 ```
 
 ## Description
 
-The `Get-VCVersion` cmdlet gets the version of the vCenter Server.
+The `Get-VcVersion` cmdlet gets the version of the vCenter Server.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Get-VCVersion
+Get-VcVersion
 ```
 
 This example gets the version of the vCenter Server

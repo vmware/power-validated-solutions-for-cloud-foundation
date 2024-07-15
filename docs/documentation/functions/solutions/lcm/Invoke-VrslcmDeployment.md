@@ -1,4 +1,4 @@
-# Invoke-vRSLCMDeployment
+# Invoke-VrslcmDeployment
 
 ## Synopsis
 
@@ -7,19 +7,19 @@ End-to-end deployment of VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-Invoke-vRSLCMDeployment [-jsonFile] <String> [-binaries] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-VrslcmDeployment [-jsonFile] <String> [-binaries] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Invoke-vRSLCMDeployment` cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
+The `Invoke-VrslcmDeployment` cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Invoke-vRSLCMDeployment -jsonFile .\vrslcmDeploySpec.json -binaries .\binaries
+Invoke-VrslcmDeployment -jsonFile .\vrslcmDeploySpec.json -binaries .\binaries
 ```
 
 This example deploys and configures VMware Aria Suite Lifecycle.

@@ -12,15 +12,14 @@ Get-SrmRecoveryPlanStep [-rpName] <String> [-ProgressAction <ActionPreference>] 
 
 ## Description
 
-The `Get-SrmRecoveryPlanStep` cmdlet retrieves steps in a named recovery plan from a Site Recovery Manager
-server.
+The `Get-SrmRecoveryPlanStep` cmdlet retrieves steps in a named recovery plan from a Site Recovery Manager server.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Get-SrmRecoveryPlanStep -rpName xint-vrops01-rp.
+Get-SrmRecoveryPlanStep -rpName xint-vrops01-rp
 ```
 
 This example retrieves all recovery plans from a Site Recovery Manager instance.

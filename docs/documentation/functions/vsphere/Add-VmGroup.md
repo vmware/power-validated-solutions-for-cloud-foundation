@@ -7,15 +7,12 @@ Add a VM Group
 ## Syntax
 
 ```powershell
-Add-VmGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-name] <String>
- [-vmList] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-VmGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-name] <String> [-vmList] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-VmGroup` cmdlet adds a Virtual Machine to an existing VM Group.
-The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The `Add-VmGroup` cmdlet adds a Virtual Machine to an existing VM Group. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

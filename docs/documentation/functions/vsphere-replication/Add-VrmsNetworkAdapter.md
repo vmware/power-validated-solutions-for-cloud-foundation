@@ -7,18 +7,13 @@ Adds a second ethernet adapter and configures the required routing for vSphere R
 ## Syntax
 
 ```powershell
-Add-VrmsNetworkAdapter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vrmsFqdn] <String> [-vrmsRootPass] <String> [-vrmsAdminPass] <String> [-vrmsIpAddress] <String>
- [-replicationSubnet] <String> [-replicationIpAddress] <String> [-replicationGateway] <String>
- [-replicationPortgroup] <String> [-replicationRemoteNetwork] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-VrmsNetworkAdapter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vrmsFqdn] <String> [-vrmsRootPass] <String> [-vrmsAdminPass] <String> [-vrmsIpAddress] <String> [-replicationSubnet] <String> [-replicationIpAddress] <String> [-replicationGateway] <String> [-replicationPortgroup] <String> [-replicationRemoteNetwork] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-VrmsNetworkAdapter` cmdlet adds a second ethernet adapter and configures the required routing for the
-vSphere Replication appliance.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password
-values:
+The `Add-VrmsNetworkAdapter` cmdlet adds a second ethernet adapter and configures the required routing for the vSphere Replication appliance.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the vCenter Server instance

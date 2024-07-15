@@ -7,15 +7,12 @@ Remove Content Library
 ## Syntax
 
 ```powershell
-Undo-ContentLibrary [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-contentLibraryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-ContentLibrary [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-contentLibraryName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-ContentLibrary` cmdlet removes a content library.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-ContentLibrary` cmdlet removes a content library. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

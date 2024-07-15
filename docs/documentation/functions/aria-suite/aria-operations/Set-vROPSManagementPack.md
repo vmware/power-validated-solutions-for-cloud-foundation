@@ -7,8 +7,7 @@ Activate / Deactivate a management pack
 ## Syntax
 
 ```powershell
-Set-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pakId] <String>
- [-version] <String> [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pakId] <String> [-version] <String> [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

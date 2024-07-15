@@ -12,10 +12,8 @@ Update-SddcDeployedFlavor [-server] <String> [-user] <String> [-pass] <String> [
 
 ## Description
 
-The `Update-SddcDeployedFlavor` cmdlet adds a Validated Solution tag to the vCenter Server Advanced Setting
-\`config.SDDC.Deployed.Flavor\`.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password
-values:
+The `Update-SddcDeployedFlavor` cmdlet adds a Validated Solution tag to the vCenter Server Advanced Setting \`config.SDDC.Deployed.Flavor\`.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

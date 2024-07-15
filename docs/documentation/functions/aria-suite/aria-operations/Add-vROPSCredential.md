@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Add a credential
+Add a credential to VMware Aria Operations
 
 ## Syntax
 

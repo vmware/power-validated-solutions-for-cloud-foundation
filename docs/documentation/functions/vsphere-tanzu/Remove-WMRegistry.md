@@ -22,7 +22,7 @@ The `Remove-WMRegistry` cmdlet disables the embedded Harbor Registry on a Superv
 Get-WMRegistry -cluster sfo-w01-cl01 | Remove-WMRegistry
 ```
 
-This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster
+This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from `Get-WMCluster`.
 
 ### Example 2
 

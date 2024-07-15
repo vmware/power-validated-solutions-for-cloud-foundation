@@ -7,8 +7,7 @@ Set Identity Manager configuration
 ## Syntax
 
 ```powershell
-Set-NsxtVidm [-wsaHostname] <String> [-thumbprint] <String> [-clientId] <String> [-sharedSecret] <String>
- [-nsxHostname] <String> [-disable] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtVidm [-wsaHostname] <String> [-thumbprint] <String> [-clientId] <String> [-sharedSecret] <String> [-nsxHostname] <String> [-disable] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -20,8 +19,7 @@ The `Set-NsxtVidm` cmdlet configures Identity Manager in NSX Manager.
 ### Example 1
 
 ```powershell
-Set-NsxtVidm -wsaHostname <String> -thumbprint <String> -clientId <String> -sharedSecret <String>
- -nsxHostname <String> 
+Set-NsxtVidm -wsaHostname <String> -thumbprint <String> -clientId <String> -sharedSecret <String> -nsxHostname <String> 
 ```
 
 This example configures the Identity Manager in NSX Manager.

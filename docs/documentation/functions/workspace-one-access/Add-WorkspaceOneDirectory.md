@@ -7,15 +7,12 @@ Configure Active Directory LDAP Directory in Workspace ONE Access Appliance
 ## Syntax
 
 ```powershell
-Add-WorkspaceOneDirectory [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-baseDnUser] <String> [-baseDnGroup] <String> [-bindUserDn] <String> [-bindUserPass] <String>
- [-adGroups] <Array> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WorkspaceOneDirectory [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-baseDnUser] <String> [-baseDnGroup] <String> [-bindUserDn] <String> [-bindUserPass] <String> [-adGroups] <Array> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-WorkspaceOneDirectory` cmdlet configures Active Directory LDAP Directory in Workspace ONE Access
-Appliance.
+The `Add-WorkspaceOneDirectory` cmdlet configures Active Directory LDAP Directory in Workspace ONE Access Appliance.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to Workspace ONE Access
@@ -27,10 +24,10 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
+Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate ".\certificates\Root64.pem"
 ```
 
-This example configures the domain sfo.rainpole.io as a directory source in Workspace ONE Access Virtual Appliance and syncronises the groups provided.
+This example configures the domain sfo.rainpole.io as a directory source in Workspace ONE Access Virtual Appliance and synchronies the groups provided.
 
 ## Parameters
 

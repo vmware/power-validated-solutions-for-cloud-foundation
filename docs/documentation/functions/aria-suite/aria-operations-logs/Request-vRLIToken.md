@@ -12,8 +12,7 @@ Request-vRLIToken [-fqdn] <String> [-username] <String> [-password] <String> [-P
 
 ## Description
 
-The `Request-vRLIToken` cmdlet connects to the specified VMware Aria Operations for Logs instance and obtains an
-authorization token.
+The `Request-vRLIToken` cmdlet connects to the specified VMware Aria Operations for Logs instance and obtains an authorization token.
 It is required once per session before running all other cmdlets.
 
 ## Examples

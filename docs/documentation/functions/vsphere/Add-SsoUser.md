@@ -12,8 +12,7 @@ Add-SsoUser [-server] <String> [-user] <String> [-pass] <String> [-ssoUser] <Str
 
 ## Description
 
-The `Add-SsoUser` cmdlet adds a user to the vCenter Single Sign-On domain The cmdlet connects to SDDC Manager
-using the -server, -user, and -password values:
+The `Add-SsoUser` cmdlet adds a user to the vCenter Single Sign-On domain The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

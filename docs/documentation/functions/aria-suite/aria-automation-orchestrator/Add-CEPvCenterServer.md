@@ -7,17 +7,13 @@ Adds a vCenter Server instance to an embedded VMware Aria Automation Orchestrato
 ## Syntax
 
 ```powershell
-Add-CEPvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-environment] <String> [-apiToken] <String> [-extensibilityProxy] <String> [-serviceAccount] <String>
- [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-CEPvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-environment] <String> [-apiToken] <String> [-extensibilityProxy] <String> [-serviceAccount] <String> [-servicePassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROvCenterServer` cmdlet invokes the workflow in VMware Aria Automation Orchestrator to add a vCenter
-Server.
-The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values to return
-the workload domain vCenter Server details from its inventory and then:
+The `Add-vROvCenterServer` cmdlet invokes the workflow in VMware Aria Automation Orchestrator to add a vCenter Server.
+The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values to return the workload domain vCenter Server details from its inventory and then:
 
 - Makes a connection to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance using the -apiToken.
 - Verifies the workflow exists.

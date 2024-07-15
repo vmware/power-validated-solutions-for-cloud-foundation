@@ -7,8 +7,7 @@ Adds a connector to the directory in Workspace ONE Access Appliance
 ## Syntax
 
 ```powershell
-Add-WorkspaceOneDirectoryConnector [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-wsaNode] <String> [-wsaUser] <String> [-wsaPass] <String> [-bindUserPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WorkspaceOneDirectoryConnector [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-wsaNode] <String> [-wsaUser] <String> [-wsaPass] <String> [-bindUserPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

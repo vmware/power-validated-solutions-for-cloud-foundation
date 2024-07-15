@@ -7,8 +7,7 @@ Removes an adapter from VMware Aria Operations
 ## Syntax
 
 ```powershell
-Undo-vROPSAdapter [-server] <String> [-user] <String> [-pass] <String> [-adapterName] <String>
- [-adapterType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vROPSAdapter [-server] <String> [-user] <String> [-pass] <String> [-adapterName] <String> [-adapterType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -20,7 +19,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations
 - Validates that the Adapter is present
-- Deletes the adapter from VMware Aria Operations.
+- Deletes the adapter from VMware Aria Operations
 
 ## Examples
 

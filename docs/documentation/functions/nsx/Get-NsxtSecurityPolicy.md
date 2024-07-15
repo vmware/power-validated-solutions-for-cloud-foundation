@@ -22,7 +22,7 @@ The `Get-NsxtSecurityPolicy` cmdlet returns a paginated list of security policie
 Get-NsxtSecurityPolicy
 ```
 
-This example retrieves a paginated list of all security policies
+This example retrieves a paginated list of all security policies.
 
 ### Example 2
 

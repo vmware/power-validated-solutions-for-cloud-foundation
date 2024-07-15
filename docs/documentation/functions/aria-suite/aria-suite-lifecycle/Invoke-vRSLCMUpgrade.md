@@ -13,7 +13,7 @@ Invoke-vRSLCMUpgrade [-type] <String> [-username] <String> [-password] <String> 
 ## Description
 
 The `Invoke-vRSLCMUpgrade` cmdlet performs a number of upgrade related operations on VMware Aria Suite Lifecycle.
-These include checking for upgrade binares, performing pre-validaion and starting the upgrade.
+These include checking for upgrade binaries, performing pre-validation and starting the upgrade.
 
 ## Examples
 
@@ -31,7 +31,7 @@ This example checks the CDROM for an upgrade package.
 Invoke-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action prevalidate
 ```
 
-This example starts an upgrade precheck.
+This example starts an upgrade pre-check.
 
 ### Example 3
 

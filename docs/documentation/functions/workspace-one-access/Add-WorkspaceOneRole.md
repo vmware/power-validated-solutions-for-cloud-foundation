@@ -12,10 +12,8 @@ Add-WorkspaceOneRole [-server] <String> [-user] <String> [-pass] <String> [-grou
 
 ## Description
 
-The `Add-WorkspaceOneRole` cmdlet assigns roles to Active Directory groups provided to manage administrative
-access to the Workspace ONE Access instance.
-The cmdlet connects to SDDC Manager using the -server, -user,
-and -password values:
+The `Add-WorkspaceOneRole` cmdlet assigns roles to Active Directory groups provided to manage administrative access to the Workspace ONE Access instance.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to Workspace ONE Access
 - Validates the role exists in Workspace ONE Access
@@ -28,8 +26,9 @@ and -password values:
 
 ```powershell
 Add-WorkspaceOneRole -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -group "gg-wsa-admins" -role "Super Admin"
-This example adds the group gg-wsa-admins the Super Admin role
 ```
+
+This example adds the group gg-wsa-admins the Super Admin role.
 
 ## Parameters
 

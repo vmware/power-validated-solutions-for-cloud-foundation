@@ -7,14 +7,12 @@ Imports a user account from an authentication source.
 ## Syntax
 
 ```powershell
-Add-vROPSUserAccount [-sourceId] <String> [-userName] <String> [-lastName] <String> [-firstName] <String>
- [-distinguishedName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSUserAccount [-sourceId] <String> [-userName] <String> [-lastName] <String> [-firstName] <String> s[-distinguishedName] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-vROPSUserAccount` cmdlet imports a user account from the authentication source into VMware Aria
-Operations.
+The `Add-vROPSUserAccount` cmdlet imports a user account from the authentication source into VMware Aria Operations.
 
 ## Examples
 

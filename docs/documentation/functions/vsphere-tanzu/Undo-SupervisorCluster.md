@@ -7,15 +7,13 @@ Remove Supervisor Cluster
 ## Syntax
 
 ```powershell
-Undo-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-cluster] <String> [-RunAsync] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-RunAsync] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-SupervisorCluster` cmdlet removes the Supervisor Cluster from a Workload Domain.
-The cmdlet connects to
-SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

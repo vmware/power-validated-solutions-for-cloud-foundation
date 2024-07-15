@@ -7,8 +7,7 @@ Creates an agent group in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Add-vRLIAgentGroup [-server] <String> [-user] <String> [-pass] <String> [-agentGroupName] <String>
- [-agentGroupType] <String> [-criteria] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIAgentGroup [-server] <String> [-user] <String> [-pass] <String> [-agentGroupName] <String> [-agentGroupType] <String> [-criteria] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +18,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-- Creates an agent group in the VMware Aria Operations for Logs if not already configured.
+- Creates an agent group in the VMware Aria Operations for Logs if not already configured
 
 ## Examples
 

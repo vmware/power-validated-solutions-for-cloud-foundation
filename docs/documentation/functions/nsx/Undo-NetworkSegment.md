@@ -2,22 +2,22 @@
 
 ## Synopsis
 
-The Undo-NetworkSegment cmdlet removes an NSX segment.
-The cmdlet connects to SDDC Manager using the -server,
--user, and -password values:
+Removes an NSX Segment from NSX Manager
 
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Removes the NSX segment if not already removed from NSX Manager
 
 ## Syntax
 
 ```powershell
-Undo-NetworkSegment [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-segmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NetworkSegment [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-segmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
+
+The `Undo-NetworkSegment` cmdlet removes an NSX segment. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+
+- Validates that network connectivity and authentication is possible to SDDC Manager
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Removes the NSX segment if not already removed from NSX Manager
 
 The `Undo-NetworkSegment` cmdlet removes an NSX Segment from NSX Manager.
 

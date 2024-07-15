@@ -12,9 +12,7 @@ Install-TanzuSignedCertificate [-jsonFile] <String> [-certificates] <String> [<C
 
 ## Description
 
-The `Install-TanzuSignedCertificate` cmdlet requests a signed certificate for the Tanzu Supervisor Cluster
-from a Microsoft Certificate Authority using the details from the Developer Ready Infrastructure JSON
-specification file.
+The `Install-TanzuSignedCertificate` cmdlet requests a signed certificate for the Tanzu Supervisor Cluster from a Microsoft Certificate Authority using the details from the Developer Ready Infrastructure JSON specification file.
 
 ## Examples
 
@@ -24,7 +22,7 @@ specification file.
 Install-TanzuSignedCertificate -jsonFile .\driDeploySpec.json -certificates .\certificates\
 ```
 
-This example requests and installs a signed certificate for the Tanzu Supervisor Cluster
+This example requests and installs a signed certificate for the Tanzu Supervisor Cluster.
 
 ## Parameters
 

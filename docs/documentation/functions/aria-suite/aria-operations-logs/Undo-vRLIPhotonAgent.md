@@ -7,14 +7,12 @@ Removes the VMware Aria Operations for Logs Photon Agent from a Virtual Machine
 ## Syntax
 
 ```powershell
-Undo-vRLIPhotonAgent [-server] <String> [-user] <String> [-pass] <String> [-vmName] <String>
- [-vmRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLIPhotonAgent [-server] <String> [-user] <String> [-pass] <String> [-vmName] <String> [-vmRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-vRLIPhotonAgent` cmdlet removes the VMware Aria Operations for Logs Photon Agent from a virtual
-machine.
+The `Undo-vRLIPhotonAgent` cmdlet removes the VMware Aria Operations for Logs Photon Agent from a virtual machine.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -22,7 +20,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
 - Validates that network connectivity and authentication is possible to vCenter Server
 - Validates that the Virtual Machine exists in the vCenter Server inventory
-- Removes the Photon Agent from the Virtual Machne.
+- Removes the Photon Agent from the Virtual Machine
 
 ## Examples
 

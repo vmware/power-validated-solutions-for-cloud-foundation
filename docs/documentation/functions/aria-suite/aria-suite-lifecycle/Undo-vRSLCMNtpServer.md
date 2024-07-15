@@ -12,15 +12,13 @@ Undo-vRSLCMNtpServer [-server] <String> [-user] <String> [-pass] <String> [-Prog
 
 ## Description
 
-The `Undo-vRSLCMNtpServer` cmdlet sets the NTP Server details of the VMware Aria Suite Lifecycle appliance
-back to what is stored in SDDC Manager.
-The cmdlet connects to SDDC Manager using the -server, -user, and
--password values:
+The `Undo-vRSLCMNtpServer` cmdlet sets the NTP Server details of the VMware Aria Suite Lifecycle appliance back to what is stored in SDDC Manager.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
 - Retrieves NTP server configuration from SDDC Manager
-- Configures the VMware Aria Suite Lifecycle to use only the values stored in SDDC Manager.
+- Configures the VMware Aria Suite Lifecycle to use only the values stored in SDDC Manager
 
 ## Examples
 

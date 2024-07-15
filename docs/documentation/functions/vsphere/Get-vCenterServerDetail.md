@@ -7,8 +7,7 @@ Get vCenter Server details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-vCenterServerDetail [[-server] <String>] [[-user] <String>] [[-pass] <String>] [[-domainType] <String>]
- [[-domain] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vCenterServerDetail [[-server] <String>] [[-user] <String>] [[-pass] <String>] [[-domainType] <String>] [[-domain] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
