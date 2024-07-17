@@ -1,1 +1,1 @@
-Copy-Item -Path F:\Module\* -Destination '\\<destination_host>\C$\Program Files\WindowsPowerShell\Modules\' -Recurse
+Copy-Item -Path F:\Modules\* -Destination '\\<destination_host>\C$\Program Files\WindowsPowerShell\Modules\' -Recurse
