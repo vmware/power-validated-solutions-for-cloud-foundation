@@ -55,6 +55,7 @@
 - Fixed `Invoke-PcaDeployment` cmdlet where it was always using Node A of Workspace ONE Access and not the load balancer when configuring group access.
 - Fixed `Invoke-GlobalWsaDeployment` cmdlet when standard deployment is selected the cluster FQDN should be used and not Node A for Workspace ONE Access.
 - Fixed `Invoke-UndoGlobalWsaDeployment` cmdlet where an error is thrown when the datacenter object is already moved, should handle the scenario cleanly.
+- Fixed `Get-WSADirectory` cmdlet where url for Workspace ONE Access was hardcoded.
 - Enhanced `config.PowerValidatedSolutions` configuration file to include VMware Cloud Foundation 5.2 support.
 - Enhanced `Export-InvJsonSpec` cmdlet to export additional fields into the json file.
 - Enhanced `Install-vRSLCMCertificate` cmdlet to perform additional checks that a Microsoft Certificate Authority is configured in SDDC Manager.

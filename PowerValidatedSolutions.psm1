@@ -2695,7 +2695,7 @@ Function Export-PdrJsonSpec {
                     'vmNameWsaNodeB'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
                     'vmNameWsaNodeC'              = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
                     'vmListIdentity'              = ($pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value)
-                    'antiAffinityRuleIdentity'    = "anti-affinity-rule-wsa"
+                    'antiAffinityRuleIdentity'    = "anti-affinity-rule-iam"
                     'drsGroupNameIdentity'        = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
                     'vmToVmRuleNameIdentity'      = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
                     'domainBindUserVsphere'       = ($pnpProtectedWorkbook.Workbook.Names["iam_vsphere_ad_bind_username"].Value -Split ("@"))[0]
@@ -30015,7 +30015,7 @@ Function Export-GlobalWsaJsonSpec {
                 'configAdminUserName'         = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
                 'configAdminUserEmail'        = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
                 'vmList'                      = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                'antiAffinityRuleName'        = "anti-affinity-rule-wsa" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
+                'antiAffinityRuleName'        = "anti-affinity-rule-idm" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
                 'drsGroupNameWsa'             = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
                 'stretchedCluster'            = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
                 'ntpServer'                   = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
@@ -37493,7 +37493,7 @@ Function Get-WSADirectory {
         This example retrieves a list of directories in Workspace ONE Access
 
         .EXAMPLE
-        Get-WSADirectory -connector
+        Get-WSADirectory -directoryId <directoryId> -connector
         This example retrieves a list of connectors for a directory in Workspace ONE Access.
 
         .PARAMETER connector
@@ -37512,7 +37512,7 @@ Function Get-WSADirectory {
         if ($PsBoundParameters.ContainsKey("connector")) {
             $wsaHeaders = @{"Accept" = "" }
             $wsaHeaders.Add("Authorization", "$sessionToken")
-            $uri = "https://xint-wsa01.rainpole.io/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
+            $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
             $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
             $response.items
         } else {
