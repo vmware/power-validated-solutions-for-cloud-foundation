@@ -9650,7 +9650,7 @@ Function Export-DriJsonSpec {
                 'tagName'                       = $pnpWorkbook.Workbook.Names["k8s_vcenter_tag"].Value
                 'storagePolicyName'             = $pnpWorkbook.Workbook.Names["k8s_vcenter_storage_policy"].Value
                 'contentLibraryName'            = $pnpWorkbook.Workbook.Names["k8s_vcenter_content_library"].Value
-                'supervisorClusterName'         = $pnpWorkbook.Workbook.Names["wld_cluster"].Value
+                'supervisorClusterName'         = $pnpWorkbook.Workbook.Names["dri_vcenter_cluster"].Value
                 'supervisorClusterSizeHint'     = "Tiny"
                 'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
