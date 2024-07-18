@@ -2575,9 +2575,9 @@ Function Export-PdrJsonSpec {
                     'vrmsAdminEmail'           = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
                     'replicationPortgroup'     = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_pg"].Value
                     'replicationVlan'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_vlan"].Value -as [Int]
-                    'replicationSubnet'        = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value
+                    'replicationSubnet'        = if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value) { $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_vrms_cidr"].Value } else { $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value }
                     'replicationIpAddress'     = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_vrms_ip"].Value
-                    'replicationGateway'       = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value
+                    'replicationGateway'       = if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value) { $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_vrms_gateway_ip"].Value } else { $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value }
                     'replicationNetmask'       = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
                     'remoteReplicationNetwork' = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
                     'replicationIpAddresses'   = @("$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
@@ -2635,9 +2635,9 @@ Function Export-PdrJsonSpec {
                     'vrmsAdminEmail'           = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
                     'replicationPortgroup'     = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_pg"].Value
                     'replicationVlan'          = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_vlan"].Value -as [Int]
-                    'replicationSubnet'        = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value
+                    'replicationSubnet'        = if ($null -eq $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value) { $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_vrms_cidr"].Value } else { $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value }
                     'replicationIpAddress'     = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_vrms_ip"].Value
-                    'replicationGateway'       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value
+                    'replicationGateway'       = if ($null -eq $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value) { $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_vrms_gateway_ip"].Value } else { $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value }
                     'replicationNetmask'       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
                     'remoteReplicationNetwork' = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
                     'replicationIpAddresses'   = @("$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
@@ -2731,9 +2731,9 @@ Function Export-PdrJsonSpec {
                     $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleOperations' -notepropertyvalue "anti-affinity-rule-operations"
                     $jsonObject | Add-Member -notepropertyname 'drsGroupNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
                     $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
-                    $jsonObject | Add-Member -notepropertyname 'notificationInterval' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int]
-                    $jsonObject | Add-Member -notepropertyname 'notificationMax' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int]
-                    $jsonObject | Add-Member -notepropertyname 'notificationDelay' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int]
+                    $jsonObject | Add-Member -notepropertyname 'notificationInterval' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int])
+                    $jsonObject | Add-Member -notepropertyname 'notificationMax' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int])
+                    $jsonObject | Add-Member -notepropertyname 'notificationDelay' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int])
                 }
 
                 if ($pnpProtectedWorkbook.Workbook.Names["private_cloud_result"].Value -eq "Included") {
