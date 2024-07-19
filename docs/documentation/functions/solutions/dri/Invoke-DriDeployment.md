@@ -7,7 +7,7 @@ End-to-end Deployment of Developer Ready Infrastructure.
 ## Syntax
 
 ``` powershell
-Invoke-DriDeployment [-jsonFile] <String> [-certificates] <String> [-kubectlPath] <String> [<CommonParameters>]
+Invoke-DriDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <String> [-kubectlPath] <String> [<CommonParameters>]
 ```
 
 ## Description
@@ -19,7 +19,7 @@ The `Invoke-DriDeployment` cmdlet is a single function to implement the configur
 ### Example 1
 
 ``` powershell
-Invoke-DriDeployment -jsonFile .\driDeploySpec.json -certificates ".\certificates\" -kubectlPath "C:\Kubectl\bin\"
+Invoke-DriDeployment -jsonFile .\driDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -kubectlPath "C:\Kubectl\bin\"
 ```
 
 This example configures Developer Ready Infrastructure for VMware Cloud Foundation using the JSON spec supplied.
@@ -53,6 +53,22 @@ Aliases:
 
 Required: True
 Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -binaries
+
+The folder containing the binaries.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
