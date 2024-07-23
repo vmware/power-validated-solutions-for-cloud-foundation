@@ -26566,8 +26566,8 @@ Function Export-HrmJsonSpec {
                 'dns'                          = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                 'searchDomain'                 = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
                 'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                'rootPassword'                 = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
-                'ova'                          = "vvs_appliance_v0.0.1.ova"
+                'adminPassword'                = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
+                'ova'                          = "vvs-appliance-0.1.0.ova"
                 'stretchedCluster'             = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
                 'domainFqdn'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindUser'               = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
@@ -26704,7 +26704,7 @@ Function Invoke-HrmDeployment {
 
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Deploying the Host Virtual Machine for $solutionName"
-                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -rootPassword $jsonInput.rootPassword -enableSsh True -enableDebug False -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -adminPassword $jsonInput.adminPassword -enableSsh True -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
 
@@ -26846,7 +26846,7 @@ Function Deploy-PhotonAppliance {
         - Deploys the Photon Appliance into a vSphere Cluster
 
         .EXAMPLE
-        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
+        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -adminPassword VMw@re1! -enableSsh True -folder sfo-m01-fd-hrm -ovaPath .\vvs-appliance-v0.1.0.ova
         This example deploys the Photon appliance named sfo-m01-hrm01.
 
         .PARAMETER server
@@ -26882,14 +26882,11 @@ Function Deploy-PhotonAppliance {
         .PARAMETER ntpServer
         The NTP servers for the Photon appliance.
 
-        .PARAMETER rootPassword
-        The root password for the Photon appliance.
+        .PARAMETER adminPassword
+        The admin password for the Photon appliance.
 
         .PARAMETER enableSsh
         Enable SSH on the Photon appliance.
-
-        .PARAMETER enableDebug
-        Enable debug mode on the Photon appliance.
 
         .PARAMETER folder
         The virtual machine folder to place the Photon appliance in.
@@ -26910,9 +26907,8 @@ Function Deploy-PhotonAppliance {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dnsServer,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminPassword,
         [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableSsh,
-        [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableDebug,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ovaPath
     )
@@ -26940,10 +26936,9 @@ Function Deploy-PhotonAppliance {
                                     $ovfConfiguration.Common.guestinfo.dns.Value = $dnsServer
                                     $ovfConfiguration.Common.guestinfo.domain.Value = $domain
                                     $ovfConfiguration.Common.guestinfo.ntp.Value = $ntpServer
-                                    $ovfConfiguration.Common.guestinfo.root_password.Value = $rootPassword
+                                    $ovfConfiguration.Common.guestinfo.admin_password.Value = $adminPassword
                                     $ovfConfiguration.Common.guestinfo.enable_ssh.Value = $enableSsh
-                                    $ovfConfiguration.Common.guestinfo.debug.Value = $enableDebug
-                                    $ovfConfiguration.NetworkMapping.DHCP.Value = $portgroup
+                                    $ovfConfiguration.NetworkMapping.VM_Network.Value = $portgroup
                                     Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location $cluster -InventoryLocation $folder -Datastore $datastore -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force | Out-Null
                                     if (Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore) {
                                         Start-VM -VM $hostname -Server ($vcfVcenterDetails.fqdn).Name | Out-Null

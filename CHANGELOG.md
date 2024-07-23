@@ -84,6 +84,7 @@
 - Enhanced `Install-vRLIContentPack` cmdlet to compress the and stream the content pack JSON payload to VMware Aria Operations for Logs.
 - Enhanced all `Export-***JsonSpec` cmdlets to check for 'N/A', 'n/a' and '#VALUE' values extracted from the Planning and Preparation Workbook and warn.
 - Enhanced `Test-PcaPrerequisite` cmdlet to verify the Aria Automation to NSX service account is created.
+- Enhanced `Export-HrmJsonSpec` cmdlet to consume the latest appliance for the virtual host machine.
 - Converted `aria-operations-notifications-vcf.csv` to `aria-operations-notifications-vcf.json`.
 - Converted `aria-operations-notifications-srm.csv` to `aria-operations-notifications-srm.json`.
 
