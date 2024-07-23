@@ -2755,7 +2755,7 @@ Function Export-PdrJsonSpec {
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
                 $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
                 Foreach ($jsonValue in $baseData.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
+                    if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                         Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                         $issueWithJson = $true
                     }
@@ -9770,7 +9770,7 @@ Function Invoke-DriDeployment {
         Infrastructure for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-DriDeployment -jsonFile .\driDeploySpec.json -certificates ".\certificates\" -kubectlPath "C:\Kubectl\bin\"
+        Invoke-DriDeployment -jsonFile .\driDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -kubectlPath "C:\Kubectl\bin\"
         This example configures Developer Ready Infrastructure for VMware Cloud Foundation using the JSON spec supplied.
 
         .PARAMETER jsonFile
@@ -9779,6 +9779,9 @@ Function Invoke-DriDeployment {
         .PARAMETER certificates
         The folder containing the certificates.
 
+        .PARAMETER binaries
+        The folder containing the binaries.
+
         .PARAMETER kubectlPath
         The path to the bin folder of kubectl.
     #>
@@ -9786,6 +9789,7 @@ Function Invoke-DriDeployment {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$kubectlPath
     )
 
@@ -9916,12 +9920,6 @@ Function Invoke-DriDeployment {
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Activating the Registry Service on the Supervisor for $solutionName"
-                            $StatusMsg = Enable-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                        }
-
-                        if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Deploying a Namespace for the Tanzu Kubernetes Cluster for $solutionName"
                             $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.tanzuNamespaceName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
@@ -9944,19 +9942,20 @@ Function Invoke-DriDeployment {
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Register the Contour Service for $solutionName"
-                            procedureWaitKey
                             Show-PowerValidatedSolutionsOutput -message "Install Contour as a Supervisor Service for $solutionName"
-                            Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "contour.yml") -configureYaml ($binaries + "contour-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            $StatusMsg = Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "contour.yml") -configureYaml ($binaries + "contour-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Before Proceeding Manually Register the Harbour Service for $solutionName"
-                            procedureWaitKey
                             Show-PowerValidatedSolutionsOutput -message "Install Harbor as a Supervisor Service for $solutionName"
-                            Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "harbor.yml") -configureYaml ($binaries + "harbor-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            $StatusMsg = Add-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "harbor.yml") -configureYaml ($binaries + "harbor-data-values.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Perform the following procedures manually:"
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Establish Trust with the Harbor Service for $solutionName"
                         }
 
                         if (!$failureDetected) {
@@ -10021,11 +10020,14 @@ Function Invoke-UndoDriDeployment {
         Infrastructure for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-UndoDriDeployment -jsonFile .\driDeploySpec.json -kubectlPath "C:\Kubectl\bin\"
+        Invoke-UndoDriDeployment -jsonFile .\driDeploySpec.json -binaries .\binaries -kubectlPath "C:\Kubectl\bin\"
         This example removes the configuration of Developer Ready Infrastructure for VMware Cloud Foundation using JSON spec supplied.
 
         .PARAMETER jsonFile
         The JSON (.json) file created.
+
+        .PARAMETER binaries
+        The folder containing the binaries.
 
         .PARAMETER kubectlPath
         The path to the bin folder of kubectl.
@@ -10033,6 +10035,7 @@ Function Invoke-UndoDriDeployment {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$kubectlPath
     )
 
@@ -10062,8 +10065,14 @@ Function Invoke-UndoDriDeployment {
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Removing Embedded Harbour Registry from Supervisor Cluster for $solutionName"
-                            $StatusMsg = Undo-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            Show-PowerValidatedSolutionsOutput -message "Removing Harbor as a Supervisor Service for $solutionName"
+                            $StatusMsg = Undo-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "harbor.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Contour as a Supervisor Service for $solutionName"
+                            $StatusMsg = Undo-SupervisorService -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -registerYaml ($binaries + "contour.yml") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                         }
 
@@ -12780,11 +12789,11 @@ Function Add-SupervisorService {
         - Add a Supervisor Service to a Kubernetes Cluster
 
         .EXAMPLE
-        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\contour.yml -configureYaml F:\VMware.PlatformTools\binaries\contour-data-values.yml
+        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml .\contour.yml -configureYaml .\contour-data-values.yml
         This example adds the contour Supervisor Service
 
         .EXAMPLE
-        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\harbor.yml -configureYaml F:\VMware.PlatformTools\binaries\harbor-data-values.yml
+        Add-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml .\harbor.yml -configureYaml .\harbor-data-values.yml
         This example adds the harbour Supervisor Service
 
         .PARAMETER server
@@ -12838,42 +12847,42 @@ Function Add-SupervisorService {
                                         $supervisorService = (($supervisorService = (Select-String -Path $registerYaml -Pattern 'refName: ')) -Split ('refName: '))[-1]
                                         $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
                                         $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
-                                        # if (-Not (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName })) {
-                                        #     $supervisorServiceVersionYaml = Get-Content -Path $registerYaml -Raw
-                                        #     $supervisorServiceVersionYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceVersionYaml)
-                                        #     $supervisorServiceVersionYamlbase64 = [System.Convert]::ToBase64String($supervisorServiceVersionYamlArray)
-                                        #     $supervisorServiceVersionSpec = Initialize-NamespaceManagementSupervisorServicesVersionsCustomCreateSpec -Version $supervisorServiceVersion -DisplayName $supervisorServiceDisplayName -Content $supervisorServiceVersionYamlbase64
-                                        #     $supervisorServiceCustomSpec = Initialize-NamespaceManagementSupervisorServicesCustomCreateSpec -SupervisorService $supervisorService -DisplayName $supervisorService.Split('.')[-0] -VersionSpec $supervisorServiceVersionSpec
-                                        #     $supervisorServiceCreateSpec = Initialize-NamespaceManagementSupervisorServicesCreateSpec -CustomSpec $supervisorServiceCustomSpec
-                                        #     Invoke-CreateNamespaceManagementSupervisorServices -NamespaceManagementSupervisorServicesCreateSpec $supervisorServiceCreateSpec
-                                        #     if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
-                                        #         Write-Output "Registration of Supervisor Service ($supervisorService): SUCCESFUL"
-                                        #     } else {
-                                        #         Write-Error "Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
-                                        #     }
-                                        # } else {
-                                        #     Write-Warning "Registration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
-                                        # }
-                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
+                                        if (-Not (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName })) {
+                                            $supervisorServiceVersionYaml = Get-Content -Path $registerYaml -Raw
+                                            $supervisorServiceVersionYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceVersionYaml)
+                                            $supervisorServiceVersionYamlbase64 = [System.Convert]::ToBase64String($supervisorServiceVersionYamlArray)
+                                            $supervisorServiceCarvelVersionSpec = Initialize-NamespaceManagementSupervisorServicesVersionsCarvelCreateSpec -Content $supervisorServiceVersionYamlbase64
+                                            $supervisorServiceCarvelCreateSpec = Initialize-NamespaceManagementSupervisorServicesCarvelCreateSpec -VersionSpec $supervisorServiceCarvelVersionSpec
+                                            $supervisorServiceCreateSpec = Initialize-NamespaceManagementSupervisorServicesCreateSpec -CarvelSpec $supervisorServiceCarvelCreateSpec
+                                            Invoke-CreateNamespaceManagementSupervisorServices -Server $DefaultVIServer -NamespaceManagementSupervisorServicesCreateSpec $supervisorServiceCreateSpec | Out-Null
+                                            if (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                                Write-Output "Registration of Supervisor Service ($supervisorService): SUCCESFUL"
+                                            } else {
+                                                Write-Error "Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Registration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
+                                        }
+                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
                                             $supervisorServiceConfigurationYaml = Get-Content -Path $configureYaml -Raw
                                             $supervisorServiceConfigurationYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceConfigurationYaml)
                                             $supervisorServiceConfigurationYamlBase64 = [System.Convert]::ToBase64String($supervisorServiceConfigurationYamlArray)
                                             $supervisorServicesCreateSpec = Initialize-NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec -SupervisorService $supervisorService -Version $supervisorServiceVersion -YamlServiceConfig $supervisorServiceConfigurationYamlBase64
-                                            Invoke-CreateClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster -NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec $supervisorServicesCreateSpec
+                                            Invoke-CreateClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster -NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec $supervisorServicesCreateSpec | Out-Null
                                             Start-Sleep 5
-                                            if (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
-                                                Write-Output "Configuration of Supervisor Service ($supervisorService): SUCCESSFUL"
+                                            if (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
+                                                Write-Output "Deployment of Supervisor Service ($supervisorService): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Configuration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                                Write-Error "Deployment of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Configuration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
+                                            Write-Warning "Deployment of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
                                         }
                                     } else {
                                         Write-Error "Unable to locate a Kubernetes Cluster on Cluster ($cluster): PRE_VALIDATION_FAILED"
                                     }
                                 }
-                                #Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
                             }
                         }
                     }
@@ -12884,7 +12893,6 @@ Function Add-SupervisorService {
         } else {
             Write-Error "Supervisor Service Registration YAML (.yml) File ($registerYaml) File Not Found: PRE_VALIDATION_FAILED"
         }
-
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -12904,11 +12912,11 @@ Function Undo-SupervisorService {
         - Removes a Supervisor Service from a Kubernetes Cluster
 
         .EXAMPLE
-        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\contour.yml
+        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml .\contour.yml
         This example removes the contour Supervisor Service.
 
         .EXAMPLE
-        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml F:\VMware.PlatformTools\binaries\harbor.yml
+        Undo-SupervisorService -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -cluster sfo-w01-cl01 -registerYaml .\harbor.yml
         This example removes the harbor Supervisor Service.
 
         .PARAMETER server
@@ -12950,13 +12958,15 @@ Function Undo-SupervisorService {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if (($clusterDetails = Invoke-ListNamespaceManagementClusters | Where-Object { $_.cluster_name -eq $cluster })) {
+                                if (($clusterDetails = Invoke-ListNamespaceManagementClusters -Server $DefaultVIServer | Where-Object { $_.cluster_name -eq $cluster })) {
                                     $supervisorService = (($supervisorService = (Select-String -Path $registerYaml -Pattern 'refName: ')) -Split ('refName: '))[-1]
                                     $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
                                     $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
-                                    if (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
-                                        Invoke-DeleteClusterSupervisorServiceNamespaceManagement -Cluster $clusterDetails.cluster -SupervisorService $supervisorService -Confirm:$false
-                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
+                                    if (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
+                                        Invoke-DeleteClusterSupervisorServiceNamespaceManagement -Server $DefaultVIServer -Cluster $clusterDetails.cluster -SupervisorService $supervisorService -Confirm:$false | Out-Null
+                                        Do { Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService | Out-Null } }
+                                        Until ( (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) )
+                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
                                             Write-Output "Removing Supervisor Service ($supervisorService) from Cluster ($cluster): SUCCESSFUL"
                                         } else {
                                             Write-Error "Removing Supervisor Service ($supervisorService) from Cluster ($cluster): POST_VALIDATION_FAILED"
@@ -12964,21 +12974,20 @@ Function Undo-SupervisorService {
                                     } else {
                                         Write-Warning "Removing Supervisor Service ($supervisorService) from Cluster ($cluster), already removed: SKIPPED"
                                     }
-
-                                    if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
-                                        if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "ACTIVATED" }) {
-                                            Invoke-UpdateSupervisorService_0 -SupervisorService $supervisorService
-                                            if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "DECTIVATED" }) {
-                                                Write-Output "Deactivate Superviser Service ($supervisorService): SUCCESSFUL"
+                                    if (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                        if (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "ACTIVATED" }) {
+                                            Invoke-UpdateSupervisorService_0 -Server $DefaultVIServer -SupervisorService $supervisorService | Out-Null
+                                            if (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName -and $_.state -eq "DEACTIVATED" }) {
+                                                Write-Output "Deactivate Supervisor Service ($supervisorService): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Deactivate Superviser Service ($supervisorService): POST_VALIDATION_FAILED"
+                                                Write-Error "Deactivate Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Deactivate Superviser Service ($supervisorService), already deactivated: SKIPPED"
+                                            Write-Warning "Deactivate Supervisor Service ($supervisorService), already deactivated: SKIPPED"
                                         }
-                                        Invoke-DeleteSupervisorServiceVersionNamespaceManagement -SupervisorService $supervisorService -Version (Invoke-ListSupervisorServiceNamespaceManagementVersions -SupervisorService $supervisorService).version -Confirm:$false
-                                        Invoke-DeleteSupervisorServiceNamespaceManagement -SupervisorService $supervisorService -Confirm:$false
-                                        if (Invoke-ListNamespaceManagementSupervisorServices | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
+                                        Invoke-DeleteSupervisorServiceVersionNamespaceManagement -Server $DefaultVIServer -SupervisorService $supervisorService -Version (Invoke-ListSupervisorServiceNamespaceManagementVersions -Server $DefaultVIServer -SupervisorService $supervisorService).version -Confirm:$false | Out-Null
+                                        Invoke-DeleteSupervisorServiceNamespaceManagement -Server $DefaultVIServer -SupervisorService $supervisorService -Confirm:$false | Out-Null
+                                        if (-Not (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName })) {
                                             Write-Output "Removing Registration of Supervisor Service ($supervisorService): SUCCESSFUL"
                                         } else {
                                             Write-Error "Removing Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
@@ -13301,7 +13310,7 @@ Function Export-IlaJsonSpec {
                 'contentLibraryName'          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                = $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
                 'licenseKey'                  = $pnpWorkbook.Workbook.Names["vrli_license"].Value
-                'certificateAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value
+                'certificateAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
                 'adminPasswordAlias'          = $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value
                 'adminPassword'               = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
                 'adminUsername'               = $pnpWorkbook.Workbook.Names["region_vrli_admin_user"].Value
@@ -13714,19 +13723,9 @@ Function Invoke-IlaDeployment {
                                     }
 
                                     if (!$failureDetected) {
-                                        Show-PowerValidatedSolutionsOutput -message "Assigning $logsProductName Roles to Active Directory Groups"
-                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsAdminGroup -role 'Super Admin' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsUserGroup -role 'User' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsViewerGroup -role 'View Only Admin' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    }
-
-                                    if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Install Workspace ONE Access Content Pack"
                                         $StatusMsg = Enable-vRLIContentPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -token $jsonInput.gitHubToken -contentPack WSA -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
+                                        if ($StatusMsg -or $WarnMsg) { $ErrorMsg.Clear() } elseif ($ErrorMsg) { $failureDetected = $true }
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                     }
 
@@ -13746,6 +13745,16 @@ Function Invoke-IlaDeployment {
                                             $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
+                                    }
+
+                                    if (!$failureDetected) {
+                                        Show-PowerValidatedSolutionsOutput -message "Assigning $logsProductName Roles to Active Directory Groups"
+                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsAdminGroup -role 'Super Admin' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsUserGroup -role 'User' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                        $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsViewerGroup -role 'View Only Admin' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                     }
 
                                     if (Get-VCFWSA) {
@@ -17184,7 +17193,7 @@ Function Export-IomJsonSpec {
                 'contentLibraryName'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                        = $pnpWorkbook.Workbook.Names["vrops_license_alias"].Value
                 'licenseKey'                          = $pnpWorkbook.Workbook.Names["vrops_license"].Value
-                'certificateAlias'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value
+                'certificateAlias'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
                 'rootPasswordAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
                 'rootPassword'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
                 'rootUserName'                        = "root"
@@ -17671,7 +17680,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Activating Data Persistence on VMware Cloud Proxy Appliances for the $operationsProductName Virtual Machines for $solutionName"
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "NO AUTOMATION DUE TO MISSING API"
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Perform this procedure manually, no automation due to no public API"
                                         }
 
                                         if (!$failureDetected) {
@@ -17919,8 +17928,8 @@ Function Invoke-UndoIomDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the $operationsProductName Passwords from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    # $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    # messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
@@ -19310,20 +19319,26 @@ Function Remove-OperationsDefaultAdapter {
                                 Undo-vROPSAdapter -server $server -user $user -pass $pass -adapterName $vcenterAdapter.resourceKey.name -adapterType VMWARE
                                 $vcenterCredential = (Get-vROPSCredential -credentialId $vcenterAdapter.credentialInstanceId).name
                                 Undo-vROPSCredential -server $server -user $user -pass $pass -credentialName $vcenterCredential -credentialType VMWARE
-                                $alreadyRemoved = $false
+                                if (-Not ($vcenterAdapter = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -match "VCF_VC" }))) {
+                                    Write-Output "Removing Default vCenter Server Adapter and Credentials from VMware Aria Operations: SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Default vCenter Server Adapter and Credentials from VMware Aria Operations: POST_VALIDATION_FAILED"
+                                }
+                                
                             } else {
-                                $alreadyRemoved = $true
+                                Write-Warning "Removing Default vCenter Server Adapter and Credentials from VMware Aria Operations, does not exist: SKIPPED"
                             }
                             if ($vsanAdapter = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -match "VCF_vSAN" })) {
                                 Undo-vROPSAdapter -server $server -user $user -pass $pass -adapterName $vsanAdapter.resourceKey.name -adapterType VirtualAndPhysicalSANAdapter
                                 $vsanCredential = (Get-vROPSCredential -credentialId $vsanAdapter.credentialInstanceId).name
                                 Undo-vROPSCredential -server $server -user $user -pass $pass -credentialName $vsanCredential -credentialType VirtualAndPhysicalSANAdapter
-                                $alreadyRemoved = $false
+                                if (-Not ($vsanAdapter = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -match "VCF_vSAN" }))) {
+                                    Write-Output "Removing Default vSAN Adapter and Credentials from VMware Aria Operations: SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Default vSAN Adapter and Credentials from VMware Aria Operations: POST_VALIDATION_FAILED"
+                                }
                             } else {
-                                $alreadyRemoved = $true
-                            }
-                            if ($alreadyRemoved) {
-                                Write-Warning "Removing Default vCenter Server/vSAN Adapter and Credentials from VMware Aria Operations, does not exist: SKIPPED"
+                                Write-Warning "Removing Default vSAN Adapter and Credentials from VMware Aria Operations, does not exist: SKIPPED"
                             }
                         }
                     }
@@ -21616,7 +21631,7 @@ Function Export-InvJsonSpec {
                 'caUserPassword'                     = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
                 # VMware Aria Suite Lifecycle Settings
                 # Locker Settings: Certificate
-                'certificateAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_hostname"].Value
+                'certificateAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrni_nodea_fqdn"].Value
                 # Locker Settings: License
                 'licenseAlias'                       = $pnpWorkbook.Workbook.Names["vrni_license_alias"].Value
                 'licenseKey'                         = $pnpWorkbook.Workbook.Names["vrni_license"].Value
@@ -22203,6 +22218,8 @@ Function Invoke-UndoInvDeployment {
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing a Virtual Machine and Template Folder for the Platform and Collector Nodes for $solutionName"
                                     $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.vmFolderProxies -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
 
@@ -22909,29 +22926,29 @@ Function Add-AriaNetworksLdapConfiguration {
                                                 if ($ariaNetworksLdapConfig.status -eq $False) {
                                                     New-AriaNetworksLdapConfiguration -domain $jsonInput.domainFqdn -url $jsonInput.ldapUrl -username $jsonInput.domainBindUser -password $jsonInput.domainBindPass -userBaseDN $jsonInput.dnBase -memberDN $jsonInput.dnMemberGroup -adminDN $jsonInput.dnAdminGroup -auditorDN $jsonInput.dnAuditorGroup | Out-Null
                                                     if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
-                                                        if ($ariaNetworksLdapConfig.status -eq $True){
+                                                        if ($ariaNetworksLdapConfig.status -eq $True) {
                                                             Write-Output "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
-                                                            } else {
-                                                                Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
-                                                            }
+                                                        } else {
+                                                            Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
                                                         }
-                                                    }  else {
-                                                        Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), already exists: SKIPPED"
                                                     }
+                                                } else {
+                                                    Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), already exists: SKIPPED"
                                                 }
                                             }
                                         }
                                     }
-                                } else {
-                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
+                            } else {
+                                Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
                 }
-            } else {
-                Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
             }
+        } else {
+            Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -22978,29 +22995,29 @@ Function Undo-AriaNetworksLdapConfiguration {
                                                 if ($ariaNetworksLdapConfig.status -eq $True) {
                                                     Remove-AriaNetworksLdapConfiguration | Out-Null
                                                     if (($ariaNetworksLdapConfig = Get-AriaNetworksLdapConfiguration)) {
-                                                        if ($ariaNetworksLdapConfig.status -eq $False){
+                                                        if ($ariaNetworksLdapConfig.status -eq $False) {
                                                             Write-Output "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): SUCCESSFUL"
-                                                            } else {
-                                                                Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
-                                                            }
+                                                        } else {
+                                                            Write-Error "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)): POST_VALIDATION_FAILURE"
                                                         }
-                                                    }  else {
-                                                        Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), does not exist: SKIPPED"
                                                     }
+                                                } else {
+                                                    Write-Warning "Adding LDAP Configuration ($($jsonInput.domainFqdn)) to VMware Aria Operations for Networks ($($jsonInput.ariaNetworksPlatformNodeaFqdn)), does not exist: SKIPPED"
                                                 }
                                             }
                                         }
                                     }
-                                } else {
-                                    Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
+                            } else {
+                                Write-Error "Unable to find VMware Aria Operations for Networks in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
                 }
-            } else {
-                Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
             }
+        } else {
+            Write-Error "JSON Specification file for Intelligent Network Visibility ($jsonFile): File Not Found"
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -23292,19 +23309,19 @@ Function Add-AriaNetworksNsxDataSource {
                                             if (-Not (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId)) {
                                                 if ($serviceAccount -and $serviceAccountPass) {
                                                     New-AriaNetworksNsxtDataSource -fqdn $vcfNsxtDetails.fqdn -username $serviceAccount -password $serviceAccountPass -nickname "$($vcfNsxtDetails.fqdn) - Management Domain NSX Manager" -CollectorId (Get-AriaNetworksNodes).id -enabled true | Out-Null
-                                                        if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
-                                                            Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
-                                                        } else {
-                                                            Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
-                                                        }
+                                                    if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
+                                                        Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
                                                     }
+                                                }
                                                 if ($certificate -and $privatekey) {
                                                     New-AriaNetworksNsxtDataSource -fqdn $vcfNsxtDetails.fqdn -certificate $certificate -privatekey $privatekey -nickname "$($vcfNsxtDetails.fqdn) - Management Domain NSX Manager" -CollectorId (Get-AriaNetworksNodes).id -enabled true | Out-Null
-                                                        if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
-                                                            Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
-                                                        } else {
-                                                            Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
-                                                        }
+                                                    if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
+                                                        Write-Output "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
+                                                    }
                                                 }
                                             } else {
                                                 Write-Warning "Adding NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn), already exists: SKIPPED"
@@ -23395,10 +23412,10 @@ Function Undo-AriaNetworksNsxDataSource {
                                             if (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId) {
                                                 Remove-AriaNetworksDataSource -dataSourceType nsxt -id (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId).entity_id
                                                 if (-Not (Get-AriaNetworksDataSource -dataSourceType nsxt -fqdn $vcfNsxtDetails.fqdn -entityId)) {
-                                                        Write-Output "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
-                                                    } else {
-                                                        Write-Error "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
-                                                    }
+                                                    Write-Output "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn): POST_VALIDATION_FAILURE"
+                                                }
                                             } else {
                                                 Write-Warning "Removing NSX Manager ($($vcfNsxtDetails.fqdn)) Data Source to VMware Aria Operations for Networks ($ariaNetworksFqdn), does not exist: SKIPPED"
                                             }
@@ -23470,7 +23487,7 @@ Function Export-PcaJsonSpec {
                 'contentLibraryName'             = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
                 'licenseAlias'                   = $pnpWorkbook.Workbook.Names["vra_license_alias"].Value
                 'licenseKey'                     = $pnpWorkbook.Workbook.Names["vra_license"].Value
-                'certificateAlias'               = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value
+                'certificateAlias'               = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                 'rootPasswordAlias'              = $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value
                 'rootPassword'                   = $pnpWorkbook.Workbook.Names["xreg_vra_root_password"].Value
                 'rootUserName'                   = $pnpWorkbook.Workbook.Names["xreg_vra_root_username"].Value
@@ -23547,6 +23564,7 @@ Function Export-PcaJsonSpec {
                 'serviceAccountOrchestrator'     = $pnpWorkbook.Workbook.Names["user_svc_vro_vsphere"].Value
                 'serviceAccountOrchestratorPass' = $pnpWorkbook.Workbook.Names["svc_vro_vsphere_password"].Value
                 'serviceAccountNsx'              = $pnpWorkbook.Workbook.Names["user_svc_vra_nsx"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                'serviceAccountNsxPass'          = $pnpWorkbook.Workbook.Names["svc_vra_nsx_password"].Value
                 'nsxEdgeVmFolderSuffix'          = "-fd-edge"
                 'localDatastoreFolderSuffix'     = "-fd-ds-local"
                 'readOnlyDatastoreFolder'        = "-fd-ds-readonly"
@@ -23672,7 +23690,8 @@ Function Test-PcaPrerequisite {
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
                             {"user": "'+ $jsonInput.serviceAccountAutomation + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountAutomationPass + '"},
-                            {"user": "'+ $jsonInput.serviceAccountOrchestrator + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountOrchestratorPass + '"}
+                            {"user": "'+ $jsonInput.serviceAccountOrchestrator + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountOrchestratorPass + '"},
+                            {"user": "'+ $jsonInput.serviceAccountNsx + '", "password": "' + $jsonInput.serviceAccountNsxPass + '"}
                         ]' | ConvertFrom-Json
                         foreach ( $serviceAccount in $serviceAccounts ) {
                             Test-PrereqServiceAccount -user $serviceAccount.user -password $serviceAccount.password -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn
@@ -24020,7 +24039,7 @@ Function Invoke-PcaDeployment {
                                                 Show-PowerValidatedSolutionsOutput -message "Configure Service Account Permissions for $automationProductName to NSX Integration on the VI Workload Domain NSX Manager Cluster for $solutionName"
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
-                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName to NSX-T Data Center Integration on the Workload Domain ($($sddcDomain.name))"
+                                                        Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for the $automationProductName to NSX Integration on the Workload Domain ($($sddcDomain.name))"
                                                         $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal $jsonInput.serviceAccountNsx -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
@@ -24162,10 +24181,10 @@ Function Invoke-UndoPcaDeployment {
                                 }
 
                                 if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for the $automationProductName from NSX-T Data Center Integration on the VI Workload Domain NSX Manager Cluster"
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for the $automationProductName from NSX  Integration on the VI Workload Domain NSX Manager Cluster"
                                     foreach ($sddcDomain in $allWorkloadDomains) {
                                         if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
-                                            Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for the $automationProductName to NSX-T Data Center Integration on the Workload Domain ($($sddcDomain.name))"
+                                            Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for the $automationProductName to NSX Integration on the Workload Domain ($($sddcDomain.name))"
                                             $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
@@ -24208,8 +24227,8 @@ Function Invoke-UndoPcaDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the $automationProductName Password from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    # $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    # messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
@@ -24851,53 +24870,55 @@ Function New-vRADeployment {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                        if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                $commandSwitch = ""
-                                if ($PsBoundParameters.ContainsKey("customVersion")) {
-                                    $commandSwitch = $commandSwitch + " -customVersion $customVersion"
-                                }
-                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                    $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
-                                }
-                                $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
-                                Invoke-Expression "Export-vRAJsonSpec -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
-                                $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "automationDeploySpec.json")))
-                                $jsonSpec = $json | ConvertFrom-Json
-                                $pcaJsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object { $_.loadBalancerDetails -match $pcaJsonInput.clusterFqdn }))) {
-                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $pcaJsonInput.clusterIp -loadBalancerFqdn $pcaJsonInput.clusterFqdn | Out-Null
-                                }
-                                if (!((Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName }).products.id -contains $jsonSpec.products.id)) {
-                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
-                                        if (Get-vRSLCMLockerCertificate | Where-Object { $_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3]) }) {
-                                            if (Get-vRSLCMLockerLicense | Where-Object { $_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3]) }) {
-                                                if ($jsonSpec.environmentId) {
-                                                    $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
-                                                } else {
-                                                    $newRequest = Add-vRSLCMEnvironment -json $json
-                                                }
-                                                if ($newRequest) {
-                                                    if ($PsBoundParameters.ContainsKey("monitor")) {
-                                                        Start-Sleep 10
-                                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                        if (-Not(Get-VCFvRA)) {
+                            if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                                if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                    $commandSwitch = ""
+                                    if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                        $commandSwitch = $commandSwitch + " -customVersion $customVersion"
+                                    }
+                                    if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                        $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
+                                    }
+                                    $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                                    Invoke-Expression "Export-vRAJsonSpec -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
+                                    $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "automationDeploySpec.json")))
+                                    $jsonSpec = $json | ConvertFrom-Json
+                                    $pcaJsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                                    if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object { $_.loadBalancerDetails -match $pcaJsonInput.clusterFqdn }))) {
+                                        New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $pcaJsonInput.clusterIp -loadBalancerFqdn $pcaJsonInput.clusterFqdn | Out-Null
+                                    }
+                                    if (!((Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonSpec.environmentName }).products.id -contains $jsonSpec.products.id)) {
+                                        if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
+                                            if (Get-vRSLCMLockerCertificate | Where-Object { $_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3]) }) {
+                                                if (Get-vRSLCMLockerLicense | Where-Object { $_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3]) }) {
+                                                    if ($jsonSpec.environmentId) {
+                                                        $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
                                                     } else {
-                                                        Write-Output "Deployment Request for VMware Aria Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                        $newRequest = Add-vRSLCMEnvironment -json $json
+                                                    }
+                                                    if ($newRequest) {
+                                                        if ($PsBoundParameters.ContainsKey("monitor")) {
+                                                            Start-Sleep 10
+                                                            Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                                        } else {
+                                                            Write-Output "Deployment Request for VMware Aria Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                        }
+                                                    } else {
+                                                        Write-Error "Request to deploy VMware Aria Automation failed, check the VMware Aria Suite Lifecycle UI"
                                                     }
                                                 } else {
-                                                    Write-Error "Request to deploy VMware Aria Automation failed, check the VMware Aria Suite Lifecycle UI"
+                                                    Write-Error "License in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
                                                 }
                                             } else {
-                                                Write-Error "License in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
+                                                Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                             }
                                         } else {
-                                            Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
+                                            Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
                                         }
                                     } else {
-                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
+                                        Write-Warning "VMware Aria Automation in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                                     }
-                                } else {
-                                    Write-Warning "VMware Aria Automation in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                                 }
                             }
                         }
@@ -60176,12 +60197,12 @@ Function Start-DriMenu {
                 }
                 5 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -kubectlPath "C:\Kubectl\bin\"
+                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -kubectlPath "C:\Kubectl\bin\"
                     waitKey
                 }
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -kubectlPath "C:\Kubectl\bin\"
+                    Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath -kubectlPath "C:\Kubectl\bin\"
                     waitKey
                 }
                 B {
