@@ -2,7 +2,7 @@
 
 ## v2.11.0
 
-> Release Date: (Not Released)
+> Release Date: 2024-07-24
 
 - Removed support for VMware Cloud Foundation 5.0 and earlier.
 - Added `Invoke-IlaSolutionInterop` cmdlet to perform solution interoperability configuration for Intelligent Logging and Analytics.
