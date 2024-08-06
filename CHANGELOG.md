@@ -1,5 +1,11 @@
 # Release History
 
+## v2.11.1
+
+> Release Date: Not Released
+
+- Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Acceess and add in the `admin` password to the VMware Aria Suite Lifecycke password locker.
+
 ## v2.11.0
 
 > Release Date: 2024-07-24
