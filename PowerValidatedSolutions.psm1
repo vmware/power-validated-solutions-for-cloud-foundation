@@ -36442,6 +36442,9 @@ Function Get-LocalAccountLockout {
         }
         $accountLockoutObject = New-Object -TypeName psobject
         $accountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
+        if (-not $failures) {$failures = "Not Configured"}
+        if (-not $unlockInterval) {$unlockInterval = "Not Configured"}
+        if (-not $rootUnlockInterval) {$rootUnlockInterval = "Not Configured"}
         if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($failures -ne $requiredConfig.maxFailures) { "$($failures) [ $($requiredConfig.maxFailures) ]" } else { "$($failures)" } } else { "$($failures)" }) }
         if ($unlockInterval) { $accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockInterval -ne $requiredConfig.unlockInterval) { "$($unlockInterval) [ $($requiredConfig.unlockInterval) ]" } else { "$($unlockInterval)" } } else { "$($unlockInterval)" }) }
         if ($rootUnlockInterval) { $accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($rootUnlockInterval -ne $requiredConfig.rootUnlockInterval) { "$($rootUnlockInterval) [ $($requiredConfig.rootUnlockInterval) ]" } else { "$($rootUnlockInterval)" } } else { "$($rootUnlockInterval)" }) }
