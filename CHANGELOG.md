@@ -5,6 +5,7 @@
 > Release Date: Not Released
 
 - Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Acceess and add in the `admin` password to the VMware Aria Suite Lifecycke password locker.
+- Enhanced `Get-LocalAccountLockout` cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.
 
 ## v2.11.0
 
