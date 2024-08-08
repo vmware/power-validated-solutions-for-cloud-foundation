@@ -7,7 +7,7 @@ Deploy Site Recovery Manager Virtual Appliance
 ## Syntax
 
 ```powershell
-Install-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmFqdn] <String> [-srmIpAddress] <String> [-srmGateway] <String> [-srmNetPrefix] <String> [-srmNetworkSearchPath] <String> [-srmFolder] <String> [-srmVaRootPassword] <String> [-srmVaAdminPassword] <String> [-srmDbPassword] <String> [[-srmOvfPath] <String>] [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmFqdn] <String> [-srmIpAddress] <String> [-srmGateway] <String> [-srmNetPrefix] <String> [-srmNetworkSearchPath] <String> [-srmPortgroup] <String> [-srmFolder] <String> [-srmVaRootPassword] <String> [-srmVaAdminPassword] <String> [-srmDbPassword] <String> [[-srmOvfPath] <String>] [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +24,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmNetPrefix 255.255.255.0 -srmNetworkSearchPath sfo.rainpole.io -srmFolder sfo-m01-fd-srm -srmVaRootPassword VMw@re1! -srmVaAdminPassword VMw@re1! -srmDbPassword VMw@re1! -deploymentOption standard -srmOvfPath F:\identity-manager.ova
+Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmNetPrefix 255.255.255.0 -srmNetworkSearchPath sfo.rainpole.io -srmPortgroup sfo-m01-cl01-vds01-pg-vm-mgmt -srmFolder sfo-m01-fd-srm -srmVaRootPassword VMw@re1! -srmVaAdminPassword VMw@re1! -srmDbPassword VMw@re1! -deploymentOption standard -srmOvfPath .\srm-va_OVF10.ovf
 ```
 
 This example deploys the Site Recovery Manager Virtual Appliance into the sfo-m01-fd-srm folder of the management domain.
@@ -174,6 +174,21 @@ Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
+
+### -srmPortgroup
+
+The port group to attached to the Site Recovery Manager Virtual Appliance.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 10
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 
 ### -srmFolder
 

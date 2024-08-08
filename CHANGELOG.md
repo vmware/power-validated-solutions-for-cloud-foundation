@@ -9,6 +9,10 @@
 - Enhanced `Export-DriJsonSpec` cmdlet to define the path to the Kubectl utility.
 - Enhanced `Start-DriMenu` cmdlet to use the new JSON value for the path to the Kubectl utility.
 - Enhanced `Deploy-PhotonAppliance` cmdlet with an input parameter for the portgroup to attach the Virtual Machine too.
+- Enhanced `Export-PdrJsonSpec` cmdlet to export the management VM portgroup from the Planning and Preparation Workbook.
+- Enhanced `Install-vSphereReplicationManager` cmdlet to require a portgroup as an input.
+- Enhanced `Install-SiteRecoveryManager` cmdlet to require a portgroup as an input.
+- Enhanced `Invoke-PdrDeployment` cmdlet to pass the new portgroup parameter to `Install-vSphereReplicationManager` and `Install-SiteRecoveryManager`.
 
 ## v2.11.0
 
