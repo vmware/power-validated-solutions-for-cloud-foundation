@@ -9682,6 +9682,7 @@ Function Export-DriJsonSpec {
                 'namespaceViewUserGroup'        = $pnpWorkbook.Workbook.Names["group_gg_kub_readonly"].Value
                 'tanzuNamespaceName'            = $pnpWorkbook.Workbook.Names["k8s_cluster_name"].Value
                 'vmClass'                       = $pnpWorkbook.Workbook.Names["k8s_vm_class"].Value
+                'kubectlPath'                   = "C:\Kubectl\bin"
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -60193,12 +60194,14 @@ Function Start-DriMenu {
                 }
                 5 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -kubectlPath "C:\Kubectl\bin\"
+                    $jsonData = (Get-Content -Path ($jsonPath + $jsonSpecFile)) | ConvertFrom-Json
+                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -kubectlPath $jsonData.kubectlPath
                     waitKey
                 }
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath -kubectlPath "C:\Kubectl\bin\"
+                    $jsonData = (Get-Content -Path ($jsonPath + $jsonSpecFile)) | ConvertFrom-Json
+                    Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath -kubectlPath $jsonData.kubectlPath
                     waitKey
                 }
                 B {
