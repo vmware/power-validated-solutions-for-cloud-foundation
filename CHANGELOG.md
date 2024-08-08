@@ -4,8 +4,10 @@
 
 > Release Date: Not Released
 
-- Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Acceess and add in the `admin` password to the VMware Aria Suite Lifecycke password locker.
+- Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Access and add in the `admin` password to the VMware Aria Suite Lifecycle password locker.
 - Enhanced `Get-LocalAccountLockout` cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.
+- Enhanced `Export-DriJsonSpec` cmdlet to define the path to the Kubectl utility.
+- Enhanced `Start-DriMenu` cmdlet to use the new JSON value for the path to the Kubectl utility.
 
 ## v2.11.0
 
