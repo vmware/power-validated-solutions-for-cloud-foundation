@@ -26556,6 +26556,7 @@ Function Export-HrmJsonSpec {
                 'sddcManagerUser'              = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
                 'sddcManagerPass'              = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 'mgmtSddcDomainName'           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'mgmtVmPortgroup'              = $pnpWorkbook.Workbook.Names["mgmt_cl01_az1_mgmt_vm_pg"].Value
                 'vmFolder'                     = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
                 'vmName'                       = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
                 'fqdn'                         = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
@@ -26579,6 +26580,7 @@ Function Export-HrmJsonSpec {
             if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
                 $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
+
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -26703,7 +26705,7 @@ Function Invoke-HrmDeployment {
 
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Deploying the Host Virtual Machine for $solutionName"
-                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -adminPassword $jsonInput.adminPassword -enableSsh True -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -portgroup $jsonInput.mgmtVmPortgroup -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -adminPassword $jsonInput.adminPassword -enableSsh True -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
 
@@ -26845,8 +26847,8 @@ Function Deploy-PhotonAppliance {
         - Deploys the Photon Appliance into a vSphere Cluster
 
         .EXAMPLE
-        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -adminPassword VMw@re1! -enableSsh True -folder sfo-m01-fd-hrm -ovaPath .\vvs-appliance-v0.1.0.ova
-        This example deploys the Photon appliance named sfo-m01-hrm01.
+        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -portgroup sfo-m01-cl01-vds01-pg-vm-mgmt -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -adminPassword VMw@re1! -enableSsh True -folder sfo-m01-fd-hrm -ovaPath .\vvs-appliance-v0.1.0.ova
+        This example deploys the Photon appliance named sfo-m01-hrm01
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -26862,6 +26864,9 @@ Function Deploy-PhotonAppliance {
 
         .PARAMETER hostname
         The hostname of the Photon appliance.
+
+        .PARAMETER portgroup
+        The portgroup to attach to the Photon appliance.
 
         .PARAMETER domain
         The domain namespace for the Photon appliance.
@@ -26900,6 +26905,7 @@ Function Deploy-PhotonAppliance {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$netmask,
@@ -26923,7 +26929,6 @@ Function Deploy-PhotonAppliance {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (!(Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore)) {
-                                    $portgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object { $_.DeviceName -eq "vmk0" }).PortGroupName
                                     $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).Name
                                     $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).primaryDatastoreName
                                     $datacenter = (Get-Datacenter -Cluster $cluster).Name

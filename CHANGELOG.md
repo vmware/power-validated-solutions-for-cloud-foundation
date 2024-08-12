@@ -8,6 +8,7 @@
 - Enhanced `Get-LocalAccountLockout` cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.
 - Enhanced `Export-DriJsonSpec` cmdlet to define the path to the Kubectl utility.
 - Enhanced `Start-DriMenu` cmdlet to use the new JSON value for the path to the Kubectl utility.
+- Enhanced `Deploy-PhotonAppliance` cmdlet with an input parameter for the portgroup to attach the Virtual Machine too.
 
 ## v2.11.0
 
