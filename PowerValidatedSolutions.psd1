@@ -11,7 +11,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion = '2.11.1.1003'
+    ModuleVersion = '2.11.1.1004'
 
     # ID used to uniquely identify this module
     GUID              = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
