@@ -2581,7 +2581,7 @@ Function Export-PdrJsonSpec {
                     'replicationGateway'       = if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value) { $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_vrms_gateway_ip"].Value } else { $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value }
                     'replicationNetmask'       = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
                     'remoteReplicationNetwork' = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
-                    'replicationIpAddresses'   = @("$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
+                    'replicationIpAddresses'   = ($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host_vrms_ips"].Value) | Where-Object { $_ -ne "Value Missing" }
                     'vmFolderSrm'              = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vm_folder"].Value
                     'srmVmName'                = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_hostname"].Value
                     'srmFqdn'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value
@@ -2642,7 +2642,7 @@ Function Export-PdrJsonSpec {
                     'replicationGateway'       = if ($null -eq $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value) { $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_vrms_gateway_ip"].Value } else { $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value }
                     'replicationNetmask'       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
                     'remoteReplicationNetwork' = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
-                    'replicationIpAddresses'   = @("$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)", "$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
+                    'replicationIpAddresses'   = ($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host_vrms_ips"].Value) | Where-Object { $_ -ne "Value Missing" }
                     'vmFolderSrm'              = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_vm_folder"].Value
                     'srmVmName'                = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_hostname"].Value
                     'srmFqdn'                  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value

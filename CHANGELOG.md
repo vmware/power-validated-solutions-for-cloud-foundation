@@ -13,6 +13,7 @@
 - Enhanced `Install-vSphereReplicationManager` cmdlet to require a portgroup as an input.
 - Enhanced `Install-SiteRecoveryManager` cmdlet to require a portgroup as an input.
 - Enhanced `Invoke-PdrDeployment` cmdlet to pass the new portgroup parameter to `Install-vSphereReplicationManager` and `Install-SiteRecoveryManager`.
+- Enhanced `Export-PdrJsonSpec` cmdlet to extract the range of replication IPs based on the populated Planning and Preparation workbook.
 
 ## v2.11.0
 
