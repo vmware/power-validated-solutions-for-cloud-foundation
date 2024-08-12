@@ -7,7 +7,7 @@ Deploy vSphere Replication Manager Virtual Appliance
 ## Syntax
 
 ```powershell
-Install-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vrmsFqdn] <String> [-vrmsIpAddress] <String> [-vrmsGateway] <String> [-vrmsNetPrefix] <String> [-vrmsNetworkSearchPath] <String> [-vrmsFolder] <String> [-vrmsVaRootPassword] <String> [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-vrmsFqdn] <String> [-vrmsIpAddress] <String> [-vrmsGateway] <String> [-vrmsNetPrefix] <String> [-vrmsNetworkSearchPath] <String> [-vrmsPortgroup] <String> [-vrmsFolder] <String> [-vrmsVaRootPassword] <String> [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +24,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsNetPrefix 255.255.255.0 -vrmsNetworkSearchPath sfo.rainpole.io -vrmsFolder sfo-m01-fd-vrms -vrmsVaRootPassword VMw@re1! -vrmsVaAdminPassword VMw@re1! -vrmsOvfPath F:\vrms.ova
+Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsNetPrefix 255.255.255.0 -vrmsNetworkSearchPath sfo.rainpole.io -vrmsPortgroup sfo-m01-cl01-vds01-pg-vm-mgmt -vrmsFolder sfo-m01-fd-vrms -vrmsVaRootPassword VMw@re1! -vrmsVaAdminPassword VMw@re1! -vrmsOvfPath .\vSphere_Replication_OVF10.ovf
 ```
 
 This example deploys the vSphere Replication Manager Virtual Appliance into the sfo-m01-fd-vrms folder of the management domain.
@@ -174,6 +174,21 @@ Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
+
+### -vrmsPortgroup
+
+The port group to attached to the vSphere Replication Manager Virtual Appliance.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 10
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 
 ### -vrmsFolder
 
