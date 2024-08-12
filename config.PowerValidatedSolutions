@@ -25,7 +25,7 @@
             },
             {
                 "AriaComponent": "AriaSuiteLifecyclePsPack",
-                "Version": "PSPACK8"
+                "Version": "PSPACK9"
             },
             {
                 "AriaComponent": "AriaOperationsForLogs",
@@ -55,7 +55,7 @@
             },
             {
                 "AriaComponent": "AriaSuiteLifecyclePsPack",
-                "Version": "PSPACK3"
+                "Version": "PSPACK5"
             },
             {
                 "AriaComponent": "AriaOperationsForLogs",
