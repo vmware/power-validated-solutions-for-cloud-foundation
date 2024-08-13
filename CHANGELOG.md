@@ -4,6 +4,7 @@
 
 > Release Date: Not Released
 
+- Fixed `PowerValidatedSolutions.psd1` file where a typo existed for exporting the `Request-NsxtToken` cmdlet.
 - Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Access and add in the `admin` password to the VMware Aria Suite Lifecycle password locker.
 - Enhanced `Get-LocalAccountLockout` cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.
 - Enhanced `Export-DriJsonSpec` cmdlet to define the path to the Kubectl utility.
@@ -14,6 +15,7 @@
 - Enhanced `Install-SiteRecoveryManager` cmdlet to require a portgroup as an input.
 - Enhanced `Invoke-PdrDeployment` cmdlet to pass the new portgroup parameter to `Install-vSphereReplicationManager` and `Install-SiteRecoveryManager`.
 - Enhanced `Export-PdrJsonSpec` cmdlet to extract the range of replication IPs based on the populated Planning and Preparation workbook.
+- Enhanced `Request-NsxtToken` cmdlet to work with NSX Global Managers.
 
 ## v2.11.0
 
