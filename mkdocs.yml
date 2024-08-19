@@ -1012,6 +1012,7 @@ nav:
       - documentation/functions/supporting/Test-IpAddress.md
       - documentation/functions/supporting/Test-IPaddressArray.md
       - documentation/functions/supporting/Test-NtpServer.md
+      - documentation/functions/supporting/Test-PrereqDnsEntries.md
       - documentation/functions/supporting/Test-PowerValidatedSolutionsPrereq.md
     - Output:
       - documentation/functions/supporting/Show-PowerValidatedSolutionsOutput.md

@@ -4,9 +4,13 @@
 
 > Release Date: Not Released
 
+- Added `Test-PrereqDNSEntries` cmdlet to perform checks of the DNS resolution of a DNS entry or entries on a DNS server or servers.
+- Added `Resolve-ReverseLookup` cmdlet to check the reverse resolution of a DNS entry on a DNS server.
+- Added `Resolve-ForwardLookup` cmdlet to check the forward resolution of a DNS entry on a DNS server.
 - Fixed `PowerValidatedSolutions.psd1` file where a typo existed for exporting the `Request-NsxtToken` cmdlet.
 - Enhanced `Invoke-InvDeployment` cmdlet to remove the need for Workspace ONE Access and add in the `admin` password to the VMware Aria Suite Lifecycle password locker.
 - Enhanced `Get-LocalAccountLockout` cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.
+- Enhanced `Test-InvPrerequisite` cmdlet to test the components that will be configured to ensure that they are resolvable in DNS.
 - Enhanced `Export-DriJsonSpec` cmdlet to define the path to the Kubectl utility.
 - Enhanced `Start-DriMenu` cmdlet to use the new JSON value for the path to the Kubectl utility.
 - Enhanced `Deploy-PhotonAppliance` cmdlet with an input parameter for the portgroup to attach the Virtual Machine too.

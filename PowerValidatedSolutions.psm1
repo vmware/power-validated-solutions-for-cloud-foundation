@@ -21799,6 +21799,12 @@ Function Test-InvPrerequisite {
                         Test-PrereqBinaryNetworks -searchCriteria "VMware-Aria-Operations-for-Networks-$ariaOperationsForNetworksVersion" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Networks" # Verify a license key is present
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.ariaNetworksPlatformNodeaFqdn, $jsonInput.ariaNetworksCollectorNodeaFqdn
+                        $dnsServers = $jsonInput.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
                             {"user": "'+ $jsonInput.domainBindUser + '", "password": "' + $jsonInput.domainBindPass + '"},
@@ -59392,6 +59398,87 @@ Function Test-NtpServer {
 }
 Export-ModuleMember -Function Test-NtpServer
 
+Function Test-PrereqDnsEntries {
+    <#
+    .SYNOPSIS
+    Checks the DNS resolution of a DNS entry or entries on a DNS server or servers.
+
+    .DESCRIPTION
+    The Test-PrereqDnsEntries cmdlet checks for the resolution of a DNS record or multiple DNS records and tests the forward and reverse lookups in a DNS server or multiple DNS servers.
+
+    .EXAMPLE
+    Test-PrereqDnsEntries -dnsEntries sfo-vcf01.sfo.rainpole.io, 192.168.11.41 -dnsServers rpl-ad01.rainpole.io
+    This example will validate the forward and reverse details of the two DNS entries and if one exists in the DNS Server it will return the corresponding value.
+
+    .PARAMETER dnsEntries
+    The fully qualified domain name (FQDN) or IP address of the DNS entry or entries to check, separated by commas if checking more than one.
+
+    .PARAMETER dnsServers
+    The fully qualified domain name (FQDN) or IP address of the DNS server or servers to check for the DNS entry or entries in separated by commas if checking more than one.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String[]]$dnsEntries,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String[]]$dnsServers
+    )
+
+    $processedIps = @{}
+    $showProcessingMessage = $dnsEntries.Count -gt 1
+
+    foreach ($entry in $dnsEntries) {
+        if ($showProcessingMessage) {
+            Show-PowerValidatedSolutionsOutput -type "INFO" -message "Verifying DNS entry ($entry) is resolvable..."
+        }
+
+        # Check if the entry is an IP address.
+        if ([System.Net.IPAddress]::TryParse($entry, [ref]$null)) {
+            # Entry is an IP address, perform reverse lookup first.
+            $reverseResults = Resolve-ReverseLookup -ipv4 $entry -dnsServers $dnsServers
+            foreach ($result in $reverseResults) {
+                $type = if ($result.Status -eq "SUCCESSFUL") { "INFO" } else { "ERROR" }
+                Show-PowerValidatedSolutionsOutput -type $type -message "Reverse Lookup: ($($result.Entry)) $($result.Message) using DNS server ($($result.Server)): $($result.Status)"
+            }
+
+            $fqdn = $reverseResults | Where-Object { $_.Status -eq "SUCCESSFUL" } | Select-Object -ExpandProperty Message | ForEach-Object {
+                if ($_ -match 'resolved to (\S+)') {
+                    $matches[1]
+                }
+            } | Select-Object -First 1
+
+            if ($fqdn) {
+                $forwardResults = Resolve-ForwardLookup -fqdn $fqdn -dnsServers $dnsServers
+                foreach ($result in $forwardResults) {
+                    $type = if ($result.Status -eq "SUCCESSFUL") { "INFO" } else { "ERROR" }
+                    Show-PowerValidatedSolutionsOutput -type $type -message "Forward Lookup: ($($result.Entry)) resolved to ($($result.IPAddress)) using DNS server ($($result.Server)): $($result.Status)"
+                }
+            }
+
+            $processedIps[$entry] = $true
+        } else {
+            # Entry is a FQDN, perform forward lookup first.
+            $forwardResults = Resolve-ForwardLookup -fqdn $entry -dnsServers $dnsServers
+            foreach ($result in $forwardResults) {
+                $type = if ($result.Status -eq "SUCCESSFUL") { "INFO" } else { "ERROR" }
+                Show-PowerValidatedSolutionsOutput -type $type -message "Forward Lookup: ($($result.Entry)) resolved to ($($result.IPAddress)) using DNS server ($($result.Server)): $($result.Status)"
+            }
+
+            $ipAddresses = $forwardResults | Where-Object { $_.Status -eq "SUCCESSFUL" } | Select-Object -ExpandProperty IPAddress
+
+            foreach ($ipv4 in $ipAddresses) {
+                if (-not $processedIps.ContainsKey($ipv4)) {
+                    $reverseResults = Resolve-ReverseLookup -ipv4 $ipv4 -dnsServers $dnsServers -fqdn $entry
+                    foreach ($result in $reverseResults) {
+                        $type = if ($result.Status -eq "SUCCESSFUL") { "INFO" } else { "ERROR" }
+                        Show-PowerValidatedSolutionsOutput -type $type -message "Reverse Lookup: ($($result.Entry)) $($result.Message) using DNS server ($($result.Server)): $($result.Status)"
+                    }
+                    $processedIps[$ipv4] = $true
+                }
+            }
+        }
+    }
+}
+Export-ModuleMember -Function Test-PrereqDnsEntries
+
 Function Test-PrereqWorkloadDomains {
     Try {
         if (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }) {
@@ -59732,6 +59819,55 @@ Function Test-PrereqServiceAccount {
     } Catch {
         Debug-ExceptionWriter -object $_
     }
+}
+
+Function Resolve-ReverseLookup {
+    Param (
+        [Parameter (Mandatory = $true)] [String]$ipv4,
+        [Parameter (Mandatory = $true)] [String[]]$dnsServers,
+        [Parameter (Mandatory = $false)] [String]$fqdn
+    )
+
+    $results = @()
+    foreach ($dnsServer in $dnsServers) {
+        Try {
+            $ptrResult = Resolve-DnsName -Name $ipv4 -Server $dnsServer -ErrorAction Stop -Type PTR
+            $ptrHost = $ptrResult | Where-Object { $_.QueryType -eq 'PTR' } | Select-Object -ExpandProperty NameHost
+            if ($fqdn) {
+                if ($ptrHost -eq $fqdn) {
+                    $results += [PSCustomObject]@{ Entry = $ipv4; Server = $dnsServer; Type = "Reverse"; Status = "SUCCESSFUL"; Message = "resolved to ($ptrHost)"; FQDN = $ptrHost }
+                } else {
+                    $results += [PSCustomObject]@{ Entry = $ipv4; Server = $dnsServer; Type = "Reverse"; Status = "FAILED"; Message = "($ipv4) could not be resolved to ($fqdn)"; FQDN = $ptrHost }
+                }
+            } else {
+                $results += [PSCustomObject]@{ Entry = $ipv4; Server = $dnsServer; Type = "Reverse"; Status = "SUCCESSFUL"; Message = "resolved to $ptrHost"; FQDN = $ptrHost }
+            }
+        } Catch {
+            $errorMessage = $_.Exception.Message
+            $results += [PSCustomObject]@{ Entry = $ipv4; Server = $dnsServer; Type = "Reverse"; Status = "FAILED"; Message = "($ipv4) could not be resolved. Error: $errorMessage"; FQDN = $null }
+        }
+    }
+    return $results
+}
+
+Function Resolve-ForwardLookup {
+    Param (
+        [Parameter (Mandatory = $true)] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [String[]]$dnsServers
+    )
+
+    $results = @()
+    foreach ($dnsServer in $dnsServers) {
+        Try {
+            $aRecord = Resolve-DnsName -Name $fqdn -Server $dnsServer -ErrorAction Stop -Type A
+            $ipAddress = $aRecord | Where-Object { $_.QueryType -eq 'A' } | Select-Object -ExpandProperty IPAddress
+            $results += [PSCustomObject]@{ Entry = $fqdn; Server = $dnsServer; Type = "Forward"; Status = "SUCCESSFUL"; IPAddress = $ipAddress }
+        } Catch {
+            $errorMessage = $_.Exception.Message
+            $results += [PSCustomObject]@{ Entry = $fqdn; Server = $dnsServer; Type = "Forward"; Status = "FAILED"; Message = "$fqdn could not be resolved. Error: $errorMessage" }
+        }
+    }
+    return $results
 }
 
 #EndRegion  End of Test Functions                                            ######
