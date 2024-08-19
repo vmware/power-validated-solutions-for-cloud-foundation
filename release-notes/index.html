@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.30">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.32">
     
     
       
@@ -523,6 +523,15 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v2111" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.11.1
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v2110" class="md-nav__link">
@@ -22133,6 +22142,8 @@
       
         
       
+        
+      
     
     
       
@@ -22262,6 +22273,27 @@
   
   <span class="md-ellipsis">
     Test-NtpServer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/functions/supporting/Test-PrereqDnsEntries/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test-PrereqDnsEntries
   </span>
   
 
@@ -22616,6 +22648,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v2111" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.11.1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v2110" class="md-nav__link">
     <span class="md-ellipsis">
       v2.11.0
@@ -22890,6 +22931,28 @@
 
 
 <h1 id="release-history">Release History<a class="headerlink" href="#release-history" title="Permanent link">&para;</a></h1>
+<h2 id="v2111">v2.11.1<a class="headerlink" href="#v2111" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>Release Date: 2024-08-19</p>
+</blockquote>
+<ul>
+<li>Added <code>Test-PrereqDNSEntries</code> cmdlet to perform checks of the DNS resolution of a DNS entry or entries on a DNS server or servers.</li>
+<li>Added <code>Resolve-ReverseLookup</code> cmdlet to check the reverse resolution of a DNS entry on a DNS server.</li>
+<li>Added <code>Resolve-ForwardLookup</code> cmdlet to check the forward resolution of a DNS entry on a DNS server.</li>
+<li>Fixed <code>PowerValidatedSolutions.psd1</code> file where a typo existed for exporting the <code>Request-NsxtToken</code> cmdlet.</li>
+<li>Enhanced <code>Invoke-InvDeployment</code> cmdlet to remove the need for Workspace ONE Access and add in the <code>admin</code> password to the VMware Aria Suite Lifecycle password locker.</li>
+<li>Enhanced <code>Get-LocalAccountLockout</code> cmdlet to handle "null" values got as "Not Configured" when appliance is not configured.</li>
+<li>Enhanced <code>Test-InvPrerequisite</code> cmdlet to test the components that will be configured to ensure that they are resolvable in DNS.</li>
+<li>Enhanced <code>Export-DriJsonSpec</code> cmdlet to define the path to the Kubectl utility.</li>
+<li>Enhanced <code>Start-DriMenu</code> cmdlet to use the new JSON value for the path to the Kubectl utility.</li>
+<li>Enhanced <code>Deploy-PhotonAppliance</code> cmdlet with an input parameter for the portgroup to attach the Virtual Machine too.</li>
+<li>Enhanced <code>Export-PdrJsonSpec</code> cmdlet to export the management VM portgroup from the Planning and Preparation Workbook.</li>
+<li>Enhanced <code>Install-vSphereReplicationManager</code> cmdlet to require a portgroup as an input.</li>
+<li>Enhanced <code>Install-SiteRecoveryManager</code> cmdlet to require a portgroup as an input.</li>
+<li>Enhanced <code>Invoke-PdrDeployment</code> cmdlet to pass the new portgroup parameter to <code>Install-vSphereReplicationManager</code> and <code>Install-SiteRecoveryManager</code>.</li>
+<li>Enhanced <code>Export-PdrJsonSpec</code> cmdlet to extract the range of replication IPs based on the populated Planning and Preparation workbook.</li>
+<li>Enhanced <code>Request-NsxtToken</code> cmdlet to work with NSX Global Managers.</li>
+</ul>
 <h2 id="v2110">v2.11.0<a class="headerlink" href="#v2110" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Release Date: 2024-07-24</p>
@@ -24271,7 +24334,7 @@ The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.<br/><br
     <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.footer", "navigation.header", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.471ce7a9.min.js"></script>
       
         <script src="../js/timeago.min.js"></script>
       
