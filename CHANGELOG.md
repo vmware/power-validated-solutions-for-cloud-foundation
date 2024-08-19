@@ -2,7 +2,7 @@
 
 ## v2.11.1
 
-> Release Date: Not Released
+> Release Date: 2024-08-19
 
 - Added `Test-PrereqDNSEntries` cmdlet to perform checks of the DNS resolution of a DNS entry or entries on a DNS server or servers.
 - Added `Resolve-ReverseLookup` cmdlet to check the reverse resolution of a DNS entry on a DNS server.
