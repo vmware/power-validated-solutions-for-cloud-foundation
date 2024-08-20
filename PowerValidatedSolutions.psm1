@@ -31202,6 +31202,221 @@ Export-ModuleMember -Function Invoke-WsaDirectorySync
 #######################################################################################################################
 
 #######################################################################################################################
+#Region                            N S X   F E D E R A T I O N  F U N C T I O N S                           ###########
+
+Function Deploy-NsxtGlobalManager {
+    <#
+		.SYNOPSIS
+        Deploy an NSX Global Manager appliance
+
+        .DESCRIPTION
+        The Deploy-NsxtGlobalManager cmdlet deploys an NSX Global Manager appliance to a vSphere Cluster for a workload
+        domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the vCenter Server
+        - Deploys the NSX Global Manager appliance into a vSphere Cluster
+
+        .EXAMPLE
+        Deploy-NsxtGlobalManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-nsx-gm01a -portgroup sfo-m01-cl01-vds01-pg-vm-mgmt -ipAddress 10.11.10.82 -netmask "255.255.255.0" -gateway 10.11.10.1 -domain sfo.rainpole.io -dnsServer "10.11.10.4,10.11.10.5" -ntpServer ntp.sfo.rainpole.io -adminPassword VMw@re1!VMw@re1! -folder sfo-m01-fd-nsx -ovaPath .\nsx-unified.ova
+        This example deploys the NSX Global Manager appliance named sfo-m01-nsx-gm01a.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to deploy the NSX Global Manager appliance.
+
+        .PARAMETER hostname
+        The hostname of the NSX Global Manager.
+
+        .PARAMETER portgroup
+        The portgroup to attach to the NSX Global Manager appliance.
+
+        .PARAMETER domain
+        The domain namespace for the NSX Global Manager appliance.
+
+        .PARAMETER ipAddress
+        The IP address of the NSX Global Manager appliance.
+
+        .PARAMETER netmask
+        The netmask of the NSX Global Manager appliance.
+
+        .PARAMETER gateway
+        The gateway of the NSX Global Manager appliance.
+
+        .PARAMETER dnsServer
+        The DNS servers for the NSX Global Manager appliance.
+
+        .PARAMETER ntpServer
+        The NTP servers for the NSX Global Manager appliance.
+
+        .PARAMETER adminPassword
+        The admin password for the NSX Global Manager appliance.
+
+        .PARAMETER folder
+        The virtual machine folder to place the NSX Global Manager appliance.
+
+        .PARAMETER ovaPath
+        The path to the NSX Unified appliance OVA file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$netmask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dnsServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$deploymentOption = "medium",
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ovaPath
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("ovaPath")) {
+            $ovaPath = Get-ExternalFileName -title "Select the OVA file (.ova)" -fileType "ova" -location "default"
+        }
+        if (Test-Path -Path $ovaPath) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (!(Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore)) {
+                                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).Name
+                                    $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }).clusters.id) }).primaryDatastoreName
+                                    $datacenter = (Get-Datacenter -Cluster $cluster).Name
+                                    $nsxRole = '"NSX Global Manager"'
+                                    $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas --allowExtraConfig --diskMode=thin --powerOn --vmFolder=' + $folder + ' --name=' + $hostname + ' --network=' + $portgroup + ' --X:injectOvfEnv --prop:nsx_role=' + $nsxRole + ' --prop:DeploymentOption=' + $deploymentOption + ' --prop:nsx_ip_0=' + $ipAddress + ' --prop:nsx_netmask_0=' + $netmask + ' --prop:nsx_gateway_0=' + $gateway + ' --prop:nsx_dns1_0=' + $dnsServer + ' --prop:nsx_domain_0=' + $domain + ' --prop:nsx_ntp_0=' + $ntpServer + ' --prop:nsx_isSSHEnabled=' + "True" + ' --prop:nsx_allowSSHRootLogin=' + "False" + ' --prop:nsx_passwd_0=' + $adminPassword + ' --prop:nsx_cli_passwd_0=' + $adminPassword + ' --prop:nsx_cli_audit_passwd_0=' + $adminPassword + ' --prop:nsx_cli_username=admin --prop:nsx_cli_audit_username=audit --prop:nsx_hostname=' + $hostname + ' --datastore=' + $datastore + ' "' + $ovaPath + '" "vi://' + $vcfVcenterDetails.ssoAdmin + ':' + $vcfVcenterDetails.ssoAdminPass + '@' + $vcfVcenterDetails.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
+                                    Invoke-Expression -Command "& $command" -ErrorAction Ignore
+                                    (Get-VM -Name $hostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)
+                                    $Timeout = 1800  ## seconds
+                                    $CheckEvery = 60  ## seconds
+                                    Try {
+                                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                                        Write-Output "Waiting for NSX Global Manager instance ($hostname) using IP Address ($ipAddress) to become pingable"
+                                        While (-Not (Test-EndpointConnection -server $ipAddress -port 443 )) {
+                                            ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                            if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                                Write-Error "NSX Global Manager Instance ($hostname) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
+                                            }
+                                            Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                                        }
+                                    } Catch {
+                                        Write-Error "Failed to get a Response from NSX Global Manager Instance ($hostname): POST_VALIDATION_FAILURE"
+                                    } Finally {
+                                        $timer.Stop()  ## Stop the timer
+                                        if ((Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name).PowerState -eq "PoweredOn") {
+                                            Write-Output "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                } else {
+                                    Write-Warning "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        } else {
+            Write-Error "Unable to locate NSX Unified Appliance OVA ($ovaPath), File Not Found: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Deploy-NsxtGlobalManager
+
+Function Remove-NsxtGlobalManager {
+    <#
+		.SYNOPSIS
+        Remove a NSX Global Manager appliance.
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManager cmdlet removes the NSX Global Manager appliance from a vSphere Cluster of a
+        workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the vCenter Server
+        - Removes a NSX Global Manager Appliance from a vSphere Cluster
+
+        .EXAMPLE
+        Remove-NsxtGlobalManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -vmName sfo-m01-nsx-gm01a
+        This example removes the NSX Global Manager appliance named sfo-m01-nsx-gm01a.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain the Photon appliance is deployed to.
+
+        .PARAMETER vmName
+        The name of the virtual machine for the NSX Global Manager appliance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore ) {
+                                Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                Do { $powerState = (Get-VM -name $vmName | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
+                                Get-VM -name $vmName | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                if (!(Get-VM -name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
+                                    Write-Output "Removing the NSX Global Manager appliance ($vmName) from vCenter Server ($server): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing the NSX Global Manager appliance ($vmName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATIO_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing the NSX Global Manager appliance ($vmName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                            }
+                        }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManager
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
 #Region            S H A R E D  P O W E R  V A L I D A T E D  S O L U T I O N S  F U N C T I O N S          ###########
 
 Function Add-vCenterGlobalPermission {
