@@ -44349,6 +44349,101 @@ Function Set-NsxtMtuRemoteTunnelEndpoint {
 }
 Export-ModuleMember -Function Set-NsxtMtuRemoteTunnelEndpoint
 
+Function Get-NsxtGlobalManager {
+    <#
+        .SYNOPSIS
+        Retrieve a list of NSX Global Managers
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManager cmdlet retrieves a list of NSX Global Managers.
+
+        .EXAMPLE
+        Get-NsxtGlobalManager
+        This example retrieves a list of NSX Global Managers.
+
+        .EXAMPLE
+        Get-NsxtGlobalManager -id SFOGM
+        This example retrieves the details of the SFOGM NSX Global Manager.
+
+        .PARAMETER id
+        The ID of the Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("id")) {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$id"
+                Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManager
+
+Function Get-NsxtGlobalManagerConfig {
+    <#
+        .SYNOPSIS
+        Retrieve the NSX Global Manager configuration
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerConfig cmdlet retrieves the NSX Global Manager configuration.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerConfig
+        This example retrieves the NSX Global Manager configuration.
+    #>
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/federation-config"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).site_config
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerConfig
+
+Function Get-NsxtGlobalManagerOperationalState {
+    <#
+        .SYNOPSIS
+        Retrieve the NSX Global Manager operational state
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerOperationalState cmdlet retrieves the NSX Global Manager operational state.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerOperationalState
+        This example retrieves the NSX Global Manager operational state.
+    #>
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/gm-operational-state"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerOperationalState
+
+
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
 
