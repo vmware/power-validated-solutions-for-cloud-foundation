@@ -31599,6 +31599,205 @@ Function Undo-NsxtGlobalManagerVirtualIp {
 }
 Export-ModuleMember -Function Undo-NsxtGlobalManagerVirtualIp
 
+Function Add-NsxtRemoteTunnelEndpoint {
+    <#
+		.SYNOPSIS
+        Configures the Remote Tunnel Endpoint for NSX Federation.
+
+        .DESCRIPTION
+        The Add-NsxtRemoteTunnelEndpoint cmdlet configures the Remote Tunnel Endpoint for NSX Federation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the NSX Local Manager
+        - Creates an IP Pool for the Remote Tunnel Endpoint
+
+        .EXAMPLE
+        Add-NsxtRemoteTunnelEndpoint -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -ipPoolName sfo-m01-r01-ip-pool-rtep -startIpRange 10.11.20.101 -endIpRange 10.11.20.116 -cidr 10.11.20.0/24 -gateway 10.11.20.1 -mtu 9000
+        This example creates a IP pool for the Remote Tunnel Endpoint and sets the global configuration for the MTU
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to configure the Remote Tunnel Endpoint.
+
+        .PARAMETER ipPoolName
+        The name of the IP pool for the Remote Tunnel Endpoint.
+
+        .PARAMETER startIpRange
+        The start IP address for the IP pool range.
+
+        .PARAMETER endIpRange
+        The end IP address for the IP pool range.
+
+        .PARAMETER cidr
+        The CIDR for the IP pool range.
+
+        .PARAMETER gateway
+        The gateway for the IP pool range.
+
+        .PARAMETER mtu
+        The MTU to set for the global configuration for Remote Tunnel Endpoint. 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$startIpRange,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$endIpRange,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mtu
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (-Not (Get-NsxtIpPool -id $ipPoolName -ErrorAction Ignore)) {
+                                New-NsxtIpPool -poolName $ipPoolName -description "RTEP IP Pool" | Out-Null
+                                if (Get-NsxtIpPool -id $ipPoolName -ErrorAction Ignore) {
+                                    Write-Output "Creating NSX IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Creating NSX IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Creating NSX IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)), already exists: SKIPPED"
+                            }
+                            if (-Not (Get-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ErrorAction Ignore)) {
+                                New-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ipPoolSubnetId $ipPoolName -startIpRange $startIpRange -endIpRange $endIpRange -cidr $cidr -gateway $gateway | Out-Null
+                                if (Get-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ErrorAction Ignore) {
+                                    Write-Output "Creating NSX IP Pool Subnet ($startIpRange - $endIpRange) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Creating NSX IP Pool Subnet ($startIpRange - $endIpRange) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Creating NSX IP Pool Subnet ($startIpRange - $endIpRange) in NSX Manager instance ($($vcfNsxtDetails.fqdn)), already exists: SKIPPED"
+                            }
+                            if (-Not ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu)) {
+                                Set-NsxtMtuRemoteTunnelEndpoint -mtu $mtu | Out-Null
+                                if ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu) {
+                                    Write-Output "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtRemoteTunnelEndpoint
+
+Function Undo-NsxtRemoteTunnelEndpoint {
+    <#
+		.SYNOPSIS
+        Remove the Remote Tunnel Endpoint configuration for NSX Federation.
+
+        .DESCRIPTION
+        The Undo-NsxtRemoteTunnelEndpoint cmdlet removes the Remote Tunnel Endpoint configuration for NSX Federation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the NSX Local Manager
+        - Removes the IP Pool for the Remote Tunnel Endpoint
+
+        .EXAMPLE
+        Undo-NsxtRemoteTunnelEndpoint -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -ipPoolName sfo-m01-r01-ip-pool-rtep -mtu 1700
+        This example removes the IP pool for the Remote Tunnel Endpoint and sets the global configuration for the MTU
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to remove the Remote Tunnel Endpoint.
+
+        .PARAMETER ipPoolName
+        The name of the IP pool for the Remote Tunnel Endpoint.
+
+        .PARAMETER mtu
+        The MTU to set for the global configuration for Remote Tunnel Endpoint. 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mtu
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ErrorAction Ignore) {
+                                Remove-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ipPoolSubnetId $ipPoolName | Out-Null
+                                if (-Not (Get-NsxtIpPoolSubnet -ipPoolId $ipPoolName -ErrorAction Ignore)) {
+                                    Write-Output "Removing NSX IP Pool Subnet for IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing NSX IP Pool Subnet for IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing NSX IP Pool Subnet for IP Pool ($ipPoolName) in NSX Manager instance ($($vcfNsxtDetails.fqdn)), does not exist: SKIPPED"
+                            }
+                            if (Get-NsxtIpPool -id $ipPoolName -ErrorAction Ignore) {
+                                Remove-NsxtIpPool -id $ipPoolName | Out-Null
+                                if (-Not (Get-NsxtIpPool -id $ipPoolName -ErrorAction Ignore)) {
+                                    Write-Output "Removing NSX IP Pool ($ipPoolName) from NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing NSX IP Pool ($ipPoolName) from NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing NSX IP Pool ($ipPoolName) from NSX Manager instance ($($vcfNsxtDetails.fqdn)), does not exist: SKIPPED"
+                            }
+                            
+                            if (-Not ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu)) {
+                                Set-NsxtMtuRemoteTunnelEndpoint -mtu $mtu | Out-Null
+                                if ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu) {
+                                    Write-Output "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Setting NSX Remote Tunnel Endpoint MTU Global Configuration to ($mtu) in NSX Manager instance ($($vcfNsxtDetails.fqdn)), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtRemoteTunnelEndpoint
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -43809,6 +44008,346 @@ Function Remove-NsxtGlobalManagerClusterVirtualIp {
     }
 }
 Export-ModuleMember -Function Remove-NsxtGlobalManagerClusterVirtualIp
+
+Function Get-NsxtIpPool {
+    <#
+        .SYNOPSIS
+        Retrieve IPs pools
+
+        .DESCRIPTION
+        The Get-NsxtIpPool cmdlet retrieves the IP pools from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtIpPool
+        This example retrieves the IP pools from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtIpPool -id sfo-m01-r01-ip-pool-rtep
+        This example retrieves the IP pools with the supplied ID from NSX Manager.
+
+        .PARAMETER id
+        The ID of the IP Pool.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("id")) {
+                $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$id"
+                Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtIpPool
+
+Function New-NsxtIpPool {
+    <#
+        .SYNOPSIS
+        Create an IP pool
+
+        .DESCRIPTION
+        The New-NsxtIpPool cmdlet creates an IP pool in NSX Manager.
+
+        .EXAMPLE
+        New-NsxtIpPool -poolName sfo-m01-r01-ip-pool-rtep -description "RTEP IP Pool"
+        This example creates an IP pool in NSX Manager.
+
+        .PARAMETER poolName
+        The name of the IP Pool.
+
+        .PARAMETER description
+        The description of the IP Pool.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$poolName,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$description
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $ipPool = New-Object -TypeName psobject
+            $ipPool | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $poolName
+            $ipPool | Add-Member -Notepropertyname 'description' -Notepropertyvalue $description
+            $ipPool = $ipPool | ConvertTo-Json -Depth 5 
+            $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$poolName"
+            Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -Body $ipPool -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtIpPool
+
+Function Remove-NsxtIpPool {
+    <#
+        .SYNOPSIS
+        Delete an IP pool
+
+        .DESCRIPTION
+        The Remove-NsxtIpPool cmdlet deletes the IP pool from NSX Manager.
+
+        .EXAMPLE
+        Remove-NsxtIpPool -id sfo-m01-r01-ip-pool-rtep
+        This example deletes the IP pool with the supplied ID from NSX Manager.
+
+        .PARAMETER id
+        The ID of the IP Pool.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$id"
+            Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtIpPool
+
+Function Get-NsxtIpPoolSubnet {
+    <#
+        .SYNOPSIS
+        Retrieve IPs pools
+
+        .DESCRIPTION
+        The Get-NsxtIpPoolSubnet cmdlet retrieves the IP pools from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtIpPoolSubnet
+        This example retrieves all IP pools from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtIpPoolSubnet -ipPoolId sfo-m01-r01-ip-pool-rtep
+        This example retrieves the IP subnets for the supplied IP Pool ID from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtIpPoolSubnet -ipPoolId sfo-m01-r01-ip-pool-rtep -ipPoolSubnetId sfo-m01-r01-ip-pool-rtep
+        This example retrieves details of the IP pool subnet based on the supplied ipPoolSubnetId for the supplied IP Pool ID from NSX Manager.
+
+        .PARAMETER ipPoolId
+        The ID of the IP Pool.
+
+        .PARAMETER ipPoolSubnetId
+        The ID of the IP subnet Pool.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ipPoolSubnetId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("ipPoolSubnetId")) {
+                $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$ipPoolId/ip-subnets/$ipPoolSubnetId"
+                Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$ipPoolId/ip-subnets"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtIpPoolSubnet
+
+Function New-NsxtIpPoolSubnet {
+    <#
+        .SYNOPSIS
+        Create an IP pool subnet
+
+        .DESCRIPTION
+        The New-NsxtIpPoolSubnet cmdlet creates an IP pool subnet in NSX Manager.
+
+        .EXAMPLE
+        New-NsxtIpPoolSubnet -ipPoolId sfo-m01-r01-ip-pool-rtep -ipPoolSubnetId sfo-m01-r01-ip-pool-rtep -startIpRange 10.11.20.101 -endIpRange 10.11.20.116 -cidr 10.11.20.0/24 -gateway 10.11.20.1
+        This example creates an IP pool subnet for the given ipPoolId.
+
+        .PARAMETER ipPoolId
+        The name of the IP Pool.
+
+        .PARAMETER ipPoolSubnetId
+        The ID of the IP subnet Pool.
+
+        .PARAMETER startIpRange
+        The IP Address for the start of the IP pool range.
+
+        .PARAMETER endIpRange
+        The IP Address for the end of the IP pool range.
+
+        .PARAMETER cidr
+        The CIDR for the IP pool subnet.
+
+        .PARAMETER gateway
+        The gateway IP for the IP pool subnet.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolSubnetId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$startIpRange,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$endIpRange,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $ipRange = New-Object -TypeName psobject
+            $ipRange | Add-Member -notepropertyname 'start' -notepropertyvalue $startIpRange
+            $ipRange | Add-Member -notepropertyname 'end' -notepropertyvalue $endIpRange
+            $allocationRange = @()
+            $allocationRange += $ipRange
+
+            $ipPoolSubnet = New-Object -TypeName psobject
+            $ipPoolSubnet | Add-Member -Notepropertyname 'resource_type' -Notepropertyvalue "IpAddressPoolStaticSubnet"
+            $ipPoolSubnet | Add-Member -Notepropertyname 'allocation_ranges' -Notepropertyvalue $allocationRange
+            $ipPoolSubnet | Add-Member -Notepropertyname 'cidr' -Notepropertyvalue "$cidr"
+            $ipPoolSubnet | Add-Member -Notepropertyname 'gateway_ip' -Notepropertyvalue "$gateway"
+            $ipPoolSubnet = $ipPoolSubnet | ConvertTo-Json -Depth 5
+            $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$ipPoolId/ip-subnets/$ipPoolSubnetId"
+            Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -Body $ipPoolSubnet -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtIpPoolSubnet
+
+Function Remove-NsxtIpPoolSubnet {
+    <#
+        .SYNOPSIS
+        Delete an IP pool
+
+        .DESCRIPTION
+        The Remove-NsxtIpPoolSubnet cmdlet deletes the IP pool from NSX Manager.
+
+        .EXAMPLE
+        Remove-NsxtIpPoolSubnet -ipPoolId sfo-m01-r01-ip-pool-rtep -ipPoolSubnetId  sfo-m01-r01-ip-pool-rtep
+        This example deletes the IP subnet pool with the supplied IDs from NSX Manager.
+
+        .PARAMETER ipPoolId
+        The ID of the IP Pool.
+
+        .PARAMETER ipPoolSubnetId
+        The ID of the IP subnet Pool.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipPoolId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ipPoolSubnetId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$ipPoolId/ip-subnets/$ipPoolSubnetId"
+            Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtIpPoolSubnet
+
+Function Get-NsxtGlobalConfig {
+    <#
+        .SYNOPSIS
+        Retrieve global configuration from NSX Manager.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalConfig cmdlet retrieves the IP pools from NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalConfig -configType SwitchingGlobalConfig
+        This example retrieves the SwitchingGlobalConfig configuration from NSX Manager.
+
+        .PARAMETER configType
+        The global configuration type for NSX Manager. Can be one of 'EsxGlobalOpaqueConfig', 'FipsGlobalConfig', 'FirewallGlobalConfig', 'IdsGlobalConfig', 'OperationCollectorGlobalConfig', 'RoutingGlobalConfig', 'SecurityGlobalConfig', 'SwitchingGlobalConfig'.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('EsxGlobalOpaqueConfig', 'FipsGlobalConfig', 'FirewallGlobalConfig', 'IdsGlobalConfig', 'OperationCollectorGlobalConfig', 'RoutingGlobalConfig', 'SecurityGlobalConfig', 'SwitchingGlobalConfig')] [String]$configType
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/global-configs/$configType"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalConfig
+
+Function Set-NsxtMtuRemoteTunnelEndpoint {
+    <#
+        .SYNOPSIS
+        Set the MTU for the Remote Tunnel Endpoint
+
+        .DESCRIPTION
+        The Set-NsxtMtuRemoteTunnelEndpoint cmdlet configures the MTU for the Remote Tunnel Endpoint.
+
+        .EXAMPLE
+        Set-NsxtMtuRemoteTunnelEndpoint -mtu 9000
+        This example configures the MTU for the Remote Tunnel Endpoint.
+
+        .PARAMETER mtu
+        The MTU size for the Remote Tunnel Endpoint
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mtu
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $currentGlobalConfig = Get-NsxtGlobalConfig -configType SwitchingGlobalConfig
+            $mtuConfig = New-Object -TypeName psobject
+            $mtuConfig | Add-Member -Notepropertyname '_revision' -Notepropertyvalue $currentGlobalConfig._revision
+            $mtuConfig | Add-Member -Notepropertyname 'resource_type' -Notepropertyvalue "SwitchingGlobalConfig"
+            $mtuConfig | Add-Member -Notepropertyname 'remote_tunnel_physical_mtu' -Notepropertyvalue $mtu
+            $mtuConfig = $mtuConfig | ConvertTo-Json -Depth 5 
+            $uri = "https://$nsxtManager/api/v1/global-configs/SwitchingGlobalConfig"
+            Invoke-RestMethod -Method PUT -Uri $uri -Headers $nsxtHeaders -Body $mtuConfig -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtMtuRemoteTunnelEndpoint
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
