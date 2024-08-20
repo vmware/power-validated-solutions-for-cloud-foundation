@@ -16,6 +16,15 @@
 - Added `Remove-NsxtGlobalManagerClusterVirtualIp` cmdlet to remove a NSX Global Manager cluster virtual IP.
 - Added `Add-NsxtGlobalManagerVirtualIp` cmdlet to configure NSX Global Manager cluster virtual IP as part of the end-to-end workflow.
 - Added `Undo-NsxtGlobalManagerVirtualIp` cmdlet to remove the NSX Global Manager cluster virtual IP.
+- Added `Get-NsxtIpPool` cmdlet to retrieve a list of IP pools from NSX Manager.
+- Added `New-NsxtIpPool` cmdlet to create an IP pool in NSX Manager.
+- Added `Remove-NsxtIpPool` cmdlet to delete an IP pool from NSX Manager.
+- Added `Get-NsxtIpPoolSubnet` cmdlet to retrieve a list of IP pool subnets from NSX Manager.
+- Added `New-NsxtIpPoolSubnet` cmdlet to create an IP pool subnet in NSX Manager.
+- Added `Remove-NsxtIpPoolSubnet` cmdlet to delete an IP pool subnet from NSX Manager.
+- Added `Set-NsxtMtuRemoteTunnelEndpoint` cmdlet to set the global configuration of the MTU size for the Remote Tunnel Endpoint.
+- Added `Add-NsxtRemoteTunnelEndpoint` cmdlet to configure an IP pool for the Remote Tunnel Endpoint and set the MTU global configuration to support NSX Federation.
+- Added `Undo-NsxtRemoteTunnelEndpoint` cmdlet to remove an IP pool for the Remote Tunnel Endpoint and set the MTU global configuration to support NSX Federation.
 
 ## v2.11.1
 

@@ -1,4 +1,4 @@
-# Test-NSXTConnection
+# Test-NsxtConnection
 
 ## Synopsis
 
@@ -7,12 +7,12 @@ Check network connectivity to an NSX Manager.
 ## Syntax
 
 ```powershell
-Test-NSXTConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-NsxtConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-NSXTConnection` cmdlet checks the network connectivity to an NSX Manager.
+The `Test-NsxtConnection` cmdlet checks the network connectivity to an NSX Manager.
 Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
 ## Examples
@@ -20,7 +20,7 @@ Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (H
 ### Example 1
 
 ```powershell
-Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io
+Test-NsxtConnection -server sfo-m01-nsx01.sfo.rainpole.io
 ```
 
 This example checks network connectivity with an NSX Manager on default port, 443 (HTTPS).
@@ -28,7 +28,7 @@ This example checks network connectivity with an NSX Manager on default port, 44
 ### Example 2
 
 ```powershell
-Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 443
+Test-NsxtConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 443
 ```
 
 This example checks network connectivity with an NSX Manager on port 443 (HTTPS). This is the default port.
@@ -36,7 +36,7 @@ This example checks network connectivity with an NSX Manager on port 443 (HTTPS)
 ### Example 3
 
 ```powershell
-Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 22
+Test-NsxtConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 22
 ```
 
 This example checks network connectivity with an NSX Manager on port 22 (SSH).

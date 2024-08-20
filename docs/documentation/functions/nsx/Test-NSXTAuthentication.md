@@ -1,4 +1,4 @@
-# Test-NSXTAuthentication
+# Test-NsxtAuthentication
 
 ## Synopsis
 
@@ -7,19 +7,19 @@ Check Authentication to an NSX Manager.
 ## Syntax
 
 ```powershell
-Test-NSXTAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-NsxtAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-NSXTAuthentication` cmdlet checks Authentication to an NSX Manager.
+The `Test-NsxtAuthentication` cmdlet checks Authentication to an NSX Manager.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Test-NSXTAuthentication [-server] <String> [-user] <String> [-pass] <String>
+Test-NsxtAuthentication [-server] <String> [-user] <String> [-pass] <String>
 ```
 
 ## Parameters
