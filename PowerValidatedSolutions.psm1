@@ -31204,6 +31204,186 @@ Export-ModuleMember -Function Invoke-WsaDirectorySync
 #######################################################################################################################
 #Region                            N S X   F E D E R A T I O N  F U N C T I O N S                           ###########
 
+Function Export-NsxFederationJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for NSX Federation.
+
+        .DESCRIPTION
+        The Export-NsxFederationJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
+        to deploy NSX Federation:
+        - Validates that the Planning and Preparation workbooks are available
+        - Generates the JSON specification file using the Planning and Preparation workbooks
+
+        .EXAMPLE
+        Export-NsxFederationJsonSpec -protectedWorkbook .\pnp-workbook.xlsx -recoveryWorkbook .\pnp-workbook.xlsx -jsonFile .\nsxFederationDeploySpec.json
+        This example creates a JSON specification for NSX Federation using the Planning and Preparation Workbooks.
+
+        .PARAMETER protectedWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the protected site.
+
+        .PARAMETER recoveryWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the recovery site.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "NSX Federation"
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("protectedWorkbook")) {
+            $protectedWorkbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx) for the Protected Site" -fileType "xlsx" -location "default"
+        }
+        if (!$PsBoundParameters.ContainsKey("recoveryWorkbook")) {
+            $recoveryWorkbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx) for the Recovery Site" -fileType "xlsx" -location "default"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of $solutionName (.json) Specification File"
+        if (Test-Path -Path $protectedWorkbook) {
+            if (Test-Path -Path $recoveryWorkbook) {
+                $pnpProtectedWorkbook = Open-ExcelPackage -Path $protectedWorkbook
+                $pnpRecoveryWorkbook = Open-ExcelPackage -Path $recoveryWorkbook
+
+                $protectedObject = New-Object -TypeName PSCustomObject
+                $protectedObject | Add-Member -notepropertyname 'sddcManagerFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["sso_default_admin"].Value
+                $protectedObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                $protectedObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodeaHostname' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_hostname"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodeaIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodebFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodebHostname' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_hostname"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodebIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodecFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodecHostname' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_hostname"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmNodecIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'rootPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["nsxt_gm_root_password"].Value
+                $protectedObject | Add-Member -notepropertyname 'adminPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["nsxt_gm_admin_password"].Value
+                $protectedObject | Add-Member -notepropertyname 'auditPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["nsxt_gm_audit_password"].Value
+                $protectedObject | Add-Member -notepropertyname 'vmFolder' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-fd-nsx")
+                $protectedObject | Add-Member -notepropertyname 'portgroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_cl01_az1_mgmt_vm_pg"].Value
+                $protectedObject | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
+                $protectedObject | Add-Member -notepropertyname 'gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_vm_gateway_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_vm_mask"].Value
+                $protectedObject | Add-Member -notepropertyname 'domain' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_dns_zone"].Value
+                $protectedObject | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_dns_zone"].Value
+                $protectedObject | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ntp1_server"].Value
+                $protectedObject | Add-Member -notepropertyname 'nodeSize' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["sizing_m01_nsxt_gm_appliance_size"].Value).ToLower()
+                $protectedObject | Add-Member -notepropertyname 'antiAffinityRuleName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgr_anti_affinity_rule_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'vmList' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_hostname"].Value)
+                $protectedObject | Add-Member -notepropertyname 'rtepName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_ip_pool_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'rtepIpRangeStart' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_rtep_overlay_pool_start_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'rtepIpRangeEnd' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_rtep_overlay_pool_end_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'rtepGateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_gateway_ip"].Value
+                $protectedObject | Add-Member -notepropertyname 'rtepCidr' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_cidr"].Value
+                $protectedObject | Add-Member -notepropertyname 'rtepMtu' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_mtu"].Value -as [Int])
+
+                $recoveryObject = New-Object -TypeName PSCustomObject
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sso_default_admin"].Value
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodeaHostname' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodeaIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodebFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodebHostname' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodebIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodecFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodecHostname' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmNodecIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rootPassword' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["nsxt_gm_root_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'adminPassword' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["nsxt_gm_admin_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'auditPassword' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["nsxt_gm_audit_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmFolder' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-fd-nsx")
+                $recoveryObject | Add-Member -notepropertyname 'portgroup' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_cl01_az1_mgmt_vm_pg"].Value
+                $recoveryObject | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["xregion_dns1_ip"].Value + "," + $pnpRecoveryWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
+                $recoveryObject | Add-Member -notepropertyname 'gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_vm_gateway_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_vm_mask"].Value
+                $recoveryObject | Add-Member -notepropertyname 'domain' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["child_dns_zone"].Value
+                $recoveryObject | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["child_dns_zone"].Value
+                $recoveryObject | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_ntp1_server"].Value
+                $recoveryObject | Add-Member -notepropertyname 'nodeSize' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["sizing_m01_nsxt_gm_appliance_size"].Value).ToLower()
+                $recoveryObject | Add-Member -notepropertyname 'antiAffinityRuleName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgr_anti_affinity_rule_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmList' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_hostname"].Value + "," + $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrb_hostname"].Value + "," + $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgrc_hostname"].Value)
+                $recoveryObject | Add-Member -notepropertyname 'rtepName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_ip_pool_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rtepIpRangeStart' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_rtep_overlay_pool_start_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rtepIpRangeEnd' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_rtep_overlay_pool_end_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rtepGateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_gateway_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rtepCidr' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_cidr"].Value
+                $recoveryObject | Add-Member -notepropertyname 'rtepMtu' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_mtu"].Value -as [Int])
+
+                $jsonObject = New-Object -TypeName PSCustomObject
+                $jsonObject | Add-Member -notepropertyname 'protected' -notepropertyvalue $protectedObject
+                $jsonObject | Add-Member -notepropertyname 'recovery' -notepropertyvalue $recoveryObject
+                $jsonObject | Add-Member -notepropertyname 'organization' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_organization"].Value
+                $jsonObject | Add-Member -notepropertyname 'organizationalUnit' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_organization_unit"].Value
+                $jsonObject | Add-Member -notepropertyname 'country' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_country"].Value
+                $jsonObject | Add-Member -notepropertyname 'stateOrProvince' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_state"].Value
+                $jsonObject | Add-Member -notepropertyname 'locality' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_locality"].Value
+                if ($null -eq $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value) { $adminEmailAddress = "certificate-admin@" + $pnpProtectedWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $adminEmailAddress = $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value }
+                $jsonObject | Add-Member -notepropertyname 'adminEmailAddress' -notepropertyvalue $adminEmailAddress
+                $jsonObject | Add-Member -notepropertyname 'KeySize' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["ca_key_size"].Value -as [Int])
+                $jsonObject | Add-Member -notepropertyname 'mscaComputerName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+                $jsonObject | Add-Member -notepropertyname 'mscaName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["certificate_authority_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'certificateTemplate' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_template_name"].Value
+                $jsonObject | Add-Member -notepropertyname 'caUsername' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+                $jsonObject | Add-Member -notepropertyname 'caUserPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                $jsonObject | Add-Member -notepropertyname 'nsxOvaFile' -notepropertyvalue "nsx-unified-appliance-4.2.0.0.0.24029771.ova"
+
+                Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
+                Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
+                $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
+                Foreach ($jsonValue in $baseData.psobject.properties) {
+                    if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $protectedData = $protectedObject | ConvertTo-Json -Depth 12; $protectedData = $protectedData | ConvertFrom-Json
+                Foreach ($objectValue in $protectedData.psobject.properties) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Protected property: {0}' -f $objectValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $recoveryData = $recoveryObject | ConvertTo-Json -Depth 12; $recoveryData = $recoveryData | ConvertFrom-Json
+                Foreach ($objectValue in $recoveryData.psobject.properties) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Recovery property: {0}' -f $objectValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+                if ($issueWithJson) {
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for $solutionName, missing data: POST_VALIDATION_FAILED"
+                } else {
+                    Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for $solutionName : SUCCESSFUL"
+                }
+                Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Generation of $solutionName (.json) Specification File"
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($recoveryWorkbook) for the Recovery Site: File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($protectedWorkbook) for the Protected Site: File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-NsxFederationJsonSpec
+
 Function Deploy-NsxtGlobalManager {
     <#
 		.SYNOPSIS
