@@ -552,10 +552,13 @@ nav:
       - documentation/functions/nsx/Get-NsxtComputeManagerStatus.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerConfig.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtEdgeNode.md
       - documentation/functions/nsx/Get-NsxtEdgeNodeAuthPolicy.md
       - documentation/functions/nsx/Get-NsxtEvent.md
+      - documentation/functions/nsx/Get-NsxtGlobalManager.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
       - documentation/functions/nsx/Get-NsxtGroup.md

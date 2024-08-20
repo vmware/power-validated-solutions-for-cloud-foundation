@@ -25,6 +25,9 @@
 - Added `Set-NsxtMtuRemoteTunnelEndpoint` cmdlet to set the global configuration of the MTU size for the Remote Tunnel Endpoint.
 - Added `Add-NsxtRemoteTunnelEndpoint` cmdlet to configure an IP pool for the Remote Tunnel Endpoint and set the MTU global configuration to support NSX Federation.
 - Added `Undo-NsxtRemoteTunnelEndpoint` cmdlet to remove an IP pool for the Remote Tunnel Endpoint and set the MTU global configuration to support NSX Federation.
+- Added `Get-NsxtGlobalManager` cmdlet to retrieve a list of NSX Global Managers.
+- Added `Get-NsxtGlobalManagerConfig` cmdlet to retrieve the NSX Global Manager configuration.
+- Added 'Get-NsxtGlobalManagerOperationalState` cmdlet to retrieve the NSX Global Manager operational state.
 
 ## v2.11.1
 
