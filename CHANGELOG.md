@@ -11,6 +11,11 @@
 - Added `Join-NsxtGlobalManagerCluster` cmdlet to join an NSX Global Manager to a cluster.
 - Added `Remove-NsxtGlobalManagerClusterNode` cmdlet to remove an NSX Global Manager from a cluster.
 - Added `Add-NsxtGlobalManagerClusterNode` cmdlet to add an NSX Global Manager to a cluster.
+- Added `Get-NsxtGlobalManagerClusterVirtualIp` cmdlet to retrieve the NSX Global Manager cluster virtual IPs.
+- Added `Set-NsxtGlobalManagerClusterVirtualIp` cmdlet to configure a NSX Global Manager cluster virtual IP.
+- Added `Remove-NsxtGlobalManagerClusterVirtualIp` cmdlet to remove a NSX Global Manager cluster virtual IP.
+- Added `Add-NsxtGlobalManagerVirtualIp` cmdlet to configure NSX Global Manager cluster virtual IP as part of the end-to-end workflow.
+- Added `Undo-NsxtGlobalManagerVirtualIp` cmdlet to remove the NSX Global Manager cluster virtual IP.
 
 ## v2.11.1
 

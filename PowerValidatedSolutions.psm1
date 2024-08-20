@@ -31487,6 +31487,118 @@ Function Add-NsxtGlobalManagerClusterNode {
 }
 Export-ModuleMember -Function Add-NsxtGlobalManagerClusterNode
 
+Function Add-NsxtGlobalManagerVirtualIp {
+    <#
+        .SYNOPSIS
+        Configure the virtual ip for the NSX Global Manager cluster.
+
+        .DESCRIPTION
+        The Add-NsxtGlobalManagerVirtualIp cmdlet configures the virtual ip for the NSX Global Manager cluster.
+        - Validates that network connectivity and authentication is possible to NSX Global Manager
+        - Configures the virtual IP for the cluster
+
+        .EXAMPLE
+        Add-NsxtGlobalManagerVirtualIp -server sfo-m01-nsx-gm01a.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -virtualIp 10.11.10.81
+        This example configures the virtual IP address of the NSX Global Manager cluster.
+
+        .PARAMETER server
+        The fully qualified domain name of the NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the NSX Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the NSX Global Manager.
+
+        .PARAMETER virtualIp
+        The virtual IP to assign to the NSX Global Manager cluster.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$virtualIp
+    )
+    Try {
+        if (Test-NSXTConnection -server $server) {
+            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
+                if (-Not ((Get-NsxtGlobalManagerClusterVirtualIp).ip_address -eq $virtualIp )) {
+                    Set-NsxtGlobalManagerClusterVirtualIp -virtualIp $virtualIp | Out-Null
+                    if (((Get-NsxtGlobalManagerClusterVirtualIp).ip_address -eq $virtualIp)) {
+                        Write-Output "Assigning Virtual IP address ($virtualIp) to NSX Global Manager ($server): SUCCESSFUL"
+                    } else {
+                        Write-Error "Assigning Virtual IP address ($virtualIp) to NSX Global Manager ($server): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Assigning Virtual IP address ($virtualIp) to NSX Global Manager ($server), already exists: SKIPPED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtGlobalManagerVirtualIp
+
+Function Undo-NsxtGlobalManagerVirtualIp {
+    <#
+        .SYNOPSIS
+        Remove the virtual ip for a NSX Global Manager cluster.
+
+        .DESCRIPTION
+        The Undo-NsxtGlobalManagerVirtualIp cmdlet removes the virtual ip for a NSX Global Manager cluster.
+        - Validates that network connectivity and authentication is possible to NSX Global Manager
+        - Removes the virtual IP for the NSX Global Manager cluster
+
+        .EXAMPLE
+        Undo-NsxtGlobalManagerVirtualIp -server sfo-m01-nsx-gm01a.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -virtualIp 10.11.10.81
+        This example removes the virtual IP address of the NSX Global Manager cluster.
+
+        .PARAMETER server
+        The fully qualified domain name of the NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the NSX Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the NSX Global Manager.
+
+        .PARAMETER virtualIp
+        The virtual IP to assign to the NSX Global Manager cluster.
+
+        .PARAMETER protocol
+        The protocol to remove the cluster virtual IP. (One of IPv4 or IPv6)
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$virtualIp,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [ipaddress]$protocol
+    )
+    Try {
+        if (Test-NSXTConnection -server $server) {
+            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
+                if (((Get-NsxtGlobalManagerClusterVirtualIp).ip_address -eq $virtualIp )) {
+                    Remove-NsxtGlobalManagerClusterVirtualIp -protocol IPv4 | Out-Null
+                    if (-Not ((Get-NsxtGlobalManagerClusterVirtualIp).ip_address -eq $virtualIp)) {
+                        Write-Output "Removing Virtual IP address ($virtualIp) to NSX Global Manager ($server): SUCCESSFUL"
+                    } else {
+                        Write-Error "Removing Virtual IP address ($virtualIp) to NSX Global Manager ($server): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Removing Virtual IP address ($virtualIp) to NSX Global Manager ($server), already exists: SKIPPED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtGlobalManagerVirtualIp
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -43597,6 +43709,106 @@ Function Remove-NsxtGlobalManagerClusterNode {
     }
 }
 Export-ModuleMember -Function Remove-NsxtGlobalManagerClusterNode
+
+Function Get-NsxtGlobalManagerClusterVirtualIp {
+    <#
+        .SYNOPSIS
+        Retrieve the NSX Global Manager cluster virtual IPs
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerClusterVirtualIp cmdlet retrieves the NSX Global Manager cluster virtual IPs.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerClusterVirtualIp
+        This example retrieves the NSX Global Manager cluster virtual IPs.
+    #>
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/cluster/api-virtual-ip"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerClusterVirtualIp
+
+Function Set-NsxtGlobalManagerClusterVirtualIp {
+    <#
+        .SYNOPSIS
+        Configures a NSX Global Manager cluster virtual IP
+
+        .DESCRIPTION
+        The Set-NsxtGlobalManagerClusterVirtualIp cmdlet configures an NSX Global Manager cluster virtual IP.
+
+        .EXAMPLE
+        Set-NsxtGlobalManagerClusterVirtualIp -virtualIp 172.20.11.81
+        This example configures the IPv4 NSX Global Manager cluster virtual IP.
+
+        .PARAMETER virtualIp
+        The IP address of the cluster virtual IP.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [ipaddress]$virtualIp
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/cluster/api-virtual-ip?action=set_virtual_ip&ip_address=$virtualIp"
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtGlobalManagerClusterVirtualIp
+
+Function Remove-NsxtGlobalManagerClusterVirtualIp {
+    <#
+        .SYNOPSIS
+        Remove a NSX Global Manager cluster virtual IP
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManagerClusterVirtualIp cmdlet removes a NSX Global Manager cluster virtual IP.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerClusterVirtualIp -protocol IPv4
+        This example removes the IPv4 NSX Global Manager cluster virtual IP.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerClusterVirtualIp -protocol IPv6
+        This example removes the IPv6 NSX Global Manager cluster virtual IP.
+
+        .PARAMETER protocol
+        The protocol to remove the cluster virtual IP. (One of IPv4 or IPv6)
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('IPv4', 'IPv6')] [String]$protocol
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($protocol -eq 'IPv4') {
+                $uri = "https://$nsxtManager/api/v1/cluster/api-virtual-ip?action=clear_virtual_ip"
+            } elseif ($protocol -eq 'IPv6') {
+                $uri = "https://$nsxtManager/api/v1/cluster/api-virtual-ip?action=clear_virtual_ip6"
+            }
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManagerClusterVirtualIp
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
