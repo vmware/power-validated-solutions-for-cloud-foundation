@@ -31413,6 +31413,80 @@ Function Remove-NsxtGlobalManager {
 }
 Export-ModuleMember -Function Remove-NsxtGlobalManager
 
+Function Add-NsxtGlobalManagerClusterNode {
+    <#
+        .SYNOPSIS
+        Add a NSX Global Manager instance to the cluster.
+
+        .DESCRIPTION
+        The Add-NsxtGlobalManagerClusterNode cmdlet adds an NSX Global Manager instance to the cluster.
+        - Validates that network connectivity and authentication is possible to primary NSX Global Manager instance
+        - Validates that network connectivity and authentication is possible to NSX Global Manager instance
+        - Adds the NSX Global Manager instance to the cluster
+
+        .EXAMPLE
+        Add-NsxtGlobalManagerClusterNode -server sfo-m01-nsx-gm01a.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -primaryIp 10.11.10.82 -nodeFqdn sfo-m01-nsx-gm01b.sfo.rainpole.io -nodeIp 10.11.10.83
+        This example adds the NSX Global Manager instance to the NSX Global Manager cluster.
+
+        .PARAMETER server
+        The fully qualified domain name of the primary NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the primary NSX Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the primary NSX Global Manager.
+
+        .PARAMETER primaryIp
+        The IP Address of the primary NSX Global Manager instance.
+
+        .PARAMETER nodeFqdn
+        The fqdn of the NSX Global Manager instance to join to the cluster.
+
+        .PARAMETER nodeIp
+        The IP Address of the NSX Global Manager instance to join to the cluster.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$primaryIp,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$nodeFqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$nodeIp
+    )
+    Try {
+        if (Test-NSXTConnection -server $server) {
+            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
+                if (-Not (Get-NsxtGlobalManagerClusterStatus -onlineNodes | Where-Object { $_.mgmt_cluster_listen_ip_address -eq $nodeIp } )) {
+                    $clusterId = (Get-NsxtGlobalManagerCluster).cluster_id
+                    $thumprint = Get-SHA256Thumbprint -url "https://$server"
+                    if (Test-NSXTConnection -server $nodeFqdn) {
+                        if (Test-NSXTAuthentication -server $nodeFqdn -user $user -pass $pass) {
+                            Join-NsxtGlobalManagerCluster -clusterId $clusterId -ipAddress $primaryIp -username $user -password $pass -thumbprint $thumprint | Out-Null
+                            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
+                                Do {
+                                    $clusterStatus = Get-NsxtGlobalManagerClusterStatus -status
+                                } Until ($clusterStatus -eq "STABLE")
+                                if ((Get-NsxtGlobalManagerClusterStatus -onlineNodes | Where-Object { $_.mgmt_cluster_listen_ip_address -eq $nodeIp } )) {
+                                    Write-Output "Joining NSX Global Manager instance ($nodeFqdn) to NSX Global Manager Cluster: SUCCESSFUL"
+                                } else {
+                                    Write-Error "Joining NSX Global Manager instance ($nodeFqdn) to NSX Global Manager Cluster: POST_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Warning "Joining NSX Global Manager instance ($nodeFqdn) to NSX Global Manager Cluster, already exists: SKIPPED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtGlobalManagerClusterNode
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -43364,6 +43438,165 @@ Function Remove-NsxtGroup {
     }
 }
 Export-ModuleMember -Function Remove-NsxtGroup
+
+Function Get-NsxtGlobalManagerClusterStatus {
+    <#
+        .SYNOPSIS
+        Retrieve the NSX Global Manager cluster state
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerClusterStatus cmdlet retrieves the NSX Global Manager cluster state.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerClusterStatus
+        This example retrieves the NSX Global Manager cluster state.
+
+        .PARAMETER onlineNodes
+        Display the online nodes only.
+
+        .PARAMETER status
+        Display the status of the cluster.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [Switch]$onlineNodes,
+        [Parameter (Mandatory = $false)] [Switch]$status
+    ) 
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/cluster/status"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders -SkipCertificateCheck
+            if ($PsBoundParameters.ContainsKey("onlineNodes")) { 
+                $response.mgmt_cluster_status.online_nodes
+            } elseif ($PsBoundParameters.ContainsKey("status")) { 
+                $response.mgmt_cluster_status.status
+            } else {
+                $response.detailed_cluster_status
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerClusterStatus
+
+Function Get-NsxtGlobalManagerCluster {
+    <#
+        .SYNOPSIS
+        Retrieve the NSX Global Manager cluster details
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerCluster cmdlet retrieves the NSX Global Manager cluster details.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerCluster
+        This example retrieves the NSX Global Manager cluster details.
+    #>
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/cluster"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerCluster
+
+Function Join-NsxtGlobalManagerCluster {
+    <#
+        .SYNOPSIS
+        Join an NSX Global Manager to a cluster.
+
+        .DESCRIPTION
+        The Join-NsxtGlobalManagerCluster cmdlet joins an NSX Global Manager to a cluster.
+
+        .EXAMPLE
+        Join-NsxtGlobalManagerCluster -clusterId 7e5c5246-1569-4fb8-9bc7-79dd6963bead -ipAddress 172.20.11.82 -username admin -password VMw@re1!VMw@re1! -thumbprint 85:E1:AD:39:22:8D:4B:E4:A3:1C:27:E2:BF:F0:A9:45:8C:68:F0:FC:92:7B:A6:AA:04:F3:6F:46:EB:E6:B4:4B
+        This example joins an NSX Global Manager to a cluster.
+
+        .PARAMETER clusterId
+        The ID of the cluster to join.
+
+        .PARAMETER ipAddress
+        The IP address of the cluster to join.
+
+        .PARAMETER username
+        The username to authenticate of the cluster to join.
+
+        .PARAMETER password
+        The password to authenticate of the cluster to join.
+
+        .PARAMETER thumbprint
+        The sha256 certificate thumbprint of the cluster to join.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$clusterId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$thumbprint
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $body = New-Object -TypeName psobject
+            $body | Add-Member -Notepropertyname 'cluster_id' -Notepropertyvalue $clusterId
+            $body | Add-Member -Notepropertyname 'ip_address' -Notepropertyvalue $ipAddress
+            $body | Add-Member -Notepropertyname 'username' -Notepropertyvalue $username
+            $body | Add-Member -Notepropertyname 'password' -Notepropertyvalue $password
+            $body | Add-Member -Notepropertyname 'certficate_sha256_thumbprint' -Notepropertyvalue $thumbprint
+            $body = $body | ConvertTo-Json -Depth 5 
+            $uri = "https://$nsxtManager/api/v1/cluster?action=join_cluster"
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -Body $body -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Join-NsxtGlobalManagerCluster
+
+Function Remove-NsxtGlobalManagerClusterNode {
+    <#
+        .SYNOPSIS
+        Remove an NSX Global Manager from a cluster.
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManagerClusterNode cmdlet removes an NSX Global Manager from a cluster.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerClusterNode -uuid f1563a42-ebe0-406b-3255-8d8fbc70cb91 
+        This example removes an NSX Global Manager from a cluster.
+
+        .PARAMETER uuid
+        The unique identifier for the node to be removed from the cluster.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$uuid
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/cluster/$uuid`?action=remove_node"
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManagerClusterNode
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
