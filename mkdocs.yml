@@ -528,6 +528,8 @@ nav:
     - NSX:
       - documentation/functions/nsx/Add-CertToNsxCertificateStore.md
       - documentation/functions/nsx/Add-NetworkSegment.md
+      - documentation/functions/nsx/Add-NsxtGlobalManagerClusterNode.md
+      - documentation/functions/nsx/Add-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Add-NsxtIdentitySource.md
       - documentation/functions/nsx/Add-NsxtLdapRole.md
       - documentation/functions/nsx/Add-NsxtNodeProfileSyslogExporter.md
@@ -547,10 +549,13 @@ nav:
       - documentation/functions/nsx/Get-NsxtCertificate.md
       - documentation/functions/nsx/Get-NsxtComputeManager.md
       - documentation/functions/nsx/Get-NsxtComputeManagerStatus.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Get-NsxtEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtEdgeNode.md
       - documentation/functions/nsx/Get-NsxtEdgeNodeAuthPolicy.md
       - documentation/functions/nsx/Get-NsxtEvent.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
       - documentation/functions/nsx/Get-NsxtGroup.md
       - documentation/functions/nsx/Get-NsxtLdap.md
@@ -585,6 +590,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtVidmGroup.md
       - documentation/functions/nsx/Get-NsxtVidmStatus.md
       - documentation/functions/nsx/Get-NsxtVidmUser.md
+      - documentation/functions/nsx/Join-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/New-NsxtLBAppProfile.md
       - documentation/functions/nsx/New-NsxtLBPersistenceAppProfile.md
       - documentation/functions/nsx/New-NsxtLBPool.md
@@ -602,6 +608,8 @@ nav:
       - documentation/functions/nsx/New-NsxtTier1StaticRoute.md
       - documentation/functions/nsx/New-vRealizeLoadBalancerSpec.md
       - documentation/functions/nsx/Remove-NsxtGlobalManager.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterNode.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
       - documentation/functions/nsx/Remove-NsxtLdap.md
       - documentation/functions/nsx/Remove-NsxtNodeProfileSyslogExporter.md
@@ -618,6 +626,7 @@ nav:
       - documentation/functions/nsx/Set-NsxtCertificate.md
       - documentation/functions/nsx/Set-NsxtComputeManager.md
       - documentation/functions/nsx/Set-NsxtEdgeNodeAuthPolicy.md
+      - documentation/functions/nsx/Set-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Set-NsxtManagerAuthPolicy.md
       - documentation/functions/nsx/Set-NsxtNodeProfileSyslogExporter.md
       - documentation/functions/nsx/Set-NsxtRole.md
@@ -629,13 +638,14 @@ nav:
       - documentation/functions/nsx/Test-NSXTAuthentication.md
       - documentation/functions/nsx/Test-NSXTConnection.md
       - documentation/functions/nsx/Undo-NetworkSegment.md
+      - documentation/functions/nsx/Undo-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Undo-NsxtIdentitySource.md
       - documentation/functions/nsx/Undo-NsxtLdapRole.md
       - documentation/functions/nsx/Undo-NsxtNodeProfileSyslogExporter.md
-      - documentation/functions/nsx/Undo-RouteMap.md
       - documentation/functions/nsx/Undo-NsxtPrincipalIdentity.md
       - documentation/functions/nsx/Undo-NsxtVidmRole.md
       - documentation/functions/nsx/Undo-PrefixList.md
+      - documentation/functions/nsx/Undo-RouteMap.md
     - SDDC Manager:
       - documentation/functions/sddc-manager/Add-SddcManagerRole.md
       - documentation/functions/sddc-manager/Get-VCFDnsSearchDomain.md
