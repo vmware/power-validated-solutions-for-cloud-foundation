@@ -6,6 +6,11 @@
 
 - Added `Deploy-NsxGlobalManager` cmdlet to deploy a NSX Global Manager appliance.
 - Added `Remove-NsxGlobalManager` cmdlet to remove a NSX Global Manager appliance.
+- Added `Get-NsxtGlobalManagerClusterStatus` cmdlet to retrieve the NSX Global Manager cluster state.
+- Added `Get-NsxtGlobalManagerCluster` cmdlet to retrieve the NSX Global Manager cluster details.
+- Added `Join-NsxtGlobalManagerCluster` cmdlet to join an NSX Global Manager to a cluster.
+- Added `Remove-NsxtGlobalManagerClusterNode` cmdlet to remove an NSX Global Manager from a cluster.
+- Added `Add-NsxtGlobalManagerClusterNode` cmdlet to add an NSX Global Manager to a cluster.
 
 ## v2.11.1
 
