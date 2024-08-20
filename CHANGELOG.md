@@ -1,5 +1,12 @@
 # Release History
 
+## v2.12.0
+
+> Release Date: (Not Released)
+
+- Added `Deploy-NsxGlobalManager` cmdlet to deploy a NSX Global Manager appliance.
+- Added `Remove-NsxGlobalManager` cmdlet to remove a NSX Global Manager appliance.
+
 ## v2.11.1
 
 > Release Date: 2024-08-19
