@@ -9481,7 +9481,7 @@ Function Copy-vRealizeLoadBalancer {
 
         #Add Cert to NSX
         $nsxManager = Get-NsxtServerDetail -fqdn $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPassword -domainType MANAGEMENT
-        Request-NsxToken -fqdn $nsxManager.fqdn -username $nsxManager.adminUser -password $nsxManager.adminPass | Out-Null
+        Request-NsxtToken -fqdn $nsxManager.fqdn -username $nsxManager.adminUser -password $nsxManager.adminPass | Out-Null
 
         #Get xint segment ID from NSX LM on recovery site
         $segmentID = Get-NsxtGlobalSegmentID -segmentName $xintSegmentDetails.name
@@ -39628,8 +39628,7 @@ public static class Placeholder {
         Write-Error $_.Exception.Message
     }
 }
-New-Alias -name Request-NsxToken -Value Request-NsxtToken
-Export-ModuleMember -Alias Request-NsxToken -Function Request-NsxtToken
+Export-ModuleMember -Function Request-NsxtToken
 
 Function Get-NsxtComputeManager {
     <#
