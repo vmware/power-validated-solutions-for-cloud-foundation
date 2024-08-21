@@ -5,6 +5,7 @@
 > Release Date: (Not Released)
 
 - Added `Export-NsxFederationJsonSpec` cmdlet to generate a JSON specification file for NSX Federation.
+- Added `Invoke-NsxFederationDeployment` cmdlet to perform end-to-end automation of NSX Federation for VMware Cloud Foundation.
 - Added `Deploy-NsxGlobalManager` cmdlet to deploy a NSX Global Manager appliance.
 - Added `Remove-NsxGlobalManager` cmdlet to remove a NSX Global Manager appliance.
 - Added `Get-NsxtGlobalManagerClusterStatus` cmdlet to retrieve the NSX Global Manager cluster state.
