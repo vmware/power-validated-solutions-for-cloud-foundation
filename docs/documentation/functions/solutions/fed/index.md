@@ -13,3 +13,4 @@ Select an option for the solution Prerequisites.
     | Function                                                                                                | Type                  |
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Export-NsxFederationJsonSpec`](Export-NsxFederationJsonSpec.md)                                       | End-to-End Deployment |
+    | [`Invoke-NsxFederationDeployment`](Invoke-NsxFederationDeployment.md)                                   | End-to-End Deployment |
