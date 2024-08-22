@@ -32211,32 +32211,32 @@ Function Test-NsxVersionCompatibility {
         The Test-NsxVersionCompatibility cmdlet checks the NSX version compatibility between the active and standby NSX Global Manager.
 
         .EXAMPLE
-        Test-NsxVersionCompatibility -standbyServer  "lax-m01-nsx-gm01.lax.rainpole.io" -standbyServerUser admin -standbyServerPass "VMw@re1!VMw@re1!"
+        Test-NsxVersionCompatibility -fqdn  "lax-m01-nsx-gm01.lax.rainpole.io" -username  admin -password "VMw@re1!VMw@re1!"
         This example checks the NSX version compatibility between the active and standby NSX Global Manager.
         
-        .PARAMETER standbyServer
+        .PARAMETER fqdn
         The fully qualified domain name of the standby NSX Global Manager.
 
-        .PARAMETER standbyServerUser
+        .PARAMETER username
         The username to authenticate to the standby NSX Global Manager.
 
-        .PARAMETER standbyServerPass
+        .PARAMETER password
         The password to authenticate to the standby NSX Global Manager.
     #>
     
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerPass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
     )
 
     Try {
         if ($nsxtHeaders.Authorization) {
                 $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
                 $body = @{
-                    fqdn = $standbyServer
-                    username = $standbyServerUser
-                    password = $standbyServerPass
+                    fqdn = $fqdn
+                    username = $username
+                    password = $password
                     thumbprint = $gmNodeThumbprint
                 } | ConvertTo-Json -Depth 2
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/onboarding-check-compatibility"
