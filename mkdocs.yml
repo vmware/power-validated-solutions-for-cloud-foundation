@@ -555,6 +555,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerConfig.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtEdgeNode.md
@@ -599,6 +600,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtVidmStatus.md
       - documentation/functions/nsx/Get-NsxtVidmUser.md
       - documentation/functions/nsx/Join-NsxtGlobalManagerCluster.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/New-NsxtIpPool.md
       - documentation/functions/nsx/New-NsxtIpPoolSubnet.md
       - documentation/functions/nsx/New-NsxtLBAppProfile.md
@@ -620,6 +622,7 @@ nav:
       - documentation/functions/nsx/Remove-NsxtGlobalManager.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterVirtualIp.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
       - documentation/functions/nsx/Remove-NsxtIpPool.md
       - documentation/functions/nsx/Remove-NsxtIpPoolSubnet.md

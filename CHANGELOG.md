@@ -30,11 +30,14 @@
 - Added `Get-NsxtGlobalManager` cmdlet to retrieve a list of NSX Global Managers.
 - Added `Get-NsxtGlobalManagerConfig` cmdlet to retrieve the NSX Global Manager configuration.
 - Added `Get-NsxtGlobalManagerOperationalState` cmdlet to retrieve the NSX Global Manager operational state.
-- Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
+- Added `Get-NsxtGlobalManagerLocation` cmdlet to retrieve the locations configured in an NSX Global Manager.
+- Added `New-NsxtGlobalManagerLocation` cmdlet to configure a new location in an NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerLocation` cmdlet to delete a location configured in an NSX Global Manager.
 - Added `Set-NsxtGloblaManagerActive` cmdlet to set the NSX Global Manager to Active mode.
 - Added `Set-NsxtGloblaManagerStandby` cmdlet to set the NSX Global Manager to standby mode.
 - Added `Test-NsxtVersionCompatibility` cmdlet to check the NSX version compatibility between NSX Managers.
 - Added `Add-NsxtGlobalManagerMode` cmdlet to configure the NSX Global Manager to Active or Standby mode.
+- Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
 
