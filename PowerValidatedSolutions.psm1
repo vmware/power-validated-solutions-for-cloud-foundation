@@ -32125,7 +32125,7 @@ Function Set-NsxtGloblaManagerActive {
 
     Try {
         if ($nsxtHeaders.Authorization) {
-               $gmMode= "ACTIVE"
+               $mode= "ACTIVE"
                $body = @{
                     display_name = $displayName
                     mode         = "ACTIVE"
@@ -32297,8 +32297,12 @@ Function Add-NsxtGlobalManagerMode {
         - Configures the NSX Global Manager to active or standby mode
 
         .EXAMPLE
-        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass "VMw@re1!VMw@re1!" -gmMode STANDBY -displayName LAX01 -standbyServer sfo-m01-nsx-gm01c.sfo.rainpole.io -standbyServerUser admin1 -standbyServerPass "VMw@re1!VMw@re1!"
-        This example sets the virtual IP address of the NSX Global Manager cluster.
+        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass "VMw@re1!VMw@re1!" -mode Active -displayName sfo-m01-nsx-gm01
+        This example sets the NSX Global Manager to active mode.
+
+        .EXAMPLE
+        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass "VMw@re1!VMw@re1!" -mode STANDBY -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass "VMw@re1!VMw@re1!"
+        This example sets the NSX Global Manager to standby mode.
 
         .PARAMETER server
         The fully qualified domain name of the NSX Global Manager.
@@ -32309,7 +32313,7 @@ Function Add-NsxtGlobalManagerMode {
         .PARAMETER pass
         The password to authenticate to the NSX Global Manager.
 
-        .PARAMETER gmMode
+        .PARAMETER mode
         The mode (ACTIVE or STANDBY) to be configured to the NSX Global Manager.
 
         .PARAMETER displayName
@@ -32329,7 +32333,7 @@ Function Add-NsxtGlobalManagerMode {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateSet("ACTIVE", "STANDBY")] [String]$gmMode,
+        [Parameter (Mandatory = $true)] [ValidateSet("ACTIVE", "STANDBY")] [String]$mode,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$standbyServerUser,
@@ -32337,13 +32341,13 @@ Function Add-NsxtGlobalManagerMode {
     )
 
     Try {
-        if (Test-NSXTConnection -server $server) {
-            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                if (-Not ((Get-NsxtGlobalManagerMode -displayName $displayName) -eq $gmMode)) {
-                    if ($gmMode -eq "ACTIVE"){
+        if (Test-NsxtConnection -server $server) {
+            if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
+                if (-Not ((Get-NsxtGlobalManagerMode -displayName $displayName) -eq $mode)) {
+                    if ($mode -eq "ACTIVE"){
                     Set-NsxtGloblaManagerActive -displayName $displayName | Out-Null
                     }
-                    elseif ($gmMode -eq "STANDBY") {
+                    elseif ($mode -eq "STANDBY") {
                         if (Test-NsxVersionCompatibility -standbyServer $standbyServer -standbyServerUser $standbyServerUser -standbyServerPass $standbyServerPass) {
                         Set-NsxtGloblaManagerStandby -displayName $displayName -standbyServer  $standbyServer -standbyServerUser $standbyServerUser -standbyServerPass $standbyServerPass | Out-Null
                         }
@@ -32351,13 +32355,13 @@ Function Add-NsxtGlobalManagerMode {
                             Write-Error "Checking NSX version compatibility : PRE_VALIDATION_FAILED"
                         }
                         }
-                    if ((Get-NsxtGlobalManagerMode -displayName $displayName) -eq $gmMode) {
-                        Write-Output "Assigning $gmMode mode to NSX Global Manager ($server): SUCCESSFUL"
+                    if ((Get-NsxtGlobalManagerMode -displayName $displayName) -eq $mode) {
+                        Write-Output "Assigning $mode mode to NSX Global Manager ($server): SUCCESSFUL"
                     } else {
-                        Write-Error "Assigning $gmMode mode to NSX Global Manager ($server): POST_VALIDATION_FAILED" 
+                        Write-Error "Assigning $mode mode to NSX Global Manager ($server): POST_VALIDATION_FAILED" 
                     }
                 } else {
-                    Write-Warning "Assigning $gmMode mode to NSX Global Manager ($server), already exists: SKIPPED"
+                    Write-Warning "Assigning $mode mode to NSX Global Manager ($server), already exists: SKIPPED"
                 }
             }
         } 
