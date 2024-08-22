@@ -44830,103 +44830,102 @@ Function Get-NsxtGlobalManagerOperationalState {
 }
 Export-ModuleMember -Function Get-NsxtGlobalManagerOperationalState
 
-    Function Set-NsxtGloblaManagerActive {
-        <#
-            .SYNOPSIS
-            Sets the NSX Global Manager to active mode.
+Function Set-NsxtGloblaManagerActive {
+    <#
+        .SYNOPSIS
+        Sets the NSX Global Manager to active mode.
 
-            .DESCRIPTION
-            The Set-NsxtGloblaManagerActive cmdlet sets the NSX Global Manager to active mode.
+        .DESCRIPTION
+        The Set-NsxtGloblaManagerActive cmdlet sets the NSX Global Manager to active mode.
 
-            .EXAMPLE
-            Set-NsxtGloblaManagerActive -displayName sfo-m01-nsx-gm01
-            This example sets the NSX Global Manager to Active mode with the display name sfo-m01-nsx-gm01.
+        .EXAMPLE
+        Set-NsxtGloblaManagerActive -displayName sfo-m01-nsx-gm01
+        This example sets the NSX Global Manager to Active mode with the display name sfo-m01-nsx-gm01.
 
-            .PARAMETER displayName
-            Display name to be assigned to the active NSX Global Manager.
-        #>
+        .PARAMETER displayName
+        Display name to be assigned to the active NSX Global Manager.
+    #>
 
-        Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
-        )
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
+    )
 
-        Try {
-            if ($nsxtHeaders.Authorization) {
-                $mode= "ACTIVE"
-                $body = @{
-                    display_name = $displayName
-                    mode         = "ACTIVE"
-                } | ConvertTo-Json -Depth 2
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-                Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
-            }
-            else {
-                Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-            }
-        } Catch {
-            Write-Error $_.Exception.Message
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $mode= "ACTIVE"
+            $body = @{
+                display_name = $displayName
+                mode         = "ACTIVE"
+            } | ConvertTo-Json -Depth 2
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
         }
+        else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
-    Export-ModuleMember -Function Set-NsxtGloblaManagerActive
+}
+Export-ModuleMember -Function Set-NsxtGloblaManagerActive
 
-    Function Set-NsxtGloblaManagerStandby {
-        <#
-            .SYNOPSIS
-            Set the NSX Global Manager to standby mode.
+Function Set-NsxtGloblaManagerStandby {
+    <#
+        .SYNOPSIS
+        Set the NSX Global Manager to standby mode.
 
-            .DESCRIPTION
-            The Set-NsxtGlobalManagerMode cmdlet sets the NSX Global Manager to standby mode.
+        .DESCRIPTION
+        The Set-NsxtGlobalManagerMode cmdlet sets the NSX Global Manager to standby mode.
 
-            .EXAMPLE
-            Set-NsxtGlobalManagerMode -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass VMw@re1!VMw@re1!
-            This example sets the NSX Global Manager to standby mode.
-            
-            .PARAMETER displayName
-            Display name to be assigned to the standby NSX Global Manager.
-
-            .PARAMETER standbyServer
-            The fully qualified domain name of the standby NSX Global Manager.
-
-            .PARAMETER standbyServerUser
-            The username to authenticate to the standby NSX Global Manager.
-
-            .PARAMETER standbyServerPass
-            The password to authenticate to the standby NSX Global Manager.
-        #>
+        .EXAMPLE
+        Set-NsxtGlobalManagerMode -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass VMw@re1!VMw@re1!
+        This example sets the NSX Global Manager to standby mode.
         
-        Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName,  
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerPass
-        )
+        .PARAMETER displayName
+        Display name to be assigned to the standby NSX Global Manager.
 
-        Try {
-            if ($nsxtHeaders.Authorization) {
-                #Custom Object to create json body for Connection Info
-                $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
-                $connectionDetails = New-Object -TypeName psobject
-                $connectionDetails | Add-Member -Notepropertyname 'fqdn' -Notepropertyvalue $standbyServer
-                $connectionDetails | Add-Member -Notepropertyname 'username' -Notepropertyvalue $user
-                $connectionDetails | Add-Member -Notepropertyname 'password' -Notepropertyvalue $pass
-                $connectionDetails | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $gmNodeThumbprint
-                $connection = @()
-                $connection += $connectionDetails
-                $body = New-Object -TypeName psobject
-                $body | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $displayName
-                $body | Add-Member -Notepropertyname 'connection_info' -Notepropertyvalue $connection
-                $body | Add-Member -Notepropertyname 'mode' -Notepropertyvalue "STANDBY"
-                $body = $body | ConvertTo-Json -Depth 5
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-                Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
-            }
-            else {
-                Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-            }
-        } Catch {
-            Write-Error $_.Exception.Message
+        .PARAMETER standbyServer
+        The fully qualified domain name of the standby NSX Global Manager.
+
+        .PARAMETER standbyServerUser
+        The username to authenticate to the standby NSX Global Manager.
+
+        .PARAMETER standbyServerPass
+        The password to authenticate to the standby NSX Global Manager.
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName,  
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerPass
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
+            $connectionDetails = New-Object -TypeName psobject
+            $connectionDetails | Add-Member -Notepropertyname 'fqdn' -Notepropertyvalue $standbyServer
+            $connectionDetails | Add-Member -Notepropertyname 'username' -Notepropertyvalue $user
+            $connectionDetails | Add-Member -Notepropertyname 'password' -Notepropertyvalue $pass
+            $connectionDetails | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $gmNodeThumbprint
+            $connection = @()
+            $connection += $connectionDetails
+            $body = New-Object -TypeName psobject
+            $body | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $displayName
+            $body | Add-Member -Notepropertyname 'connection_info' -Notepropertyvalue $connection
+            $body | Add-Member -Notepropertyname 'mode' -Notepropertyvalue "STANDBY"
+            $body = $body | ConvertTo-Json -Depth 5
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
         }
+        else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
+}
 Export-ModuleMember -Function Set-NsxtGloblaManagerStandby 
 
 Function Test-NsxtVersionCompatibility {
@@ -44968,8 +44967,7 @@ Function Test-NsxtVersionCompatibility {
             } | ConvertTo-Json -Depth 2
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/onboarding-check-compatibility"
             Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -body $body -SkipCertificateCheck
-        }
-        else {
+        } else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
@@ -44977,6 +44975,152 @@ Function Test-NsxtVersionCompatibility {
     }
 }
 Export-ModuleMember -Function Test-NsxtVersionCompatibility
+
+Function Get-NsxtGlobalManagerLocation {
+    <#
+        .SYNOPSIS
+        Retrieve the locations configured in NSX Global Manager
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerLocation cmdlet retrieves the locations configured in an NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerLocation
+        This example retrieves all locations configured in an NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerLocation -location sfo-m01
+        This example retrieves the location sfo-m01 from an NSX Global Manager.
+
+        .PARAMETER location
+        The name of the location.
+
+        .PARAMETER conflictCheck
+        Check for conflicts.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$location,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$conflictCheck
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("location") -and $PsBoundParameters.ContainsKey("conflictCheck")) {
+                $body = New-Object -TypeName psobject
+                $body | Add-Member -Notepropertyname 'site_id' -Notepropertyvalue $location
+                $body | Add-Member -Notepropertyname 'prefix' -Notepropertyvalue ""
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding?action=check_conflict"
+                Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -Body ($body | ConvertTo-Json) -SkipCertificateCheck
+            } elseif ($PsBoundParameters.ContainsKey("location")) {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location"
+                Invoke-RestMethod -Uri $uri -Method GET -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites"
+                (Invoke-RestMethod -Uri $uri -Method GET -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerLocation
+
+Function New-NsxtGlobalManagerLocation {
+    <#
+        .SYNOPSIS
+        Configure a location in the location manager.
+
+        .DESCRIPTION
+        The New-NsxtGlobalManagerLocation cmdlet configures a location in the location manager of the NSX Global Manager.
+
+        .EXAMPLE
+        New-NsxtGlobalManagerLocation -fqdn sfo-m01-nsx01.sfo.rainpole.io -username admin -password VMw@re1!VMw@re1! -location sfo-m01
+        This example creates a new location in the local manager of the connected NSX Manager.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager.
+
+        .PARAMETER username
+        The username to authenticate to the NSX Manager.
+
+        .PARAMETER password
+        The password to authenticate to the NSX Manager.
+
+        .PARAMETER location
+        The name of the location to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ((Test-NsxtVersionCompatibility -fqdn $fqdn -username $username -password $password).version_compatible) {
+                $thumbprint = (Get-SHA256Thumbprint -url "https://$fqdn").replace(":", "")
+                $locationDetails = New-Object -TypeName psobject
+                $locationDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $fqdn
+                $locationDetails	| Add-Member -notepropertyname 'username' -notepropertyvalue $username
+                $locationDetails | Add-Member -notepropertyname 'password' -notepropertyvalue $password
+                $locationDetails | Add-Member -notepropertyname 'thumbprint' -notepropertyvalue $thumbprint
+                $siteConnection = @()
+                $siteConnection += $locationDetails
+                $body = New-Object -TypeName psobject
+                $body | Add-Member -Notepropertyname 'site_connection_info' -Notepropertyvalue $siteConnection
+                $body | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $location
+                $body = $body | ConvertTo-json -Depth 5
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location"
+                Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck
+            } else {
+                Write-Error "NSX Manager ($fqdn) not compatable with NSX Global Manager ($nsxManager)"
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtGlobalManagerLocation
+
+Function Remove-NsxtGlobalManagerLocation {
+    <#
+        .SYNOPSIS
+        Deletes the location configured in NSX Global Manager
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManagerLocation cmdlet deletes the location configured in an NSX Global Manager.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerLocation -location sfo-m01
+        This example deletes the location sfo-m01 from an NSX Global Manager.
+
+        .PARAMETER location
+        The name of the location.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$location
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location"
+            Invoke-RestMethod -Uri $uri -Method DELETE -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManagerLocation
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
