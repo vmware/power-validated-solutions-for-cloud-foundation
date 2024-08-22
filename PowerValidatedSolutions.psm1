@@ -31255,6 +31255,7 @@ Function Export-NsxFederationJsonSpec {
                 $protectedObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["sso_default_admin"].Value
                 $protectedObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 $protectedObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                $protectedObject | Add-Member -notepropertyname 'gmName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_federation_global_manager_name"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
@@ -31292,6 +31293,7 @@ Function Export-NsxFederationJsonSpec {
                 $recoveryObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sso_default_admin"].Value
                 $recoveryObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 $recoveryObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gmName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_federation_global_manager_name"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
@@ -31445,7 +31447,7 @@ Function Invoke-NsxFederationDeployment {
             }
 
             if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager Nodes to Form a Cluster for $solutionName"
+                Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager Nodes to form a Cluster for $solutionName"
                 if ($singleGlobalManager -eq "N") {
                     foreach ($site in $sites) {
                         Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager node ($($site.gmNodebHostname)) to the cluster, please be paitent..."
@@ -31486,6 +31488,11 @@ Function Invoke-NsxFederationDeployment {
             }
 
             if (!$failureDetected) {
+                # TODO
+                #Show-PowerValidatedSolutionsOutput -message Replacing Global Manager Cluster Certificates for $solutionName"
+            }
+
+            if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Prepare NSX Local Manager for $solutionName"
                 foreach ($site in $sites) {
                     $StatusMsg = Add-NsxtRemoteTunnelEndpoint -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -ipPoolName $site.rtepName -startIpRange $site.rtepIpRangeStart -endIpRange $site.rtepIpRangeEnd -cidr $site.rtepCidr -gateway $site.rtepGateway -mtu $site.rtepMtu -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -31494,6 +31501,31 @@ Function Invoke-NsxFederationDeployment {
                     } else {
                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                     }
+                }
+            }
+
+            if (!$failureDetected) {
+                Show-PowerValidatedSolutionsOutput -message "Set Active Global Manager for $solutionName"
+                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode ACTIVE -displayName $jsonInput.protected.gmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+            }
+
+            if (!$failureDetected) {
+                # TODO
+                #Show-PowerValidatedSolutionsOutput -message "Add Location to Global Manager for $solutionName"
+            }
+
+            if (!$failureDetected) {
+                Show-PowerValidatedSolutionsOutput -message "Set Standby Global Manager for $solutionName"
+                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode STANDBY -displayName $jsonInput.recovery.gmName -standbyServer $jsonInput.recovery.gmClusterFqdn -standbyServerUser admin -standbyServerPass $jsonInput.recovery.adminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
             }
 
@@ -32114,11 +32146,11 @@ Function Add-NsxtGlobalManagerMode {
         - Configures the NSX Global Manager to active or standby mode
 
         .EXAMPLE
-        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -mode Active -displayName sfo-m01-nsx-gm01
+        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -mode ACTIVE -displayName sfo-m01-nsx-gm01
         This example sets the NSX Global Manager to active mode.
 
         .EXAMPLE
-        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -mode STANDBY -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass "VMw@re1!VMw@re1!"
+        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -mode STANDBY -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass VMw@re1!VMw@re1!
         This example sets the NSX Global Manager to standby mode.
 
         .PARAMETER server
@@ -32160,23 +32192,23 @@ Function Add-NsxtGlobalManagerMode {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                if (-Not ((Get-NsxtGlobalManager -id $displayName).mode -eq $mode)) {
+                if (-Not ((Get-NsxtGlobalManager -id $displayName -ErrorAction Ignore).mode -eq $mode)) {
                     if ($mode -eq "ACTIVE"){
                         Set-NsxtGloblaManagerActive -displayName $displayName | Out-Null
                     } elseif ($mode -eq "STANDBY") {
-                        if ((Test-NsxtVersionCompatibility -standbyServer $standbyServer -standbyServerUser $standbyServerUser -standbyServerPass $standbyServerPass).version_compatible -eq "True") {
+                        if ((Test-NsxtVersionCompatibility -fqdn $standbyServer -username $standbyServerUser -password $standbyServerPass).version_compatible -eq "True") {
                             Set-NsxtGloblaManagerStandby -displayName $displayName -standbyServer $standbyServer -standbyServerUser $standbyServerUser -standbyServerPass $standbyServerPass | Out-Null
                         } else {
                             Write-Error "Checking NSX version compatibility: PRE_VALIDATION_FAILED"
                         }
                     }
                     if ((Get-NsxtGlobalManager -id $displayName).mode -eq $mode) {
-                        Write-Output "Assigning $mode mode to NSX Global Manager ($server): SUCCESSFUL"
+                        Write-Output "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server): SUCCESSFUL"
                     } else {
-                        Write-Error "Assigning $mode mode to NSX Global Manager ($server): POST_VALIDATION_FAILED" 
+                        Write-Error "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server): POST_VALIDATION_FAILED" 
                     }
                 } else {
-                    Write-Warning "Assigning $mode mode to NSX Global Manager ($server), already exists: SKIPPED"
+                    Write-Warning "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server), already exists: SKIPPED"
                 }
             }
         } 
@@ -44852,7 +44884,6 @@ Function Set-NsxtGloblaManagerActive {
 
     Try {
         if ($nsxtHeaders.Authorization) {
-            $mode= "ACTIVE"
             $body = @{
                 display_name = $displayName
                 mode         = "ACTIVE"
@@ -44903,15 +44934,15 @@ Function Set-NsxtGloblaManagerStandby {
 
     Try {
         if ($nsxtHeaders.Authorization) {
-            $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
+            $thumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
             $connectionDetails = New-Object -TypeName psobject
             $connectionDetails | Add-Member -Notepropertyname 'fqdn' -Notepropertyvalue $standbyServer
-            $connectionDetails | Add-Member -Notepropertyname 'username' -Notepropertyvalue $user
-            $connectionDetails | Add-Member -Notepropertyname 'password' -Notepropertyvalue $pass
-            $connectionDetails | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $gmNodeThumbprint
+            $connectionDetails | Add-Member -Notepropertyname 'username' -Notepropertyvalue $standbyServerUser
+            $connectionDetails | Add-Member -Notepropertyname 'password' -Notepropertyvalue $standbyServerPass
+            $connectionDetails | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $thumbprint
             $connection = @()
             $connection += $connectionDetails
-            $body = New-Object -TypeName psobject
+            $Global:body = New-Object -TypeName psobject
             $body | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $displayName
             $body | Add-Member -Notepropertyname 'connection_info' -Notepropertyvalue $connection
             $body | Add-Member -Notepropertyname 'mode' -Notepropertyvalue "STANDBY"
