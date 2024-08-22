@@ -62586,17 +62586,9 @@ Function Start-PdrMenu {
                 Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
             }
 
-            if ($commonObject) {
-                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-            } else {
-                $menuTitle = "$submenuTitle"
-            }
+            Write-MenuHeader
             Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            if ($commonObject) {
-                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
-                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
-            }
-
+            
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
