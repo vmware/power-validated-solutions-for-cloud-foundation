@@ -61479,12 +61479,12 @@ Function Resolve-ForwardLookup {
 
 Function Write-MenuHeader {
     if ($commonObject) {
-        # $menuTitle = "PT Version $utilityBuild | PVS Version $pvsBuild | Topology: $($commonObject.environment.topology) ($rackEnvironment) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
-        # Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-        # Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) | Cluster Utilization:" -foregroundcolor Green -nonewline
-        # Write-Host " Memory $clusterMemoryUsage%," -ForegroundColor Green -NoNewline
-        # Write-Host " Storage $clusterStorageUsage%," -ForegroundColor Green -NoNewline
-        # Write-Host " CPU $clusterCpuUsage%" -ForegroundColor Green
+        $menuTitle = "PT Version $utilityBuild | PVS Version $pvsBuild | Topology: $($commonObject.environment.topology) ($rackEnvironment) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+        Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+        Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) | Cluster Utilization:" -foregroundcolor Green -nonewline
+        Write-Host " Memory $clusterMemoryUsage%," -ForegroundColor Green -NoNewline
+        Write-Host " Storage $clusterStorageUsage%," -ForegroundColor Green -NoNewline
+        Write-Host " CPU $clusterCpuUsage%" -ForegroundColor Green
     } else {
         $vvsTitle = "Version $powerValidatedSolutionsVersion | $submenuTitle"
         Write-Host ""; Write-Host " $vvsTitle" -ForegroundColor Cyan
