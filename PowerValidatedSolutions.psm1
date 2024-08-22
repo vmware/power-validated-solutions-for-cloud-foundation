@@ -32112,8 +32112,8 @@ Function Set-NsxtGloblaManagerActive {
         The Set-NsxtGloblaManagerActive cmdlet configures the NSX Global Manager to Active mode.
 
         .EXAMPLE
-        Set-NsxtGloblaManagerActive -displayName "SF001" 
-        This example configures the NSX Global Manager to Active mode with the display name SFO01.
+        Set-NsxtGloblaManagerActive -displayName sfo-m01-nsx-gm01
+        This example sets the NSX Global Manager to Active mode with the display name sfo-m01-nsx-gm01.
        
         .PARAMETER displayName
         Display name to be assinged to the active NSX Global Manager.
@@ -32131,10 +32131,7 @@ Function Set-NsxtGloblaManagerActive {
                     mode         = "ACTIVE"
                 } | ConvertTo-Json -Depth 2
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-                $response = Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
-            if ($response) { 
-                Write-Output "Configuring the $nsxtManager NSX Global Manager as ($gmMode) : SUCCESSFUL"
-            }
+                Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
         }
         else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
@@ -32154,8 +32151,8 @@ Function Set-NsxtGloblaManagerStandby {
         The Set-NsxtGlobalManagerMode cmdlet configures the NSX Global Manager to standby mode.
 
         .EXAMPLE
-        Set-NsxtGlobalManagerMode -displayName "LAX01" -standbyServer  "lax-m01-nsx-gm01.lax.rainpole.io" -standbyServerUser admin -standbyServerPass "VMw@re123!VMw@re123!"
-        This example configures the NSX Global Manager to standby mode.
+        Set-NsxtGlobalManagerMode -displayName lax-m01-nsx-gm01 -standbyServer  "lax-m01-nsx-gm01.lax.rainpole.io" -standbyServerUser admin -standbyServerPass "VMw@re1!VMw@re1!"
+        This example sets the NSX Global Manager to standby mode.
         
         .PARAMETER displayName
         Display name to be assinged to the standby NSX Global Manager.
@@ -32180,25 +32177,21 @@ Function Set-NsxtGloblaManagerStandby {
     Try {
         if ($nsxtHeaders.Authorization) {
                 #Custom Object to create json body for Connection Info
-                $gmnodethumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
-                $connection_info = New-Object -TypeName psobject
-                $connection_info | Add-Member -Notepropertyname 'fqdn' -Notepropertyvalue $standbyServer
-                $connection_info | Add-Member -Notepropertyname 'username' -Notepropertyvalue $user
-                $connection_info | Add-Member -Notepropertyname 'password' -Notepropertyvalue $pass
-                $connection_info | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $gmnodethumbprint
-                $conn_info = @()
-                $conn_info += $connection_info
+                $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
+                $connectionDetails = New-Object -TypeName psobject
+                $connectionDetails | Add-Member -Notepropertyname 'fqdn' -Notepropertyvalue $standbyServer
+                $connectionDetails | Add-Member -Notepropertyname 'username' -Notepropertyvalue $user
+                $connectionDetails | Add-Member -Notepropertyname 'password' -Notepropertyvalue $pass
+                $connectionDetails | Add-Member -Notepropertyname 'thumbprint' -Notepropertyvalue $gmNodeThumbprint
+                $connection = @()
+                $connection += $connectionDetails
                 $body = New-Object -TypeName psobject
                 $body | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $displayName
-                $body | Add-Member -Notepropertyname 'connection_info' -Notepropertyvalue $conn_info
+                $body | Add-Member -Notepropertyname 'connection_info' -Notepropertyvalue $connection
                 $body | Add-Member -Notepropertyname 'mode' -Notepropertyvalue "STANDBY"
                 $body = $body | ConvertTo-Json -Depth 5
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-                $response = Invoke-RestMethod -Uri $uri -Method PUT -Headers $Global:nsxtHeaders -body $body -SkipCertificateCheck 
-            # Check the result of setting the secondary Global Manager as standby
-            if ($response) { 
-                Write-Output "Configuring the $nsxtManager NSX Global Manager as STANDBY : SUCCESSFUL"
-            }
+                Invoke-RestMethod -Uri $uri -Method PUT -Headers $Global:nsxtHeaders -body $body -SkipCertificateCheck 
         }
         else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
@@ -32218,7 +32211,7 @@ Function Test-NsxVersionCompatibility {
         The Test-NsxVersionCompatibility cmdlet checks the NSX version compatibility between the active and standby NSX Global Manager.
 
         .EXAMPLE
-        Test-NsxVersionCompatibility -standbyServer  "lax-m01-nsx-gm01.lax.rainpole.io" -standbyServerUser admin -standbyServerPass "VMw@re123!VMw@re123!"
+        Test-NsxVersionCompatibility -standbyServer  "lax-m01-nsx-gm01.lax.rainpole.io" -standbyServerUser admin -standbyServerPass "VMw@re1!VMw@re1!"
         This example checks the NSX version compatibility between the active and standby NSX Global Manager.
         
         .PARAMETER standbyServer
@@ -32239,12 +32232,12 @@ Function Test-NsxVersionCompatibility {
 
     Try {
         if ($nsxtHeaders.Authorization) {
-                $gmnodethumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
+                $gmNodeThumbprint = (Get-SHA256Thumbprint -url "https://$standbyServer").replace(":", "")
                 $body = @{
                     fqdn = $standbyServer
                     username = $standbyServerUser
                     password = $standbyServerPass
-                    thumbprint = $gmnodethumbprint
+                    thumbprint = $gmNodeThumbprint
                 } | ConvertTo-Json -Depth 2
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/onboarding-check-compatibility"
                 (Invoke-RestMethod -Uri $uri -Method POST -Headers $Global:nsxtHeaders -body $body -SkipCertificateCheck).version_compatible
@@ -32267,7 +32260,7 @@ Function Get-NsxtGlobalManagerMode {
         The Get-NsxtGlobalManagerMode cmdlet retrieves the mode of NSX Global Manager.
 
         .EXAMPLE
-        Get-NsxtGlobalManagerMode -displayName "SF001" 
+        Get-NsxtGlobalManagerMode -displayName sfo-m01-nsx-gm01
         This example retrieves the mode of the NSX Global Manager.
        
         .PARAMETER displayName
@@ -32304,8 +32297,8 @@ Function Add-NsxtGlobalManagerMode {
         - Configures the NSX Global Manager to active or standby mode
 
         .EXAMPLE
-        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass "VMw@re123!VMw@re123!" -gmMode STANDBY -displayName LAX01 -standbyServer sfo-m01-nsx-gm01c.sfo.rainpole.io -standbyServerUser admin1 -standbyServerPass "VMw@re123!VMw@re123!"
-        This example configures the virtual IP address of the NSX Global Manager cluster.
+        Add-NsxtGlobalManagerMode -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass "VMw@re1!VMw@re1!" -gmMode STANDBY -displayName LAX01 -standbyServer sfo-m01-nsx-gm01c.sfo.rainpole.io -standbyServerUser admin1 -standbyServerPass "VMw@re1!VMw@re1!"
+        This example sets the virtual IP address of the NSX Global Manager cluster.
 
         .PARAMETER server
         The fully qualified domain name of the NSX Global Manager.
