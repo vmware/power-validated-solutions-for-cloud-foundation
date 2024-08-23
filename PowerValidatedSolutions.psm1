@@ -31256,6 +31256,7 @@ Function Export-NsxFederationJsonSpec {
                 $protectedObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 $protectedObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_federation_global_manager_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'location' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_federation_location_name"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
                 $protectedObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
@@ -31287,6 +31288,12 @@ Function Export-NsxFederationJsonSpec {
                 $protectedObject | Add-Member -notepropertyname 'rtepGateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_gateway_ip"].Value
                 $protectedObject | Add-Member -notepropertyname 'rtepCidr' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_cidr"].Value
                 $protectedObject | Add-Member -notepropertyname 'rtepMtu' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_mtu"].Value -as [Int])
+                $protectedObject | Add-Member -notepropertyname 'rtepVlan' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_rtep_overlay_vlan"].Value -as [Int])
+                $protectedObject | Add-Member -notepropertyname 'localManagerFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_vip_fqdn"].Value
+                $protectedObject | Add-Member -notepropertyname 'localManagerUser' -notepropertyvalue "admin"
+                $protectedObject | Add-Member -notepropertyname 'localManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["nsxt_lm_admin_password"].Value
+                $protectedObject | Add-Member -notepropertyname 'edgeNode1' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_en1_hostname"].Value
+                $protectedObject | Add-Member -notepropertyname 'edgeNode2' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_en2_hostname"].Value
 
                 $recoveryObject = New-Object -TypeName PSCustomObject
                 $recoveryObject | Add-Member -notepropertyname 'sddcManagerFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
@@ -31294,6 +31301,7 @@ Function Export-NsxFederationJsonSpec {
                 $recoveryObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 $recoveryObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_federation_global_manager_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'location' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_federation_location_name"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmClusterFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_vip_fqdn"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmClusterIp' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_gm_ip"].Value
                 $recoveryObject | Add-Member -notepropertyname 'gmNodeaFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_global_mgra_fqdn"].Value
@@ -31325,6 +31333,12 @@ Function Export-NsxFederationJsonSpec {
                 $recoveryObject | Add-Member -notepropertyname 'rtepGateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_gateway_ip"].Value
                 $recoveryObject | Add-Member -notepropertyname 'rtepCidr' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_cidr"].Value
                 $recoveryObject | Add-Member -notepropertyname 'rtepMtu' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_rtep_overlay_mtu"].Value -as [Int])
+                $recoveryObject | Add-Member -notepropertyname 'rtepVlan' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["mgmt_rtep_overlay_vlan"].Value -as [Int])
+                $recoveryObject | Add-Member -notepropertyname 'localManagerFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_nsxt_vip_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'localManagerUser' -notepropertyvalue "admin"
+                $recoveryObject | Add-Member -notepropertyname 'localManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["nsxt_lm_admin_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'edgeNode1' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_en1_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'edgeNode2' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_en2_hostname"].Value
 
                 $jsonObject = New-Object -TypeName PSCustomObject
                 $jsonObject | Add-Member -notepropertyname 'protected' -notepropertyvalue $protectedObject
@@ -31515,8 +31529,13 @@ Function Invoke-NsxFederationDeployment {
             }
 
             if (!$failureDetected) {
-                # TODO
-                #Show-PowerValidatedSolutionsOutput -message "Add Location to Global Manager for $solutionName"
+                Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
+                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1,$jsonInput.protected.edgeNode2)-WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
             }
 
             if (!$failureDetected) {
@@ -32215,8 +32234,151 @@ Function Add-NsxtGlobalManagerMode {
     } Catch {
         Debug-ExceptionWriter -object $_
     }
-}    
+}
 Export-ModuleMember -Function Add-NsxtGlobalManagerMode
+
+Function Add-NsxtGlobalManagerLocation {
+    <#
+        .SYNOPSIS
+        Configures an NSX Local Manager in NSX Global Manager.
+
+        .DESCRIPTION
+        The Add-NsxtGlobalManagerLocation cmdlet configures an NSX Local Manager in NSX Global Manager.
+        - Validates that network connectivity and authentication is possible to NSX Global Manager
+        - Adds and configures the NSX Local Manager in the NSX Global Manager
+
+        .EXAMPLE
+        Add-NsxtGlobalManagerLocation -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -globalManager sfo-m01-nsx-gm01.sfo.rainpole.io -location sfo-m01 -localManagerFqdn sfo-m01-nsx01.sfo.rainpole.io -localManagerUser admin -localManagerPass VMw@re1!VMw@re1! -edgeNodes @("sfo-m01-r01-en01","sfo-m01-r01-en02")
+        This example adds the NSX Local Manager to to the NSX Global Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the NSX Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the NSX Global Manager.
+
+        .PARAMETER mode
+        The mode (ACTIVE or STANDBY) to be configured to the NSX Global Manager.
+
+        .PARAMETER globalManager
+        The display name of the NSX Global Manager.
+
+        .PARAMETER location
+        The location name for the NSX Local Manager.
+
+        .PARAMETER localManagerFqdn
+        The fully qualified domain name of the NSX Local Manager.
+
+        .PARAMETER localManagerUser
+        The username to authenticate to the standby NSX Local Manager.
+
+        .PARAMETER localManagerPass
+        The password to authenticate to the standby NSX Local Manager.
+
+        .PARAMETER edgeNodes
+        An array of the NSX Edge nodes to be configured.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$globalManager,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$edgeNodes
+    )
+
+    Try {
+        if (Test-NsxtConnection -server $server) {
+            if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
+                if (Get-NsxtGlobalManager -id $globalManager -ErrorAction Ignore) {
+                    if (-Not (Get-NsxtGlobalManagerLocation -location $location -ErrorAction Ignore)) {
+                        New-NsxtGlobalManagerLocation -fqdn $localManagerFqdn -username $localManagerUser -password $localManagerPass -location $location | Out-Null
+                        if (Get-NsxtGlobalManagerLocation -location $location -ErrorAction Ignore) {
+                            Write-Output "Adding location ($location) in NSX Global Manager instance ($server): SUCCESSFUL"
+                            if (Test-NsxtConnection -server $localManagerFqdn) {
+                                if (Test-NsxtAuthentication -server $localManagerFqdn -user $localManagerUser -pass $localManagerPass) {
+                                    if (-Not (Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode01 }).remote_tunnel_endpoint) { 
+                                        $ipSpec = New-Object -TypeName psobject
+                                        $ipSpec | Add-Member -Notepropertyname 'ip_pool_id' -Notepropertyvalue (Get-NsxtIpPool -id $ipPoolId).id 
+                                        $ipSpec | Add-Member -Notepropertyname 'resource_type' -Notepropertyvalue "StaticIpPoolSpec"
+
+                                        $ipAssignmentSpec = New-Object -TypeName psobject
+                                        $ipAssignmentSpec | Add-Member -Notepropertyname "ip_assignment_spec" -Notepropertyvalue $ipSpec
+                                        $ipAssignmentSpec | Add-Member -Notepropertyname "host_switch_name" -Notepropertyvalue "nsxDefaultHostSwitch"
+                                        $ipAssignmentSpec | Add-Member -Notepropertyname "rtep_vlan" -Notepropertyvalue $rtepVlan
+
+                                        $rtepSpec = New-Object -TypeName psobject
+                                        $rtepSpec | Add-Member -Notepropertyname "remote_tunnel_endpoint" -Notepropertyvalue $ipAssignmentSpec
+
+                                        foreach ($edgeNode in $edgeNodes) {
+                                            $edgePayload = (Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode })
+                                            Add-Member -InputObject $edgePayload -NotePropertyName "remote_tunnel_endpoint" -NotePropertyValue $rtepspec.remote_tunnel_endpoint -Force
+                                            Set-NsxtTransportNode -transportNodeId (Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode }).id -jsonBody ($edgePayload | ConvertTo-Json -Depth 30)
+                                            if ((Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode01 }).remote_tunnel_endpoint) {
+                                                Write-Output "Applying Remote Tunnel Endpoint Configuration to NSX Local Manager ($localManagerFqdn): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Applying Remote Tunnel Endpoint Configuration to NSX Local Manager ($localManagerFqdn): POST_VALIDATION_FAILED"
+                                            }
+                                        }
+                                    } else {
+                                        Write-Warning "Applying Remote Tunnel Endpoint Configuration to NSX Local Manager ($localManagerFqdn) edge nodes, already exists: SKIPPED"
+                                    }
+                                }
+                            }
+                        } else {
+                            Write-Error "Adding location ($location) in NSX Global Manager instance ($server): POST_VALIDATION_FAILED"
+                        }
+                        if (Test-NsxtConnection -server $server) {
+                            if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
+                                if ((Get-NsxtGlobalManagerOnBoarding -location $location -action conflict).status -eq "NO_CONFLICTS") {
+                                    Write-Output "Location ($location) in NSX Global Manager instance ($server) has no conflicts"
+                                    if (Get-NsxtGlobalManagerConfig | Where-Object { $_.site_path -match $location }) {
+                                        if ((Get-NsxtGlobalManagerBackupOverview -siteId (Get-NsxtGlobalManagerConfig | Where-Object { $_.site_path -match $location }).site_id).backup_operation_history.overall_backup_status -eq "SUCCESS") {
+                                            if ((Get-NsxtGlobalManagerOnBoarding -location $location -action status).status -eq "ALLOWED") {
+                                                $backupReference = (Get-NsxtGlobalManagerBackupOverview -siteId (Get-NsxtGlobalManagerConfig | Where-Object { $_.site_path -match $location }).site_id).backup_operation_history.cluster_backup_statuses.backup_id
+                                                Start-NsxtGlobalManagerOnBoarding -location $location -backupReference $backupReference | Out-Null
+                                                Do {
+                                                    $response = Get-NsxtGlobalManagerOnBoarding -location $location -action status
+                                                } Until ($response.status -ne "IN_PROGRESS")
+                                                if ((Get-NsxtGlobalManagerOnBoarding -location $location -action status).status -eq "SUCCESS") {
+                                                    Write-Output "Importing site ($location) to NSX Global Manager ($server): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Importing site ($location) to NSX Global Manager ($server): POST_VALIDATION_FAILED"
+                                                }
+                                            } else {
+                                                Write-Warning "Importing site ($location) to NSX Global Manager ($server), already performed: SKIPPED"
+                                            }
+                                        } else {
+                                            Write-Error "A successful backup of the site ($location) not found: PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate site ($location) in NSX Global Manager ($server): PRE_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Location ($location) in NSX Global Manager instance ($server) detected conflicts, review NSX Global Manager UI and address"
+                                }
+                            }
+                        }
+                    } else {
+                        Write-Warning "Adding location ($location) in NSX Global Manager instance ($server), already exists: SKIPPED"
+                    }
+                } else {
+                    Write-Error "Unable to locate Global Manager ($globalManager) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        } 
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtGlobalManagerLocation
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -43325,6 +43487,28 @@ Function Get-NsxtBackupHistory {
 }
 Export-ModuleMember -Function Get-NsxtBackupHistory
 
+Function Start-NsxtBackup {
+    <#
+        .SYNOPSIS
+        Start the backup of NSX Manager.
+
+        .DESCRIPTION
+        The Start-NsxtBackup cmdlet starts the backup of NSX Manager.
+
+        .EXAMPLE
+        Start-NsxtBackup
+        This example starts a backup of NSX Manager.
+    #>
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/cluster?action=backup_to_remote"
+        Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Start-NsxtBackup
+
 Function Get-NsxtAlarm {
     <#
         .SYNOPSIS
@@ -43474,7 +43658,7 @@ Function Get-NsxtEdgeNode {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeId
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId
     )
 
     Try {
@@ -43486,6 +43670,42 @@ Function Get-NsxtEdgeNode {
 }
 Export-ModuleMember -Function Get-NsxtEdgeNode
 
+Function Set-NsxtTransportNode {
+    <#
+        .SYNOPSIS
+        Apply configuration to a transport node.
+
+        .DESCRIPTION
+        The Set-NsxtTransportNode cmdlet applies configuration to a transport node in NSX Manager.
+
+        .EXAMPLE
+        Set-NsxtTransportNode -transportNodeId 7740f2da-83b5-40de-bc4c-665ea779bbd0 -jsonBody $jsonBody
+        This example applies configuration to a transport node in NSX Manager.
+
+        .PARAMETER transportNodeId
+        The id of the transport node.
+
+        .PARAMETER jsonBody
+        The JSON payload for the configuration to be applied.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonBody
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/api/v1/transport-nodes/$transportNodeId"
+            Invoke-RestMethod -Method PUT -Uri $uri -Headers $nsxtHeaders -Body $jsonBody
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtTransportNode
 Function Get-NsxtTier0LocaleServiceBgp {
     <#
         .SYNOPSIS
@@ -43591,9 +43811,13 @@ Function Get-NsxtTransportNode {
 
         .PARAMETER type
         The type of transport node.
+
+        .PARAMETER transportNodeId
+        The id of the NSX Edge node.
     #>
 
     Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
         [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
     )
 
@@ -43601,14 +43825,19 @@ Function Get-NsxtTransportNode {
         if ($PsBoundParameters.ContainsKey('type')) {
             if ($type -eq 'host') {
                 $uri = "https://$nsxtManager/api/v1/transport-nodes?node_types=HostNode"
+                (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
             } else {
                 $uri = "https://$nsxtManager/api/v1/transport-nodes?node_types=EdgeNode"
+                (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
             }
+        } elseif ($PsBoundParameters.ContainsKey('transportNodeId')) {
+            $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId"
+            Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
         } else {
             $uri = "https://$nsxtManager/api/v1/transport-nodes"
+            (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
         }
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response.results
+        
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -45025,25 +45254,15 @@ Function Get-NsxtGlobalManagerLocation {
 
         .PARAMETER location
         The name of the location.
-
-        .PARAMETER conflictCheck
-        Check for conflicts.
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$location,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$conflictCheck
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$location
     )
 
     Try {
         if ($nsxtHeaders.Authorization) {
-            if ($PsBoundParameters.ContainsKey("location") -and $PsBoundParameters.ContainsKey("conflictCheck")) {
-                $body = New-Object -TypeName psobject
-                $body | Add-Member -Notepropertyname 'site_id' -Notepropertyvalue $location
-                $body | Add-Member -Notepropertyname 'prefix' -Notepropertyvalue ""
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding?action=check_conflict"
-                Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -Body ($body | ConvertTo-Json) -SkipCertificateCheck
-            } elseif ($PsBoundParameters.ContainsKey("location")) {
+            if ($PsBoundParameters.ContainsKey("location")) {
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location"
                 Invoke-RestMethod -Uri $uri -Method GET -Headers $nsxtHeaders -SkipCertificateCheck
             } else {
@@ -45152,6 +45371,126 @@ Function Remove-NsxtGlobalManagerLocation {
     }
 }
 Export-ModuleMember -Function Remove-NsxtGlobalManagerLocation
+
+Function Get-NsxtGlobalManagerOnBoarding {
+    <#
+        .SYNOPSIS
+        Retrieve the locations configured in NSX Global Manager
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerOnBoarding cmdlet retrieves the locations configured in an NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerOnBoarding -location sfo-m01 -action conflict
+        This example checks that the location sfo-m01 does not have any conflicts.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerOnBoarding -location sfo-m01 -action status
+        This example checks the status of the location sfo-m01.
+
+        .PARAMETER location
+        The name of the location.
+
+        .PARAMETER action
+        Check for conflicts. (Can be one of 'conflict' or 'action')
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location,
+        [Parameter (Mandatory = $true)] [ValidateSet('conflict', 'status')] [String]$action
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("location") -and $action -eq "conflict") {
+                $body = New-Object -TypeName psobject
+                $body | Add-Member -Notepropertyname 'site_id' -Notepropertyvalue $location
+                $body | Add-Member -Notepropertyname 'prefix' -Notepropertyvalue ""
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding?action=check_conflict"
+                Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -Body ($body | ConvertTo-Json) -SkipCertificateCheck
+            } elseif ($PsBoundParameters.ContainsKey("location") -and $action -eq "status") {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding/status"
+                Invoke-RestMethod -Uri $uri -Method GET -Headers $nsxtHeaders -SkipCertificateCheck
+            }
+            
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerOnBoarding
+
+Function Start-NsxtGlobalManagerOnBoarding {
+    <#
+        .SYNOPSIS
+        Import the NSX Local Manager objects
+
+        .DESCRIPTION
+        The Start-NsxtGlobalManagerOnBoarding cmdlet imports the NSX Local Manager objects into the NSX Global Manager.
+
+        .EXAMPLE
+        Start-NsxtGlobalManagerOnBoarding -location sfo-m01
+        This example imports the NSX Local Manager objects to the NSX Global Manager.
+
+        .PARAMETER location
+        The name of the location.
+
+        .PARAMETER backupReference
+        The reference ID to last successful backup.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$backupReference
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $body = New-Object -TypeName psobject
+            $body | Add-Member -Notepropertyname 'site_id' -Notepropertyvalue $location
+            $body | Add-Member -Notepropertyname 'prefix' -Notepropertyvalue ""
+            $body | Add-Member -Notepropertyname 'site_backup_reference' -Notepropertyvalue 
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding?action=start_onboarding"
+            Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -Body ($body | ConvertTo-Json) -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Start-NsxtGlobalManagerOnBoarding
+
+Function Get-NsxtGlobalManagerBackupOverview {
+    <#
+        .SYNOPSIS
+        Return the backup history for an NSX Local Manager instance.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerBackupOverview cmdlet returns the backup history for an NSX Local Manager instance.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerBackupOverview -siteId sfo-w01-nsx01.sfo.rainpole.io
+        This example returns the backup history for a NSX Local Manager instance based on the site ID.
+
+        .PARAMETER siteId
+        The siteId of the NSX Local Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteId
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/global-manager/api/v1/cluster/backups/overview?site_id=$siteId&show_backups_list=false&frame_type=LOCAL_MANAGER"
+        Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerBackupOverview
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################

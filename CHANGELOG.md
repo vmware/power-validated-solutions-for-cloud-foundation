@@ -37,6 +37,13 @@
 - Added `Set-NsxtGloblaManagerStandby` cmdlet to set the NSX Global Manager to standby mode.
 - Added `Test-NsxtVersionCompatibility` cmdlet to check the NSX version compatibility between NSX Managers.
 - Added `Add-NsxtGlobalManagerMode` cmdlet to configure the NSX Global Manager to Active or Standby mode.
+- Added `Add-NsxtGlobalManagerLocation` cmdlet to support adding an NSX Local Manager to an NSX Global Manager.
+- Added `Get-NsxtGlobalManagerOnBoarding` cmdlet to retrieve location information configured in NSX Global Manager.
+- Added `Start-NsxtGlobalManagerOnBoarding` cmdlet to import the NSX Local Manager objects into the NSX Global Manager
+- Added `Start-NsxtBackup` cmdlet to trigger a backup of the NSX Manager.
+- Added `Get-NsxtGlobalManagerBackupOverview` cmdlet to retrieve the backup history for an NSX Local Manager instance via the NSX Global Manager.
+- Added `Get-NsxtTransportNode` cmdlet to retrieve the transport node details from NSX Manager.
+- Added `Set-NsxtTransportNode` cmdlet to apply additional configuration to a transport node.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1

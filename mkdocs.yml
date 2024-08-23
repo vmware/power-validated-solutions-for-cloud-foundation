@@ -530,6 +530,7 @@ nav:
       - documentation/functions/nsx/Add-CertToNsxCertificateStore.md
       - documentation/functions/nsx/Add-NetworkSegment.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerClusterNode.md
+      - documentation/functions/nsx/Add-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerMode.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Add-NsxtIdentitySource.md
@@ -552,17 +553,19 @@ nav:
       - documentation/functions/nsx/Get-NsxtCertificate.md
       - documentation/functions/nsx/Get-NsxtComputeManager.md
       - documentation/functions/nsx/Get-NsxtComputeManagerStatus.md
-      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
-      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
-      - documentation/functions/nsx/Get-NsxtGlobalManagerConfig.md
-      - documentation/functions/nsx/Get-NsxtGlobalManagerLocation.md
-      - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtEdgeNode.md
       - documentation/functions/nsx/Get-NsxtEdgeNodeAuthPolicy.md
       - documentation/functions/nsx/Get-NsxtEvent.md
       - documentation/functions/nsx/Get-NsxtGlobalManager.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerBackupOverview.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerCluster.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerConfig.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerLocation.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerOnBoarding.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
       - documentation/functions/nsx/Get-NsxtGroup.md
       - documentation/functions/nsx/Get-NsxtIpPool.md
@@ -652,7 +655,10 @@ nav:
       - documentation/functions/nsx/Set-NsxtRoutingConfigRedistributionRule.md
       - documentation/functions/nsx/Set-NsxtSyslogExporter.md
       - documentation/functions/nsx/Set-NsxtTier1.md
+      - documentation/functions/nsx/Set-NsxtTransportNode.md
       - documentation/functions/nsx/Set-NsxtVidm.md
+      - documentation/functions/nsx/Start-NsxtBackup.md
+      - documentation/functions/nsx/Start-NsxtGlobalManagerOnBoarding.md
       - documentation/functions/nsx/Test-NsxtAuthentication.md
       - documentation/functions/nsx/Test-NsxtConnection.md
       - documentation/functions/nsx/Test-NsxtVersionCompatibility.md
