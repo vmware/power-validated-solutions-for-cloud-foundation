@@ -44,6 +44,8 @@
 - Added `Get-NsxtGlobalManagerBackupOverview` cmdlet to retrieve the backup history for an NSX Local Manager instance via the NSX Global Manager.
 - Added `Get-NsxtTransportNode` cmdlet to retrieve the transport node details from NSX Manager.
 - Added `Set-NsxtTransportNode` cmdlet to apply additional configuration to a transport node.
+- Added `Remove-NsxtGlobalManagerStandby` cmdlet to delete the standby mode configuration from the NSX Global Manager.
+- Added `Undo-NsxtGlobalManagerStandby` cmdlet to remove the standby mode configuration from the NSX Global Manager.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1

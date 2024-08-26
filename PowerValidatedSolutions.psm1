@@ -32380,6 +32380,100 @@ Function Add-NsxtGlobalManagerLocation {
 }
 Export-ModuleMember -Function Add-NsxtGlobalManagerLocation
 
+Function Remove-NsxtGlobalManagerStandby {
+    <#
+        .SYNOPSIS
+        Deletes the standby mode configuration from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManagerStandby cmdlet deletes the standby mode configuration from the NSX Global Manager.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerStandby -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -displayName lax-m01-nsx-gm01
+        This example deletes the standby mode configuration from the NSX Global Manager.
+
+        .PARAMETER standbyServer
+        The fully qualified domain name of the standby NSX Global Manager.
+		
+		.PARAMETER displayName
+        Display name of the standby NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
+        Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+        sleep 20
+        $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
+        Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManagerStandby
+
+Function Undo-NsxtGlobalManagerStandby {
+    <#
+        .SYNOPSIS
+       Remove the standby mode configuration from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Undo-NsxtGlobalManagerStandby cmdlet removes the standby mode configuration from the NSX Global Manager.
+        - Validates that network connectivity and authentication is possible to NSX Global Manager
+        - Removes the standby mode configuration from the NSX Global Manager
+
+        .EXAMPLE
+        Undo-NsxtGlobalManagerStandby -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyDisplayName lax-m01-nsx-gm01
+        This example the standby mode configuration from the NSX Global Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the active NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the NSX active Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the active NSX Global Manager.
+
+        .PARAMETER standbyServer
+        The fully qualified domain name of the standby NSX Global Manager.
+		
+		.PARAMETER standbyDisplayName
+        Display name of the standby NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyDisplayName
+    )
+    Try {
+        if (Test-NSXTConnection -server $server) {
+            if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
+                if ((Get-NsxtGlobalManager -id $standbyDisplayName -ErrorAction Ignore).mode -eq "STANDBY") {
+                    Remove-NsxtGlobalManagerStandby -standbyServer $standbyServer -displayName $standbydisplayName | Out-Null
+                    if (-Not ((Get-NsxtGlobalManager -id $standbyDisplayName -ErrorAction Ignore).mode -eq "STANDBY")) {
+                        Write-Output "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): SUCCESSFUL"
+                    } else {
+                        Write-Error "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Unable to find the displayname named ($standbydisplayName) or STANDBY mode is not configured : PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtGlobalManagerStandby
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
