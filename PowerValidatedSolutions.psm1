@@ -32395,7 +32395,7 @@ Function Remove-NsxtGlobalManagerStandby {
         .PARAMETER standbyServer
         The fully qualified domain name of the standby NSX Global Manager.
 		
-		.PARAMETER displayName
+        .PARAMETER displayName
         Display name of the standby NSX Global Manager.
     #>
 
@@ -32407,7 +32407,9 @@ Function Remove-NsxtGlobalManagerStandby {
     Try {
         $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
         Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
-        sleep 20
+        Do {
+            Start-Sleep 3
+        } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
         $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
         Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
     } Catch {
@@ -32442,7 +32444,7 @@ Function Undo-NsxtGlobalManagerStandby {
         .PARAMETER standbyServer
         The fully qualified domain name of the standby NSX Global Manager.
 		
-		.PARAMETER standbyDisplayName
+        .PARAMETER standbyDisplayName
         Display name of the standby NSX Global Manager.
     #>
 
@@ -32456,15 +32458,15 @@ Function Undo-NsxtGlobalManagerStandby {
     Try {
         if (Test-NSXTConnection -server $server) {
             if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                if ((Get-NsxtGlobalManager -id $standbyDisplayName -ErrorAction Ignore).mode -eq "STANDBY") {
+                if (Get-NsxtGlobalManager| Where-Object {$_.display_name -eq $standbyDisplayName}) {
                     Remove-NsxtGlobalManagerStandby -standbyServer $standbyServer -displayName $standbydisplayName | Out-Null
-                    if (-Not ((Get-NsxtGlobalManager -id $standbyDisplayName -ErrorAction Ignore).mode -eq "STANDBY")) {
+                    if (-Not (Get-NsxtGlobalManager| Where-Object {$_.display_name -eq $standbyDisplayName})) {
                         Write-Output "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): SUCCESSFUL"
                     } else {
                         Write-Error "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): POST_VALIDATION_FAILED"
                     }
                 } else {
-                    Write-Warning "Unable to find the displayname named ($standbydisplayName) or STANDBY mode is not configured : PRE_VALIDATION_FAILED"
+                    Write-Warning "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer), not configured : SKIPPED"
                 }
             }
         }
