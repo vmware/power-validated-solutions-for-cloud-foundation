@@ -32404,14 +32404,18 @@ Function Remove-NsxtGlobalManagerStandby {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
     )
 
-    Try {
-        $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
-        Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
-        Do {
-            Start-Sleep 3
-        } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
-        $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
-        Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+        Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+            Do {
+                Start-Sleep 5
+            } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
+            $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
     } Catch {
         Write-Error $_.Exception.Message
     }
