@@ -2833,13 +2833,14 @@ Function Test-PdrPrerequisite {
                     Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
                     Test-PrereqAriaSuiteLifecycle # Verify that VMware Aria Suite Lifecycle has been deployed
                     Test-PrereqWorkspaceOneAccess # Verify that VMware Workspace ONE Access has been deployed
+                    Test-PrereqNsxFederation -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -sddcDomain $jsonInput.protected.mgmtSddcDomainName # Verify that NSX Federation has been configured
                     Test-PrereqAriaOperations # Verify that VMware Aria Operations has been deployed
                     Test-PrereqAriaAutomation # Verify that VMware Aria Automation has been deployed
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
                     # Verify that DNS Entries are resolvable in the environment
                     $dnsEntries = $jsonInput.protected.vrmsFqdn, $jsonInput.protected.srmFqdn, $jsonInput.recovery.vrmsFqdn, $jsonInput.recovery.srmFqdn
-                    $dnsServers = $jsonInput.dns -split ','
+                    $dnsServers = $jsonInput.dns -split ' '
                     if ($dnsEntries) {
                         Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
                     }
@@ -32433,53 +32434,10 @@ Function Add-NsxtGlobalManagerLocation {
     }
 }
 Export-ModuleMember -Function Add-NsxtGlobalManagerLocation
-
-Function Remove-NsxtGlobalManagerStandby {
-    <#
-        .SYNOPSIS
-        Deletes the standby mode configuration from the NSX Global Manager.
-
-        .DESCRIPTION
-        The Remove-NsxtGlobalManagerStandby cmdlet deletes the standby mode configuration from the NSX Global Manager.
-
-        .EXAMPLE
-        Remove-NsxtGlobalManagerStandby -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -displayName lax-m01-nsx-gm01
-        This example deletes the standby mode configuration from the NSX Global Manager.
-
-        .PARAMETER standbyServer
-        The fully qualified domain name of the standby NSX Global Manager.
-		
-        .PARAMETER displayName
-        Display name of the standby NSX Global Manager.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
-    )
-
-        Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
-            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
-            Do {
-                Start-Sleep 5
-            } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
-            $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
-            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Remove-NsxtGlobalManagerStandby
-
 Function Undo-NsxtGlobalManagerStandby {
     <#
         .SYNOPSIS
-       Remove the standby mode configuration from the NSX Global Manager.
+        Remove the standby mode configuration from the NSX Global Manager.
 
         .DESCRIPTION
         The Undo-NsxtGlobalManagerStandby cmdlet removes the standby mode configuration from the NSX Global Manager.
@@ -45204,12 +45162,28 @@ Function Get-NsxtGlobalManagerConfig {
         .EXAMPLE
         Get-NsxtGlobalManagerConfig
         This example retrieves the NSX Global Manager configuration.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerConfig -localManager
+        This example retrieves the NSX Global Manager configuration from the NSX Local Manager.
+
+        .PARAMETER localManager
+        Parameter to retrieve the NSX Global Manager configuration from an NSX Local Manager.
     #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$localManager
+    )
 
     Try {
         if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/federation-config"
-            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).site_config
+            if ($PsBoundParameters.ContainsKey("localManager")) { 
+                $uri = "https://$nsxtManager/policy/api/v1/infra/federation-config"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).site_config
+            } else {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/federation-config"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).site_config
+            }
         } else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
@@ -45341,6 +45315,48 @@ Function Set-NsxtGloblaManagerStandby {
     }
 }
 Export-ModuleMember -Function Set-NsxtGloblaManagerStandby
+
+Function Remove-NsxtGlobalManagerStandby {
+    <#
+        .SYNOPSIS
+        Deletes the standby mode configuration from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Remove-NsxtGlobalManagerStandby cmdlet deletes the standby mode configuration from the NSX Global Manager.
+
+        .EXAMPLE
+        Remove-NsxtGlobalManagerStandby -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -displayName lax-m01-nsx-gm01
+        This example deletes the standby mode configuration from the NSX Global Manager.
+
+        .PARAMETER standbyServer
+        The fully qualified domain name of the standby NSX Global Manager.
+		
+        .PARAMETER displayName
+        Display name of the standby NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
+    )
+
+        Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+            Do {
+                Start-Sleep 5
+            } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
+            $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
+            Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGlobalManagerStandby
 
 Function Test-NsxtVersionCompatibility {
     <#
@@ -61923,7 +61939,7 @@ Function Test-PrereqDnsEntries {
 
     foreach ($entry in $dnsEntries) {
         if ($showProcessingMessage) {
-            Show-PowerValidatedSolutionsOutput -type "INFO" -message "Verifying DNS entry ($entry) is resolvable..."
+            Show-PowerValidatedSolutionsOutput -type "INFO" -message "Verify that DNS entry ($entry) is resolvable"
         }
 
         # Check if the entry is an IP address.
@@ -61932,7 +61948,7 @@ Function Test-PrereqDnsEntries {
             $reverseResults = Resolve-ReverseLookup -ipv4 $entry -dnsServers $dnsServers
             foreach ($result in $reverseResults) {
                 $type = if ($result.Status -eq "SUCCESSFUL") { "INFO" } else { "ERROR" }
-                Show-PowerValidatedSolutionsOutput -type $type -message "Reverse Lookup: ($($result.Entry)) $($result.Message) using DNS server ($($result.Server)): $($result.Status)"
+                Show-PowerValidatedSolutionsOutput -type $type -message "Reverse Lookup: ($($result.Entry)) $($result.Message) using DNS server ($dnsServers): $($result.Status)"
             }
 
             $fqdn = $reverseResults | Where-Object { $_.Status -eq "SUCCESSFUL" } | Select-Object -ExpandProperty Message | ForEach-Object {
@@ -62364,6 +62380,31 @@ Function Resolve-ForwardLookup {
         }
     }
     return $results
+}
+
+Function Test-PrereqNsxFederation {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain
+    )
+
+    Try {
+        if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+            if (Test-NsxtConnection -server $vcfNsxDetails.fqdn) {
+                if (Test-NsxtAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                    if (Get-NsxtGlobalManagerConfig -localManager) {
+                        Show-PowerValidatedSolutionsOutput -message "Verify that NSX Federation for Workload Domain ($sddcDomain) is present: SUCCESSFUL"
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that NSX Federation for Workload Domain ($sddcDomain) is present: PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
 }
 
 #EndRegion  End of Test Functions                                            ######
