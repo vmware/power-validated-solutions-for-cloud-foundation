@@ -14,3 +14,10 @@ Select an option for the solution Prerequisites.
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Export-NsxFederationJsonSpec`](Export-NsxFederationJsonSpec.md)                                       | End-to-End Deployment |
     | [`Invoke-NsxFederationDeployment`](Invoke-NsxFederationDeployment.md)                                   | End-to-End Deployment |
+    | [`Deploy-NsxtGlobalManager`](./../../nsx/Deploy-NsxtGlobalManager.md)                                   | Procedure             |
+    | [`Add-NsxtGlobalManagerClusterNode`](./../../nsx/Add-NsxtGlobalManagerClusterNode.md)                   | Procedure             |
+    | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                                       | Procedure             |
+    | [`Add-NsxtGlobalManagerVirtualIp`](./../../nsx/Add-NsxtGlobalManagerVirtualIp.md)                       | Procedure             |
+    | [`Add-NsxtRemoteTunnelEndpoint`](./../../nsx/Add-NsxtRemoteTunnelEndpoint.md)                           | Procedure             |
+    | [`Add-NsxtGlobalManagerMode`](./../../nsx/Add-NsxtGlobalManagerMode.md)                                 | Procedure             |
+    | [`Add-NsxtGlobalManagerLocation`](./../../nsx/Add-NsxtGlobalManagerLocation.md)                         | Procedure             |
