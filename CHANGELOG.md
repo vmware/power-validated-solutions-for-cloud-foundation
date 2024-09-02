@@ -46,6 +46,15 @@
 - Added `Set-NsxtTransportNode` cmdlet to apply additional configuration to a transport node.
 - Added `Remove-NsxtGlobalManagerStandby` cmdlet to delete the standby mode configuration from the NSX Global Manager.
 - Added `Undo-NsxtGlobalManagerStandby` cmdlet to remove the standby mode configuration from the NSX Global Manager.
+- Added DNS entries pre-checks to the `Test-VrslcmPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-GlobalWsaPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-IlaPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-IomPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-PcaPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-PdrPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-HrmPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-CbrPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
+- Added DNS entries pre-checks to the `Test-CcmPrerequisite` cmdlet to ensure all assocated DNS entries are resolvable for both forward and reverse lookups.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1

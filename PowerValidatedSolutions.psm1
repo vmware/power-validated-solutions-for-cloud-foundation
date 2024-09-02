@@ -2837,6 +2837,12 @@ Function Test-PdrPrerequisite {
                     Test-PrereqAriaAutomation # Verify that VMware Aria Automation has been deployed
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -password $jsonInput.protected.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.protected.vrmsFqdn, $jsonInput.protected.srmFqdn, $jsonInput.recovery.vrmsFqdn, $jsonInput.recovery.srmFqdn
+                    $dnsServers = $jsonInput.dns -split ','
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                    }
                     Test-PrereqBinary -searchCriteria "srm-va_OVF10.ovf" -productMessage "Site Recovery Manager" # Verify that the required binaries are available
                     Test-PrereqBinary -searchCriteria "vSphere_Replication_OVF10.ovf" -productMessage "vSphere Replication" # Verify that the required binaries are available
                     Test-PrereqLicenseKey -licenseKey $jsonInput.protected.srmLicenseKey -productName "VMware Site Recovery Manager" # Verify a license key is present
@@ -13481,6 +13487,12 @@ Function Test-IlaPrerequisite {
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations for Logs" # Verify a license key is present
                         Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.clusterFqdn, $jsonInput.hostNameNodeA, $jsonInput.hostNameNodeB, $jsonInput.hostNameNodeC
+                        $dnsServers = $jsonInput.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                         Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                         Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
                         Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
@@ -17397,6 +17409,12 @@ Function Test-IomPrerequisite {
                         Test-PrereqBinary -searchCriteria "Operations-Manager-Appliance-$ariaOperationsVersion" -productMessage "VMware Aria Operations" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Operations" # Verify a license key is present
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.clusterFqdn, $jsonInput.hostNameNodeA, $jsonInput.hostNameNodeB, $jsonInput.hostNameNodeC, $jsonInput.hostNameProxyA, $jsonInput.hostNameProxyB
+                        $dnsServers = $jsonInput.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
                             {"user": "'+ $jsonInput.serviceAccountOperationsVcf + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountOperationsVcfPass + '"},
@@ -23700,6 +23718,12 @@ Function Test-PcaPrerequisite {
                         Test-PrereqBinary -searchCriteria "Prelude_VA-$ariaAutomationVersion" -productMessage "VMware Aria Automation" # Verify that the required binaries are available
                         Test-PrereqLicenseKey -licenseKey $jsonInput.licenseKey -productName "VMware Aria Suite or VMware Aria Automation" # Verify a license key is present
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.clusterFqdn, $jsonInput.vraNodeaFqdn, $jsonInput.vraNodebFqdn, $jsonInput.vraNodecFqdn
+                        $dnsServers = $jsonInput.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                         # Verify that the required service accounts are created in Active Directory
                         $serviceAccounts = '[
                             {"user": "'+ $jsonInput.serviceAccountAutomation + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountAutomationPass + '"},
@@ -26661,6 +26685,12 @@ Function Test-HrmPrerequisite {
                     }
                     Test-PrereqBinary -searchCriteria $jsonInput.ova -productMessage "Virtual Host Machine" # Verify that the required binaries are available
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.fqdn
+                    $dnsServers = $jsonInput.dns -split ','
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                    }
                     Test-PrereqServiceAccount -user ($jsonInput.hrmVcfServiceAccount + "@" + $jsonInput.domainFqdn) -password $jsonInput.hrmVcfServiceAccountPassword -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                 }
             }
@@ -27660,6 +27690,12 @@ Function Test-CbrPrerequisite {
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.ipList
+                    $dnsServers = (Get-VCFConfigurationDNS)
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers.ipAddress
+                    }
                 }
             }
         } else {
@@ -28062,6 +28098,12 @@ Function Test-CcmPrerequisite {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
                     Test-PrereqActiveDirectoryIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn # Verify that VMware Cloud Foundation is integrated with Active Directory
                     Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.ipList
+                    $dnsServers = (Get-VCFConfigurationDNS)
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers.ipAddress
+                    }
                     # Verify that the required service accounts are created in Active Directory
                     $serviceAccounts = '[
                         {"user": "'+ $jsonInput.serviceAccountHcx + '@' + $jsonInput.domainFqdn + '", "password": "' + $jsonInput.serviceAccountHcxPass + '"},
@@ -28551,6 +28593,12 @@ Function Test-VrslcmPrerequisite {
                         Show-PowerValidatedSolutionsOutput -message "Verify that SDDC Manager Contains a Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name)): SUCCESSFUL"
                     } else {
                         Show-PowerValidatedSolutionsOutput -Type ERROR -message "Verify that SDDC Manager Contains a Management Domain: PRE_VALIDATION_FAILED"
+                    }
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.aslcmFqdn
+                    $dnsServers = (Get-VCFConfigurationDNS)
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers.ipAddress
                     }
                     Test-PrereqEdgeCluster -workloadDomain $jsonInput.mgmtSddcDomainName # Verify that an NSX Edge Cluster is deployed to Management Domain
                     Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
@@ -30173,6 +30221,12 @@ Function Test-GlobalWsaPrerequisite {
                         }
                         Test-PrereqBinary -searchCriteria "identity-manager-$wsaVersion" -productMessage "Workspace ONE Access" # Verify that the required binaries are available
                         Test-PrereqDomainController -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) # Verify that Active Directory Domain Controllers are available in the environment
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.clusterFqdn, $jsonInput.hostNameNodeA, $jsonInput.hostNameNodeB, $jsonInput.hostNameNodeC
+                        $dnsServers = $jsonInput.xintNetworkDns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                         Test-PrereqServiceAccount -user ($jsonInput.domainBindUser + "@" + $jsonInput.domainFqdn) -password $jsonInput.domainBindPass -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn # Verify that the required service accounts are created in Active Directory
                         Test-PrereqAdGroup -server ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -user $jsonInput.domainBindUser -password $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -domain $jsonInput.domainFqdn # Verify that the required security groups are created in Active Directory
                         Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
@@ -31999,7 +32053,7 @@ Function Add-NsxtRemoteTunnelEndpoint {
         The gateway for the IP pool range.
 
         .PARAMETER mtu
-        The MTU to set for the global configuration for Remote Tunnel Endpoint. 
+        The MTU to set for the global configuration for Remote Tunnel Endpoint.
     #>
 
     Param (
@@ -32094,7 +32148,7 @@ Function Undo-NsxtRemoteTunnelEndpoint {
         The name of the IP pool for the Remote Tunnel Endpoint.
 
         .PARAMETER mtu
-        The MTU to set for the global configuration for Remote Tunnel Endpoint. 
+        The MTU to set for the global configuration for Remote Tunnel Endpoint.
     #>
 
     Param (
@@ -32132,7 +32186,7 @@ Function Undo-NsxtRemoteTunnelEndpoint {
                             } else {
                                 Write-Warning "Removing NSX IP Pool ($ipPoolName) from NSX Manager instance ($($vcfNsxtDetails.fqdn)), does not exist: SKIPPED"
                             }
-                            
+
                             if (-Not ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu)) {
                                 Set-NsxtMtuRemoteTunnelEndpoint -mtu $mtu | Out-Null
                                 if ((Get-NsxtGlobalConfig -configType SwitchingGlobalConfig).remote_tunnel_physical_mtu -eq $mtu) {
@@ -32224,13 +32278,13 @@ Function Add-NsxtGlobalManagerMode {
                     if ((Get-NsxtGlobalManager -id $displayName).mode -eq $mode) {
                         Write-Output "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server): SUCCESSFUL"
                     } else {
-                        Write-Error "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server): POST_VALIDATION_FAILED" 
+                        Write-Error "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server): POST_VALIDATION_FAILED"
                     }
                 } else {
                     Write-Warning "Setting NSX Global Manager ($displayName) to $mode mode in NSX Global Manager ($server), already exists: SKIPPED"
                 }
             }
-        } 
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -32304,9 +32358,9 @@ Function Add-NsxtGlobalManagerLocation {
                             Write-Output "Adding location ($location) in NSX Global Manager instance ($server): SUCCESSFUL"
                             if (Test-NsxtConnection -server $localManagerFqdn) {
                                 if (Test-NsxtAuthentication -server $localManagerFqdn -user $localManagerUser -pass $localManagerPass) {
-                                    if (-Not (Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode01 }).remote_tunnel_endpoint) { 
+                                    if (-Not (Get-NsxtTransportNode | Where-Object { $_.display_name -eq $edgeNode01 }).remote_tunnel_endpoint) {
                                         $ipSpec = New-Object -TypeName psobject
-                                        $ipSpec | Add-Member -Notepropertyname 'ip_pool_id' -Notepropertyvalue (Get-NsxtIpPool -id $ipPoolId).id 
+                                        $ipSpec | Add-Member -Notepropertyname 'ip_pool_id' -Notepropertyvalue (Get-NsxtIpPool -id $ipPoolId).id
                                         $ipSpec | Add-Member -Notepropertyname 'resource_type' -Notepropertyvalue "StaticIpPoolSpec"
 
                                         $ipAssignmentSpec = New-Object -TypeName psobject
@@ -32373,7 +32427,7 @@ Function Add-NsxtGlobalManagerLocation {
                     Write-Error "Unable to locate Global Manager ($globalManager) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                 }
             }
-        } 
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -43937,7 +43991,7 @@ Function Get-NsxtTransportNode {
             $uri = "https://$nsxtManager/api/v1/transport-nodes"
             (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
         }
-        
+
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -44520,15 +44574,15 @@ Function Get-NsxtGlobalManagerClusterStatus {
     Param (
         [Parameter (Mandatory = $false)] [Switch]$onlineNodes,
         [Parameter (Mandatory = $false)] [Switch]$status
-    ) 
+    )
 
     Try {
         if ($nsxtHeaders.Authorization) {
             $uri = "https://$nsxtManager/api/v1/cluster/status"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders -SkipCertificateCheck
-            if ($PsBoundParameters.ContainsKey("onlineNodes")) { 
+            if ($PsBoundParameters.ContainsKey("onlineNodes")) {
                 $response.mgmt_cluster_status.online_nodes
-            } elseif ($PsBoundParameters.ContainsKey("status")) { 
+            } elseif ($PsBoundParameters.ContainsKey("status")) {
                 $response.mgmt_cluster_status.status
             } else {
                 $response.detailed_cluster_status
@@ -44612,7 +44666,7 @@ Function Join-NsxtGlobalManagerCluster {
             $body | Add-Member -Notepropertyname 'username' -Notepropertyvalue $username
             $body | Add-Member -Notepropertyname 'password' -Notepropertyvalue $password
             $body | Add-Member -Notepropertyname 'certficate_sha256_thumbprint' -Notepropertyvalue $thumbprint
-            $body = $body | ConvertTo-Json -Depth 5 
+            $body = $body | ConvertTo-Json -Depth 5
             $uri = "https://$nsxtManager/api/v1/cluster?action=join_cluster"
             Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -Body $body -SkipCertificateCheck
         } else {
@@ -44633,7 +44687,7 @@ Function Remove-NsxtGlobalManagerClusterNode {
         The Remove-NsxtGlobalManagerClusterNode cmdlet removes an NSX Global Manager from a cluster.
 
         .EXAMPLE
-        Remove-NsxtGlobalManagerClusterNode -uuid f1563a42-ebe0-406b-3255-8d8fbc70cb91 
+        Remove-NsxtGlobalManagerClusterNode -uuid f1563a42-ebe0-406b-3255-8d8fbc70cb91
         This example removes an NSX Global Manager from a cluster.
 
         .PARAMETER uuid
@@ -44828,7 +44882,7 @@ Function New-NsxtIpPool {
             $ipPool = New-Object -TypeName psobject
             $ipPool | Add-Member -Notepropertyname 'display_name' -Notepropertyvalue $poolName
             $ipPool | Add-Member -Notepropertyname 'description' -Notepropertyvalue $description
-            $ipPool = $ipPool | ConvertTo-Json -Depth 5 
+            $ipPool = $ipPool | ConvertTo-Json -Depth 5
             $uri = "https://$nsxtManager/policy/api/v1/infra/ip-pools/$poolName"
             Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -Body $ipPool -SkipCertificateCheck
         } else {
@@ -45085,7 +45139,7 @@ Function Set-NsxtMtuRemoteTunnelEndpoint {
             $mtuConfig | Add-Member -Notepropertyname '_revision' -Notepropertyvalue $currentGlobalConfig._revision
             $mtuConfig | Add-Member -Notepropertyname 'resource_type' -Notepropertyvalue "SwitchingGlobalConfig"
             $mtuConfig | Add-Member -Notepropertyname 'remote_tunnel_physical_mtu' -Notepropertyvalue $mtu
-            $mtuConfig = $mtuConfig | ConvertTo-Json -Depth 5 
+            $mtuConfig = $mtuConfig | ConvertTo-Json -Depth 5
             $uri = "https://$nsxtManager/api/v1/global-configs/SwitchingGlobalConfig"
             Invoke-RestMethod -Method PUT -Uri $uri -Headers $nsxtHeaders -Body $mtuConfig -SkipCertificateCheck
         } else {
@@ -45218,7 +45272,7 @@ Function Set-NsxtGloblaManagerActive {
                 mode         = "ACTIVE"
             } | ConvertTo-Json -Depth 2
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-            Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
+            Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck
         }
         else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
@@ -45240,7 +45294,7 @@ Function Set-NsxtGloblaManagerStandby {
         .EXAMPLE
         Set-NsxtGlobalManagerMode -displayName lax-m01-nsx-gm01 -standbyServer lax-m01-nsx-gm01.lax.rainpole.io -standbyServerUser admin -standbyServerPass VMw@re1!VMw@re1!
         This example sets the NSX Global Manager to standby mode.
-        
+
         .PARAMETER displayName
         Display name to be assigned to the standby NSX Global Manager.
 
@@ -45253,9 +45307,9 @@ Function Set-NsxtGloblaManagerStandby {
         .PARAMETER standbyServerPass
         The password to authenticate to the standby NSX Global Manager.
     #>
-    
+
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName,  
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServerPass
@@ -45277,7 +45331,7 @@ Function Set-NsxtGloblaManagerStandby {
             $body | Add-Member -Notepropertyname 'mode' -Notepropertyvalue "STANDBY"
             $body = $body | ConvertTo-Json -Depth 5
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
-            Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck 
+            Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck
         }
         else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
@@ -45286,7 +45340,7 @@ Function Set-NsxtGloblaManagerStandby {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-NsxtGloblaManagerStandby 
+Export-ModuleMember -Function Set-NsxtGloblaManagerStandby
 
 Function Test-NsxtVersionCompatibility {
     <#
@@ -45299,7 +45353,7 @@ Function Test-NsxtVersionCompatibility {
         .EXAMPLE
         Test-NsxtVersionCompatibility -fqdn lax-m01-nsx-gm01.lax.rainpole.io -username  admin -password VMw@re1!VMw@re1!
         This example checks the NSX version compatibility between the connected NSX Manager and lax-m01-nsx-gm01.lax.rainpole.io.
-        
+
         .PARAMETER fqdn
         The fully qualified domain name of the standby NSX Global Manager.
 
@@ -45309,7 +45363,7 @@ Function Test-NsxtVersionCompatibility {
         .PARAMETER password
         The password to authenticate to the standby NSX Global Manager.
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
@@ -45512,7 +45566,7 @@ Function Get-NsxtGlobalManagerOnBoarding {
                 $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding/status"
                 Invoke-RestMethod -Uri $uri -Method GET -Headers $nsxtHeaders -SkipCertificateCheck
             }
-            
+
         } else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
@@ -45551,7 +45605,7 @@ Function Start-NsxtGlobalManagerOnBoarding {
             $body = New-Object -TypeName psobject
             $body | Add-Member -Notepropertyname 'site_id' -Notepropertyvalue $location
             $body | Add-Member -Notepropertyname 'prefix' -Notepropertyvalue ""
-            $body | Add-Member -Notepropertyname 'site_backup_reference' -Notepropertyvalue 
+            $body | Add-Member -Notepropertyname 'site_backup_reference' -Notepropertyvalue
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/sites/$location/onboarding?action=start_onboarding"
             Invoke-RestMethod -Uri $uri -Method POST -Headers $nsxtHeaders -Body ($body | ConvertTo-Json) -SkipCertificateCheck
         } else {
@@ -63043,7 +63097,7 @@ Function Start-InvMenu {
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Test-InvPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    50Prerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
@@ -63202,7 +63256,7 @@ Function Start-PdrMenu {
 
             Write-MenuHeader
             Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
-            
+
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
