@@ -63138,7 +63138,7 @@ Function Start-InvMenu {
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    50Prerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    Test-InvPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 3 {
