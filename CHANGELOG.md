@@ -46,6 +46,7 @@
 - Added `Set-NsxtTransportNode` cmdlet to apply additional configuration to a transport node.
 - Added `Remove-NsxtGlobalManagerStandby` cmdlet to delete the standby mode configuration from the NSX Global Manager.
 - Added `Undo-NsxtGlobalManagerStandby` cmdlet to remove the standby mode configuration from the NSX Global Manager.
+- Added `Test-PrereqNsxFederation` cmdlet to verify that NSX Federation for a Workload Domain is present.
 - Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
@@ -55,6 +56,7 @@
 - Enhanced `Test-HrmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-CbrPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-CcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
