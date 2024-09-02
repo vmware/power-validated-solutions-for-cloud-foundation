@@ -626,6 +626,7 @@ nav:
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerLocation.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerStandby.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
       - documentation/functions/nsx/Remove-NsxtIpPool.md
       - documentation/functions/nsx/Remove-NsxtIpPoolSubnet.md
@@ -663,6 +664,7 @@ nav:
       - documentation/functions/nsx/Test-NsxtConnection.md
       - documentation/functions/nsx/Test-NsxtVersionCompatibility.md
       - documentation/functions/nsx/Undo-NetworkSegment.md
+      - documentation/functions/nsx/Undo-NsxtGlobalManagerStandby.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Undo-NsxtIdentitySource.md
       - documentation/functions/nsx/Undo-NsxtLdapRole.md
