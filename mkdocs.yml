@@ -535,6 +535,7 @@ nav:
       - documentation/functions/nsx/Add-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerMode.md
+      - documentation/functions/nsx/Add-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Add-NsxtIdentitySource.md
       - documentation/functions/nsx/Add-NsxtLdapRole.md
@@ -566,9 +567,14 @@ nav:
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerConfig.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerOnBoarding.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerSegment.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier0Gateway.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier1Gateway.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
       - documentation/functions/nsx/Get-NsxtGroup.md
       - documentation/functions/nsx/Get-NsxtIpPool.md
@@ -605,6 +611,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtVidmGroup.md
       - documentation/functions/nsx/Get-NsxtVidmStatus.md
       - documentation/functions/nsx/Get-NsxtVidmUser.md
+      - documentation/functions/nsx/Import-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Join-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/New-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/New-NsxtIpPool.md
@@ -629,7 +636,11 @@ nav:
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerLocation.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerTier1Gateway.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerStandby.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1Gateway.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
       - documentation/functions/nsx/Remove-NsxtIpPool.md
       - documentation/functions/nsx/Remove-NsxtIpPoolSubnet.md
@@ -649,6 +660,7 @@ nav:
       - documentation/functions/nsx/Set-NsxtComputeManager.md
       - documentation/functions/nsx/Set-NsxtEdgeNodeAuthPolicy.md
       - documentation/functions/nsx/Set-NsxtGlobalManagerClusterVirtualIp.md
+      - documentation/functions/nsx/Set-NsxtGlobalManagerSegment.md
       - documentation/functions/nsx/Set-NsxtGloblaManagerActive.md
       - documentation/functions/nsx/Set-NsxtGloblaManagerStandby.md
       - documentation/functions/nsx/Set-NsxtManagerAuthPolicy.md
@@ -668,6 +680,7 @@ nav:
       - documentation/functions/nsx/Test-NsxtVersionCompatibility.md
       - documentation/functions/nsx/Undo-NetworkSegment.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerStandby.md
+      - documentation/functions/nsx/Undo-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Undo-NsxtIdentitySource.md
       - documentation/functions/nsx/Undo-NsxtLdapRole.md
@@ -677,6 +690,7 @@ nav:
       - documentation/functions/nsx/Undo-NsxtVidmRole.md
       - documentation/functions/nsx/Undo-PrefixList.md
       - documentation/functions/nsx/Undo-RouteMap.md
+      - documentation/functions/nsx/Update-NsxtGlobalManagerSegment.md
     - SDDC Manager:
       - documentation/functions/sddc-manager/Add-SddcManagerRole.md
       - documentation/functions/sddc-manager/Get-VCFDnsSearchDomain.md
