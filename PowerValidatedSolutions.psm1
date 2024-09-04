@@ -33115,6 +33115,160 @@ Function Undo-NsxtGlobalManagerTier1Gateway {
 }
 Export-ModuleMember -Function Undo-NsxtGlobalManagerTier1Gateway
 
+Function Get-NsxtGlobalManagerSegment {
+    <#
+        .SYNOPSIS
+        Retrieve the list of configured segments from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerSegment cmdlet retrieves the list of configured segments from the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerSegment 
+        This example retrieves the list of configured segments from the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerSegment -segmentId "799a0af5-d89b-437b-836f-61361e114f6e"
+        This example retrieves a configured segment from the NSX Global Manager.
+
+        .PARAMETER segmentId
+        The ID of the segment in the NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$segmentId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("segmentId")) {
+                $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/segments/$segmentId"
+                Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+            } else {
+                $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/segments"
+                $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+                $response.results 
+            }    
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerSegment
+
+Function Set-NsxtGlobalManagerSegment {
+    <#
+        .SYNOPSIS
+        Apply the configuration to the NSX Global Manager segment.
+
+        .DESCRIPTION
+        The Set-NsxtGlobalManagerSegment cmdlet applies the configuration to a transport node in NSX Manager.
+
+        .EXAMPLE
+        Set-NsxtGlobalManagerSegment -segmentId 7740f2da-83b5-40de-bc4c-665ea779bbd0 -jsonBody $jsonBody
+        This example applies the configuration to the NSX Global Manager segment.
+
+        .PARAMETER segmentId
+        The ID of the segment.
+
+        .PARAMETER jsonBody
+        The JSON payload for the configuration to be applied.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonBody
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/segments/$segmentId"
+            Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -Body $jsonBody
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtGlobalManagerSegment
+
+Function Update-NsxtGlobalManagerSegment {
+    <#
+        .SYNOPSIS
+        Update the NSX segment in the NSX Global Manager instance.
+
+        .DESCRIPTION
+        The Update-NsxtGlobalManagerSegment cmdlet updates the NSX segment in the NSX Global Manager instance.
+        - Validates that network connectivity and authentication is possible to NSX Global Manager.
+        - Validates that the given tier 0 gateway and segment exist in the NSX Global Manager. 
+        - Updates the NSX segment in the NSX Global Manager instance.
+
+        .EXAMPLE
+        Update-NsxtGlobalManagerSegment -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier1Gateway "xint-m01-ec01-t1-gw01" -segmentName "xint-m01-seg01"
+        This example updates the NSX segment in the NSX Global Manager instance.
+
+        .PARAMETER server
+        The fully qualified domain name of the NSX Global Manager.
+
+        .PARAMETER user
+        The username to authenticate to the NSX Global Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the NSX Global Manager.
+
+        .PARAMETER tier1Gateway
+        The NSX Tier1 gateway name.
+
+        .PARAMETER segmentName 
+        The segment name to update.
+
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentName
+    )
+
+    Try {
+        if (Test-NsxtConnection -server $server) {
+            if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
+                $tier1GatewayDetail = Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}     
+                if ($tier1GatewayDetail) {
+                    $segmentDetail = Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName} 
+                    if ($segmentDetail) {
+                        if (-Not ((Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName}).connectivity_path -eq $tier1GatewayDetail.path)) {
+                            $jsonBody = [PSCustomObject]@{
+                                "connectivity_path" =  $tier1GatewayDetail.path
+                            } | convertto-json
+                            Set-NsxtGlobalManagerSegment -segmentId $segmentDetail.id -jsonBody $jsonBody
+                            if ((Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName}).connectivity_path -eq $tier1GatewayDetail.path) {
+                                Write-Output "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                            } else {
+                                Write-Error "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                            }
+                        } else {
+                            Write-Warning "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)), already exists: SKIPPED"
+                        }    
+                    } else {
+                            Write-Error "Unable to find segment ($segmentName) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                    } 
+                } else {
+                    Write-Error "Unable to find NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        } 
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtGlobalManagerSegment
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
