@@ -71,6 +71,9 @@
 - Added `Remove-NsxtGlobalManagerTier1Gateway` cmdlet to delete the Tier 1 Gateway from the NSX Global Manager.
 - Added `Remove-NsxtGlobalManagerTier1LocaleServices` cmdlet to delete the locale service of Tier 1 Gateway from the NSX Global Manager.
 - Added `Undo-NsxtGlobalManagerTier1Gateway` cmdlet to remove the Tier 1 Gateway from the NSX Global Manager.
+- Added `Get-NsxtGlobalManagerSegment` cmdlet to retrieve the list of configured segments from the NSX Global Manager.
+- Added `Set-NsxtGlobalManagerSegment` cmdlet to apply the configuration to the NSX Global Manager segment.
+- Added `Update-NsxtGlobalManagerSegment` cmdlet to update the NSX segment in the NSX Global Manager instance.
 
 ## v2.11.1
 
