@@ -4,9 +4,9 @@ NSX Federation deployment is a prerequisite for the following solutions:
 
 - [Site Protection and Disaster Recovery](./../pdr/index.md)
 
-Select an option for the solution Prerequisites.
+Select an option for the prerequisites component.
 
-=== ":material-location-enter: &nbsp; Prerequisites Deployment"
+=== ":material-location-enter: &nbsp; Deployment"
 
     The following functions can be use to perform the solution prerequisites.
 
@@ -14,6 +14,8 @@ Select an option for the solution Prerequisites.
     | ------------------------------------------------------------------------------------------------------- | --------------------- |
     | [`Export-NsxFederationJsonSpec`](Export-NsxFederationJsonSpec.md)                                       | End-to-End Deployment |
     | [`Invoke-NsxFederationDeployment`](Invoke-NsxFederationDeployment.md)                                   | End-to-End Deployment |
+    | [`Test-NsxFederationPrerequisite`](Test-NsxFederationPrerequisite.md)                                   | End-to-End Deployment |
+    | [`Request-NsxFederationMscaSignedCertificate`](Request-NsxFederationMscaSignedCertificate.md)           | End-to-End Deployment |
     | [`Deploy-NsxtGlobalManager`](./../../nsx/Deploy-NsxtGlobalManager.md)                                   | Procedure             |
     | [`Add-NsxtGlobalManagerClusterNode`](./../../nsx/Add-NsxtGlobalManagerClusterNode.md)                   | Procedure             |
     | [`Add-AntiAffinityRule`](./../../vsphere/Add-AntiAffinityRule.md)                                       | Procedure             |

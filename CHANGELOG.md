@@ -47,6 +47,9 @@
 - Added `Remove-NsxtGlobalManagerStandby` cmdlet to delete the standby mode configuration from the NSX Global Manager.
 - Added `Undo-NsxtGlobalManagerStandby` cmdlet to remove the standby mode configuration from the NSX Global Manager.
 - Added `Test-PrereqNsxFederation` cmdlet to verify that NSX Federation for a Workload Domain is present.
+- Added `Test-NsxFederationPrerequisite` cmdlet to verify the platform before attempting the deployment of NSX Federation.
+- Added `Request-NsxFederationMscaSignedCertificate` cmdlet to request Microsoft CA Signed certificates for the NSX Global Managers.
+- Added `Start-NsxFederationMenu` cmdlet to enable NSX Federation automation.
 - Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.

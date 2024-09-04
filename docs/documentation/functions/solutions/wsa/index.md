@@ -1,14 +1,14 @@
-# Workspace ONE Access (Global)
+# Workspace ONE Access (Cross-Instance)
 
-Workspace ONE Access (Global) deployment is a prerequisite for the following solutions:
+Workspace ONE Access (Cross-Instance) deployment is a prerequisite for the following solutions:
 
 - [Intelligent Operations Management](./../iom/index.md)
 - [Private Cloud Automation](./../pca/index.md)
 - [Health Reporting and Monitoring](./../hrm/index.md)
 
-Select an option for the solution Prerequisites.
+Select an option for the prerequisites component.
 
-=== ":material-location-enter: &nbsp; Prerequisites Deployment"
+=== ":material-location-enter: &nbsp; Deployment"
 
     The following functions can be use to perform the solution prerequisites.
 
@@ -35,7 +35,7 @@ Select an option for the solution Prerequisites.
     | [`Add-WorkspaceOneRole`](./../../workspace-one-access/Add-WorkspaceOneRole.md)                                | Procedure             |
     | [`Add-vRSLCMGroupRole`](./../../aria-suite/aria-suite-lifecycle/Add-vRSLCMGroupRole.md)                        | Procedure             |
 
-=== ":material-location-exit: &nbsp; Prerequisites Removal"
+=== ":material-location-exit: &nbsp; Removal"
 
     The following functions can be use to remove the solution prerequisites.
 

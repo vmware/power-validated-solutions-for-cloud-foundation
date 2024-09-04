@@ -8,9 +8,9 @@ VMware Aria Suite Lifecycle deployment is a prerequisite for the following solut
 - [Private Cloud Automation](./../pca/index.md)
 - [Health Reporting and Monitoring](./../hrm/index.md)
 
-Select an option for the solution Prerequisites.
+Select an option for the prerequisites component.
 
-=== ":material-location-enter: &nbsp; Prerequisites Deployment"
+=== ":material-location-enter: &nbsp; Deployment"
 
     The following functions can be use to perform the solution prerequisites.
 
@@ -26,7 +26,7 @@ Select an option for the solution Prerequisites.
     | [`Connect-vRSLCMUpgradeIso`](./../../aria-suite/aria-suite-lifecycle/Connect-vRSLCMUpgradeIso.md)       | Procedure             |
     | [`Disconnect-vRSLCMUpgradeIso`](./../../aria-suite/aria-suite-lifecycle/Disconnect-vRSLCMUpgradeIso.md) | Procedure             |
 
-=== ":material-location-exit: &nbsp; Prerequisites Removal"
+=== ":material-location-exit: &nbsp; Removal"
 
     The following functions can be use to remove the solution prerequisites.
 
