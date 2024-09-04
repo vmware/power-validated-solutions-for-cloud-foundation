@@ -50,17 +50,7 @@
 - Added `Test-NsxFederationPrerequisite` cmdlet to verify the platform before attempting the deployment of NSX Federation.
 - Added `Request-NsxFederationMscaSignedCertificate` cmdlet to request Microsoft CA Signed certificates for the NSX Global Managers.
 - Added `Start-NsxFederationMenu` cmdlet to enable NSX Federation automation.
-- Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-IomPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-PcaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-PdrPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-HrmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-CbrPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-CcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
-- Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
-- Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
+- Added `Import-NsxtGlobalManagerLocation` cmdlet to import NSX Local Manager objects into NSX Global Manager.
 - Added `Get-NsxtGlobalManagerTier0Gateway` cmdlet to retrieve a list of Tier-0 gateways from the NSX Global Manager.
 - Added `Get-NsxtGlobalManagerTier1Gateway` cmdlet to retrieve a list of Tier-1 gateways from the NSX Global Manager.
 - Added `Get-NsxtGlobalManagerEdgeClusters` cmdlet to retrieve the NSX Edge cluster information for the specified site.
@@ -74,6 +64,17 @@
 - Added `Get-NsxtGlobalManagerSegment` cmdlet to retrieve the list of configured segments from the NSX Global Manager.
 - Added `Set-NsxtGlobalManagerSegment` cmdlet to apply the configuration to the NSX Global Manager segment.
 - Added `Update-NsxtGlobalManagerSegment` cmdlet to update the NSX segment in the NSX Global Manager instance.
+- Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-IomPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-PcaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-PdrPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-HrmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-CbrPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-CcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
+- Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
+- Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
 
