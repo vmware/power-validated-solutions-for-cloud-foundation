@@ -61,6 +61,16 @@
 - Enhanced `Test-CcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
+- Added `Get-NsxtGlobalManagerTier0Gateway` cmdlet to retrieve a list of Tier-0 gateways from the NSX Global Manager.
+- Added `Get-NsxtGlobalManagerTier1Gateway` cmdlet to retrieve a list of Tier-1 gateways from the NSX Global Manager.
+- Added `Get-NsxtGlobalManagerEdgeClusters` cmdlet to retrieve the NSX Edge cluster information for the specified site.
+- Added `Get-NsxtGlobalManagerTier1LocaleServices` cmdlet to retrieve the locale services of the Tier-1 gateway from the NSX Global Manager.
+- Added `New-NsxtGlobalManagerTier1Gateway` cmdlet to create a Teir 1 Gateway on the NSX Global Manager.
+- Added `New-NsxtGlobalManagerTier1LocaleServices` cmdlet to create locale services on the Teir 1 Gateway.
+- Added `Add-NsxtGlobalManagerTier1Gateway` cmdlet to create a Tier 1 Gateway on the NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerTier1Gateway` cmdlet to delete the Tier 1 Gateway from the NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerTier1LocaleServices` cmdlet to delete the locale service of Tier 1 Gateway from the NSX Global Manager.
+- Added `Undo-NsxtGlobalManagerTier1Gateway` cmdlet to remove the Tier 1 Gateway from the NSX Global Manager.
 
 ## v2.11.1
 
