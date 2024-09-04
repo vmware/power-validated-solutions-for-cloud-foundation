@@ -137,9 +137,12 @@ nav:
   - documentation/index.md
   - Solutions:
     - Prerequisites:
-      - documentation/functions/solutions/lcm/index.md
-      - documentation/functions/solutions/wsa/index.md
-      - documentation/functions/solutions/fed/index.md
+      - Aria Suite Lifecycle:
+        - documentation/functions/solutions/lcm/index.md
+      - Workspace ONE Access:
+        - documentation/functions/solutions/wsa/index.md
+      - NSX Federation:
+        - documentation/functions/solutions/fed/index.md
     - On-Premises:
       - Identity and Access Management:
         - documentation/functions/solutions/iam/index.md
@@ -971,6 +974,8 @@ nav:
       - NSX Federation:
         - documentation/functions/solutions/fed/Export-NsxFederationJsonSpec.md
         - documentation/functions/solutions/fed/Invoke-NsxFederationDeployment.md
+        - documentation/functions/solutions/fed/Request-NsxFederationMscaSignedCertificate.md
+        - documentation/functions/solutions/fed/Test-NsxFederationPrerequisite.md
       - Identity and Access Management:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md

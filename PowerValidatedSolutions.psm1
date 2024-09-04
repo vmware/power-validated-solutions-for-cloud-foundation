@@ -31455,6 +31455,153 @@ Function Export-NsxFederationJsonSpec {
 }
 Export-ModuleMember -Function Export-NsxFederationJsonSpec
 
+Function Test-NsxFederationPrerequisite {
+    <#
+        .SYNOPSIS
+        Verify the prerequisites for NSX Federation
+
+        .DESCRIPTION
+        The Test-NsxFederationPrerequisite cmdlet verifies the prerequisites for NSX Federation for VMware Cloud
+        Foundation.
+
+        .EXAMPLE
+        Test-NsxFederationPrerequisite -jsonFile .\nsxFederationDeploySpec.json -binaries .\binaries
+        This example verifies the prerequisites for NSX Federation.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "NSX Federation for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Protected Site"
+            if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.protected.gmClusterFqdn, $jsonInput.protected.gmNodeaFqdn, $jsonInput.protected.gmNodebFqdn, $jsonInput.protected.gmNodecFqdn
+                    $dnsServers = $jsonInput.protected.dns -split ','
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                    }
+                    Test-PrereqBinary -searchCriteria "nsx-unified-appliance-" -productMessage "NSX Unified Appliance" # Verify that the required binaries are available
+                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
+                }
+            }
+
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Recovery Site"
+            if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
+                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                    # Verify that DNS Entries are resolvable in the environment
+                    $dnsEntries = $jsonInput.recovery.gmClusterFqdn, $jsonInput.recovery.gmNodeaFqdn, $jsonInput.recovery.gmNodebFqdn, $jsonInput.recovery.gmNodecFqdn
+                    $dnsServers = $jsonInput.recovery.dns -split ','
+                    if ($dnsEntries) {
+                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-NsxFederationPrerequisite
+
+Function Request-NsxFederationMscaSignedCertificate {
+    <#
+        .SYNOPSIS
+        Request signed certificate for NSX Federation
+
+        .DESCRIPTION
+        The Request-NsxFederationMscaSignedCertificate cmdlet requests a signed certificate for NSX Global Managers
+        from a Microsoft Certificate Authority using the details from the NSX Federation JSON specification file.
+
+        .EXAMPLE
+        Request-NsxFederationMscaSignedCertificate -jsonFile .\nsxFederationDeploySpec.json -certificates .\certificates\
+        This example request a signed certificates for NSX Global Managers.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The folder containing the certificates.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
+    )
+
+    $solutionName = "NSX Federation for VMware Cloud Foundation"
+    $productName = "NSX Global Manager"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Signed Certificate Request for $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-Path -Path $certificates) {
+                [Array]$sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                $failureDetected = $false
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Private Key (.key) and Certificate Signing Request (.csr) files for $productName"
+                    foreach ($site in $sites) {
+                        $StatusMsg = Invoke-GeneratePrivateKeyAndCsr -outDirPath $certificates -commonName $site.gmClusterFqdn -subjectAlternativeNames "$($site.gmClusterFqdn), $($site.gmNodeaFqdn), $($site.gmNodebFqdn), $($site.gmNodecFqdn)" -keySize $jsonInput.keySize -expireDays 730 -organization $jsonInput.organization -organizationUnit $jsonInput.organizationalUnit -locality $jsonInput.locality -state $jsonInput.stateOrProvince -country $jsonInput.country -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Request Signed Certificate (.cer) file for $productName"
+                    foreach ($site in $sites) {
+                        $StatusMsg = Invoke-RequestSignedCertificate -csrFilePath ($certificates + $site.gmClusterFqdn + ".csr") -outDirPath $certificates -certificateAuthority "msca" -caFqdn $jsonInput.mscaComputerName -username $jsonInput.caUsername -password $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -getCArootCert -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -message "Attempting to Generate Privacy Enhanced Mail (.pem) file for $productName"
+                    foreach ($site in $sites) {
+                        $StatusMsg = Invoke-GenerateChainPem -outDirPath $certificates -keyFilePath ($certificates + $site.gmClusterFqdn + ".key") -crtFilePath ($certificates + $site.gmClusterFqdn + ".crt") -rootCaFilePath ($certificates + $jsonInput.mscaComputerName + "-rootCA.pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                    }
+                }
+
+                if (!$failureDetected) {
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Signed Certificate Request for $solutionName"
+                }
+
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Folder ($certificates): Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxFederationMscaSignedCertificate
+
 Function Invoke-NsxFederationDeployment {
     <#
         .SYNOPSIS
@@ -31546,13 +31693,9 @@ Function Invoke-NsxFederationDeployment {
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Assigning a Virtual IP Address to NSX Global Manager Cluster for $solutionName"
-                if ($singleGlobalManager -eq "N") {
-                    foreach ($site in $sites) {
-                        $StatusMsg = Add-NsxtGlobalManagerVirtualIp -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -virtualIp $site.gmClusterIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                    }
-                } else {
-                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Assigning a Virtual IP Address to NSX Global Manager Cluster Not Required: SKIPPED"
+                foreach ($site in $sites) {
+                    $StatusMsg = Add-NsxtGlobalManagerVirtualIp -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -virtualIp $site.gmClusterIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                 }
             }
 
@@ -31585,7 +31728,7 @@ Function Invoke-NsxFederationDeployment {
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1,$jsonInput.protected.edgeNode2)-WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1,$jsonInput.protected.edgeNode2) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg -match "SUCCESSFUL") {
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
                 } else {
@@ -62458,20 +62601,21 @@ Function Start-ValidatedSolutionMenu {
         $headingItem01 = "Platform Prerequsites"
         $menuitem01 = "(LCM) VMware Aria Suite Lifecycle"
         $menuitem02 = "(WSA) Cross-Instance Workspace ONE Access"
+        $menuitem03 = "(FED) NSX Federation"
 
         $headingItem02 = "On-Premises Validated Solutions"
-        $menuitem03 = "(IAM) Identity and Access Management"
-        $menuitem04 = "(DRI) Developer Ready Infrastructure"
-        $menuitem05 = "(ILA) Intelligent Logging and Analytics"
-        $menuitem06 = "(IOM) Intelligent Operations Management"
-        $menuitem07 = "(INV) Intelligent Network Visibility"
-        $menuitem08 = "(PCA) Private Cloud Automation"
-        $menuitem09 = "(PDR) Site Protection and Disaster Recovery"
-        $menuitem10 = "(HRM) Health Reporting and Monitoring"
+        $menuitem04 = "(IAM) Identity and Access Management"
+        $menuitem05 = "(DRI) Developer Ready Infrastructure"
+        $menuitem06 = "(ILA) Intelligent Logging and Analytics"
+        $menuitem07 = "(IOM) Intelligent Operations Management"
+        $menuitem08 = "(INV) Intelligent Network Visibility"
+        $menuitem09 = "(PCA) Private Cloud Automation"
+        $menuitem10 = "(PDR) Site Protection and Disaster Recovery"
+        $menuitem11 = "(HRM) Health Reporting and Monitoring"
 
         $headingItem03 = "Hybrid Cloud Validated Solutions"
-        $menuitem11 = "(CBR) Cloud-Based Ransomware Recovery"
-        $menuitem12 = "(CCM) Cross Cloud Mobility"
+        $menuitem12 = "(CBR) Cloud-Based Ransomware Recovery"
+        $menuitem13 = "(CCM) Cross Cloud Mobility"
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -62485,9 +62629,9 @@ Function Start-ValidatedSolutionMenu {
             Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
             Write-Host -Object " 01. $menuItem01" -ForegroundColor White
             Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
-            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
             Write-Host -Object " 04. $menuItem04" -ForegroundColor White
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
@@ -62495,10 +62639,11 @@ Function Start-ValidatedSolutionMenu {
             Write-Host -Object " 08. $menuItem08" -ForegroundColor White
             Write-Host -Object " 09. $menuItem09" -ForegroundColor White
             Write-Host -Object " 10. $menuItem10" -ForegroundColor White
+            Write-Host -Object " 11. $menuItem11" -ForegroundColor White
 
             Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow; Write-Host ""
-            Write-Host -Object " 11. $menuItem11" -ForegroundColor White
             Write-Host -Object " 12. $menuItem12" -ForegroundColor White
+            Write-Host -Object " 13. $menuItem13" -ForegroundColor White
 
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
@@ -62515,41 +62660,45 @@ Function Start-ValidatedSolutionMenu {
                 }
                 3 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-IamMenu
+                    Start-NsxFederationMenu
                 }
                 4 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-DriMenu
+                    Start-IamMenu
                 }
                 5 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-IlaMenu
+                    Start-DriMenu
                 }
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-IomMenu
+                    Start-IlaMenu
                 }
                 7 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-InvMenu
+                    Start-IomMenu
                 }
                 8 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-PcaMenu
+                    Start-InvMenu
                 }
                 9 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-PdrMenu
+                    Start-PcaMenu
                 }
                 10 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-HrmMenu
+                    Start-PdrMenu
                 }
                 11 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-CbrMenu
+                    Start-HrmMenu
                 }
                 12 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-CbrMenu
+                }
+                13 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-CcmMenu
                 }
@@ -62700,6 +62849,104 @@ Function Start-WorkspaceOneAccessMenu {
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
                     Invoke-UndoGlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                B {
+                    if (!$headlessPassed) { Clear-Host }
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-NsxFederationMenu {
+    Try {
+        $jsonSpecFile = "validatedSolution-nsxFederationDeploySpec.json"
+        $submenuTitle = ("NSX Federation for VMware Cloud Foundation")
+
+        $headingItem01 = "Planning and Preperation"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "Verify Prerequisites"
+        $menuitem03 = "Generate Signed Certificate from Microsoft Certificate Authority"
+
+        $headingItem02 = "Implementation"
+        $menuitem05 = "End-to-End Deployment"
+        $menuitem06 = "Remove from Environment"
+
+        # $headingItem03 = "Solution Interoperability"
+        # $menuitem07 = "Configuration"
+        # $menuitem08 = "Remove from Environment"
+
+        Do {
+            if (!$headlessPassed) { Clear-Host }
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            Write-MenuHeader
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+
+            # Write-Host ""; Write-Host -Object " $headingItem03" -ForegroundColor Yellow
+            # Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            # Write-Host -Object " 08. $menuItem08" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r", ""
+            if ($MenuInput -like "0*") { $MenuInput = ($MenuInput -split ("0"), 2)[1] }
+            Switch ($menuInput) {
+                1 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
+                    if ($recoveryWorkbook) {
+                        Export-NsxFederationJsonSpec -protectedWorkbook $protectedWorkbook -recoveryWorkbook $recoveryWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Recovery Workbook Paramter Not Provided When Executing Start-ValidatedSolutionsMenu"
+                    }
+                    waitKey
+                }
+                2 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
+                    Test-NsxFederationPrerequisite -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                3 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem03" -Foregroundcolor Cyan; Write-Host ''
+                    Request-NsxFederationMscaSignedCertificate -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath
+                    waitKey
+                }
+                5 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-NsxFederationDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    waitKey
+                }
+                6 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoNsxFederationDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    waitKey
+                }
+                7 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem07" -Foregroundcolor Cyan; Write-Host ''
+                    # Invoke-PdrSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                8 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem08" -Foregroundcolor Cyan; Write-Host ''
+                    # Invoke-UndoPdrSolutionInterop -jsonFile ($jsonPath + $jsonSpecFile)
                     waitKey
                 }
                 B {
