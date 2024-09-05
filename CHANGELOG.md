@@ -65,6 +65,10 @@
 - Added `Get-NsxtGlobalManagerSegment` cmdlet to retrieve the list of configured segments from the NSX Global Manager.
 - Added `Set-NsxtGlobalManagerSegment` cmdlet to apply the configuration to the NSX Global Manager segment.
 - Added `Update-NsxtGlobalManagerSegment` cmdlet to update the NSX segment in the NSX Global Manager instance.
+- Added `Get-NsxtGlobalManagerTier0LocaleServices` cmdlet to retrieve the locale services of the Tier-0 gateway from the NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerTier0Gateway` cmdlet to delete the Tier 0 Gateway from the NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerTier0LocaleServices` cmdlet to delete the locale service of Tier 0 Gateway from the NSX Global Manager.
+- Added `Undo-NsxtGlobalManagerTier0Gateway` cmdlet to remove the Tier 0 Gateway from the NSX Global Manager.
 - Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
