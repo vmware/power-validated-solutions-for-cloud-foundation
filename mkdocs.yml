@@ -573,6 +573,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerSegment.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier0Gateway.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier0LocaleServices.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
@@ -639,6 +640,8 @@ nav:
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerStandby.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0Gateway.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
@@ -680,6 +683,7 @@ nav:
       - documentation/functions/nsx/Test-NsxtVersionCompatibility.md
       - documentation/functions/nsx/Undo-NetworkSegment.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerStandby.md
+      - documentation/functions/nsx/Undo-NsxtGlobalManagerTier0Gateway.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerVirtualIp.md
       - documentation/functions/nsx/Undo-NsxtIdentitySource.md

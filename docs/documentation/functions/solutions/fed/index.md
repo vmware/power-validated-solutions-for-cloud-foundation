@@ -23,3 +23,7 @@ Select an option for the prerequisites component.
     | [`Add-NsxtRemoteTunnelEndpoint`](./../../nsx/Add-NsxtRemoteTunnelEndpoint.md)                           | Procedure             |
     | [`Add-NsxtGlobalManagerMode`](./../../nsx/Add-NsxtGlobalManagerMode.md)                                 | Procedure             |
     | [`Add-NsxtGlobalManagerLocation`](./../../nsx/Add-NsxtGlobalManagerLocation.md)                         | Procedure             |
+    | [`Import-NsxtGlobalManagerLocation`](./../../nsx/Import-NsxtGlobalManagerLocation.md)                   | Procedure             |
+    | [`Add-NsxtGlobalManagerTier1Gateway`](./../../nsx/Add-NsxtGlobalManagerTier1Gateway.md)                 | Procedure             |
+    | [`Update-NsxtGlobalManagerSegment`](./../../nsx/Update-NsxtGlobalManagerSegment.md)                     | Procedure             |
+    | [`Undo-NsxtGlobalManagerTier0Gateway`](./../../nsx/Undo-NsxtGlobalManagerTier0Gateway.md)               | Procedure             |
