@@ -392,7 +392,7 @@ Function Invoke-IamDeployment {
                                 if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 if ($sddcDomain.type -eq "MANAGEMENT") {
-                                    $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" }
+                                    $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" -and $_.ssoName -eq "vsphere.local"}
                                     foreach ($viDomain in $viWorkloadDomains) {
                                         $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($viDomain.nsxtCluster.vipFqdn).Split('.', 2)[-0]) }).username.Split("@")[-0]
                                         $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -31349,8 +31349,9 @@ Function Export-NsxFederationJsonSpec {
                 $protectedObject | Add-Member -notepropertyname 'localManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["nsxt_lm_admin_password"].Value
                 $protectedObject | Add-Member -notepropertyname 'edgeNode1' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_en1_hostname"].Value
                 $protectedObject | Add-Member -notepropertyname 'edgeNode2' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_en2_hostname"].Value
-                $protectedObject | Add-Member -notepropertyname 'tier1Gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_xreg_t1_name"].Value
-                $protectedObject | Add-Member -notepropertyname 'tier0Gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_tier0_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'xregTier1Gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_nsxt_xreg_t1_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'localTier0Gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_tier0_name"].Value
+                $protectedObject | Add-Member -notepropertyname 'localTier1Gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_tier1_name"].Value
                 $protectedObject | Add-Member -notepropertyname 'xregSegment' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
 
                 $recoveryObject = New-Object -TypeName PSCustomObject
@@ -31397,8 +31398,8 @@ Function Export-NsxFederationJsonSpec {
                 $recoveryObject | Add-Member -notepropertyname 'localManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["nsxt_lm_admin_password"].Value
                 $recoveryObject | Add-Member -notepropertyname 'edgeNode1' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_en1_hostname"].Value
                 $recoveryObject | Add-Member -notepropertyname 'edgeNode2' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_en2_hostname"].Value
-                $recoveryObject | Add-Member -notepropertyname 'tier1Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier1_name"].Value
-                $recoveryObject | Add-Member -notepropertyname 'tier0Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier0_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'localTier0Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier0_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'localTier1Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier1_name"].Value
 
                 $jsonObject = New-Object -TypeName PSCustomObject
                 $jsonObject | Add-Member -notepropertyname 'protected' -notepropertyvalue $protectedObject
@@ -31724,11 +31725,7 @@ Function Invoke-NsxFederationDeployment {
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Set Active Global Manager for $solutionName"
                 $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode ACTIVE -displayName $jsonInput.protected.gmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
             }
 
             if (!$failureDetected) {
@@ -31763,13 +31760,13 @@ Function Invoke-NsxFederationDeployment {
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Create and Configure Cross-Instance Tier-1 Gateway for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.tier1Gateway -tier0Gateway $jsonInput.protected.tier0Gateway -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
             }
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Connect Cross-Instance Segments to Cross-Instance Tier-1 Gateway for $solutionName"
-                $StatusMsg = Update-NsxtGlobalManagerSegment -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.tier1Gateway -segmentName $jsonInput.protected.xregSegment
+                $StatusMsg = Update-NsxtGlobalManagerSegment -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -segmentName $jsonInput.protected.xregSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
             }
 
