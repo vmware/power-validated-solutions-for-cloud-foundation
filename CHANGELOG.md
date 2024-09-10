@@ -5,6 +5,9 @@
 > Release Date: (Not Released)
 
 - Fixed `Invoke-IamDeployment` cmdlet when an isolated workload domain was deployed assigning global permissions was failing.
+- Fixed `Export-HrmJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
+- Fixed `Export-PdrJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
+- Fixed `Test-PdrPrerequisite` cmdlet to split the DNS servers with a "," in place of a space for consistency with other test pre req functions.
 - Added `Export-NsxFederationJsonSpec` cmdlet to generate a JSON specification file for NSX Federation.
 - Added `Invoke-NsxFederationDeployment` cmdlet to perform end-to-end automation of NSX Federation for VMware Cloud Foundation.
 - Added `Deploy-NsxGlobalManager` cmdlet to deploy a NSX Global Manager appliance.
