@@ -31410,6 +31410,7 @@ Function Export-NsxFederationJsonSpec {
                 $recoveryObject | Add-Member -notepropertyname 'edgeNode2' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_en2_hostname"].Value
                 $recoveryObject | Add-Member -notepropertyname 'localTier0Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier0_name"].Value
                 $recoveryObject | Add-Member -notepropertyname 'localTier1Gateway' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_tier1_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'bgpPassword' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_tor2_peer_bgp_password"].Value
 
                 $jsonObject = New-Object -TypeName PSCustomObject
                 $jsonObject | Add-Member -notepropertyname 'protected' -notepropertyvalue $protectedObject
@@ -31770,27 +31771,34 @@ Function Invoke-NsxFederationDeployment {
             }
 
             if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Deleting Existing Tier-0 Gateways in an Additional Instance for $solutionName"
-                $StatusMsg = Undo-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            # if (!$failureDetected) {
-            #     Show-PowerValidatedSolutionsOutput -message "Connect Additional VMware Cloud Foundation Instances to Cross-Instance Tier-0 Gateway for $solutionName"
-                # Update-NsxtGlobalManagerTier0LocaleService
-                # Update-NsxtGlobalManagerTier0Gateway
-            # }
-
-            if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Connect Local Tier-1 Gateway to Cross-Instance Tier-0 Gateway for $solutionName"
                 $StatusMsg = Update-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.recovery.localTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
             }
 
-            # if (!$failureDetected) {
-            #     Show-PowerValidatedSolutionsOutput -message "Add Additional Instance as Locations to the Cross-Instance Tier-1 Gateway for $solutionName"
-                # Update-NsxtGlobalManagerTier1LocaleService
-            # }
+            if (!$failureDetected) {
+                Show-PowerValidatedSolutionsOutput -message "Deleting Existing Tier-0 Gateways in an Additional Instance for $solutionName"
+                $StatusMsg = Export-NsxtGlobalManagerTier0GatewayConfig -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -bgpNeighborJsonFile ./recovery_tier0-bgp-neighbor.json -interfaceJsonFile ./recovery_tier0-interface.json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                $StatusMsg = Undo-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+            }
+
+            if (!$failureDetected) {
+                Show-PowerValidatedSolutionsOutput -message "Connect Additional VMware Cloud Foundation Instances to Cross-Instance Tier-0 Gateway for $solutionName"
+                $StatusMsg = Update-NsxtGlobalManagerTier0LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                
+                $StatusMsg = Update-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -interfaceJsonFile .\recovery_tier0-interface.json -bgpNeighborJsonFile .\recovery_tier0-bgp-neighbor.json -bgpPassword $jsonInput.recovery.bgpPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+            }
+
+            if (!$failureDetected) {
+                Show-PowerValidatedSolutionsOutput -message "Add Additional Instance as Locations to the Cross-Instance Tier-1 Gateway for $solutionName"
+                $StatusMsg = Update-NsxtGlobalManagerTier1LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+            }
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Setting Standby Global Manager for $solutionName"
@@ -32753,18 +32761,18 @@ Export-ModuleMember -Function Undo-NsxtGlobalManagerStandby
 Function Add-NsxtGlobalManagerTier1Gateway {
     <#
         .SYNOPSIS
-        Create a Tier 1 Gateway on the NSX Global Manager.
+        Create a Tier-1 Gateway on the NSX Global Manager.
 
         .DESCRIPTION
-        The Add-NsxtGlobalManagerTier1Gateway cmdlet creates a Tier 1 Gateway on the NSX Global Manager.
+        The Add-NsxtGlobalManagerTier1Gateway cmdlet creates a Tier-1 Gateway on the NSX Global Manager.
         - Validates that network connectivity and authentication are possible to NSX Global Manager.
-        - Validates that the given tier 0 gateway and location exist in the NSX Global Manager.
-        - Creates a Tier 1 Gateway on the NSX Global Manager.
-        - Creates the locale service on Tier 1 Gateway.
+        - Validates that the given Tier-0 Gateway and location exist in the NSX Global Manager.
+        - Creates a Tier-1 Gateway on the NSX Global Manager.
+        - Creates the locale service on Tier-1 Gateway.
 
         .EXAMPLE
         Add-NsxtGlobalManagerTier1Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier1Gateway xint-m01-ec01-t1-gw01 -tier0Gateway sfo-m01-ec01-t0-gw01 -location sfo-m01
-        This example creates a Tier 1 Gateway on the NSX Global Manager.
+        This example creates a Tier-1 Gateway on the NSX Global Manager.
 
         .PARAMETER server
         The fully qualified domain name of the NSX Global Manager.
@@ -32820,28 +32828,28 @@ Function Add-NsxtGlobalManagerTier1Gateway {
                             New-NsxtGlobalManagerTier1Gateway -tier1Gateway $tier1Gateway -json $jsonBody | Out-Null
                             # $t1Details = Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}
                             if (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }) {
-                                Write-Output "Creating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                                Write-Output "Creating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 $jsonBody = @{
                                     "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
                                     "resource_type"     = "LocaleServices"
                                 } | convertto-json
                                 New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id | Out-Null
                                 if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id | Where-Object { $_.display_name -eq $location }) {
-                                    Write-Output "Creating locale services on Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                                    Write-Output "Creating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Creating locale services on Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                    Write-Error "Creating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Creating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                Write-Error "Creating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Error "Unable to find Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
+                            Write-Error "Unable to find Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
                         }
                     } else {
                         Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }
                 } else {
-                    Write-Warning "Creating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already exists: SKIPPED"
+                    Write-Warning "Creating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already exists: SKIPPED"
                 }
             }
         }
@@ -32854,17 +32862,17 @@ Export-ModuleMember -Function Add-NsxtGlobalManagerTier1Gateway
 Function Undo-NsxtGlobalManagerTier1Gateway {
     <#
         .SYNOPSIS
-        Remove the Tier 1 Gateway from the NSX Global Manager.
+        Remove the Tier-1 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Undo-NsxtGlobalManagerTier1Gateway cmdlet removes the Tier 1 Gateway from the NSX Global Manager.
+        The Undo-NsxtGlobalManagerTier1Gateway cmdlet removes the Tier-1 Gateway from the NSX Global Manager.
         - Validates that network connectivity and authentication is possible to NSX Global Manager
-        - Removes the locale service of Tier 1 Gateway from the NSX Global Manager if configured.
-        - Removes the Tier 1 Gateway from the NSX Global Manager.
+        - Removes the locale service of Tier-1 Gateway from the NSX Global Manager if configured.
+        - Removes the Tier-1 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Undo-NsxtGlobalManagerTier1Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier1Gateway xint-m01-ec01-t1-gw01 -location sfo-m01
-        This example removes the Tier 1 Gateway from the NSX Global Manager.
+        This example removes the Tier-1 Gateway from the NSX Global Manager.
 
         .PARAMETER server
         The fully qualified domain name of the active NSX Global Manager.
@@ -32935,7 +32943,7 @@ Function Update-NsxtGlobalManagerSegment {
         .DESCRIPTION
         The Update-NsxtGlobalManagerSegment cmdlet updates the NSX segment in the NSX Global Manager instance.
         - Validates that network connectivity and authentication is possible to NSX Global Manager.
-        - Validates that the given tier 0 gateway and segment exist in the NSX Global Manager.
+        - Validates that the given Tier-0 Gateway and segment exist in the NSX Global Manager.
         - Updates the NSX segment in the NSX Global Manager instance.
 
         .EXAMPLE
@@ -32991,7 +32999,7 @@ Function Update-NsxtGlobalManagerSegment {
                         Write-Error "Unable to find segment ($segmentName) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }
                 } else {
-                    Write-Error "Unable to find Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to find Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -33004,14 +33012,14 @@ Export-ModuleMember -Function Update-NsxtGlobalManagerSegment
 Function Remove-NsxtGlobalManagerTier0ServiceInterface {
     <#
         .SYNOPSIS
-        Delete the interface from the Tier 0 Gateway on the NSX Global Manager.
+        Delete the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0ServiceInterface cmdlet deletes the interface from the Tier 0 Gateway on the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0ServiceInterface cmdlet deletes the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905"
-        This example deletes the interface from the Tier 0 Gateway on the NSX Global Manager.
+        This example deletes the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
         The ID of the NSX Tier0 Gateway where the interface is to be deleted.
@@ -33045,14 +33053,14 @@ Export-ModuleMember -Function Remove-NsxtGlobalManagerTier0ServiceInterface
 Function Remove-NsxtGlobalManagerTier0BgpNeighborConfig {
     <#
         .SYNOPSIS
-        Delete the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        Delete the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet deletes the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet deletes the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -neighborID "172.27.34.10_65211" -localeServiceId "lax-m01"
-        This example deletes the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        This example deletes the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
         The ID of the NSX Tier0 Gateway.
@@ -33089,7 +33097,7 @@ Function Export-NsxtGlobalManagerTier0GatewayConfig {
         Create the JSON specification file for the BGP neighbor and interface configuration.
 
         .DESCRIPTION
-        The Export-NsxtGlobalManagerTier0GatewayConfig cmdlet removes the Tier 0 Gateway from the NSX Global Manager.
+        The Export-NsxtGlobalManagerTier0GatewayConfig cmdlet removes the Tier-0 Gateway from the NSX Global Manager.
         - Validates that network connectivity and authentication is possible to NSX Global Manager.
         - Creates the JSON specification file for the BGP neighbor and interface configuration, if configured.
 
@@ -33148,7 +33156,7 @@ Function Export-NsxtGlobalManagerTier0GatewayConfig {
                                     Write-Error "Creation of JSON Specification file $bgpNeighborJsonFile : POST_VALIDATION_FAILED"   
                                 }
                             } else {
-                                Write-Warning "BGP neighbor is not configured on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
+                                Write-Warning "BGP neighbor is not configured on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
                             }
                             $configuredInterface = (Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredInterface) {
@@ -33159,7 +33167,7 @@ Function Export-NsxtGlobalManagerTier0GatewayConfig {
                                     Write-Error "Creation of JSON Specification file $interfaceJsonFile : POST_VALIDATION_FAILED"   
                                 }
                             } else {
-                                Write-Warning "Interface is not configured on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
+                                Write-Warning "Interface is not configured on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
                             }
                         } else {
                             Write-Error "Unable to find locale service for the specified location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
@@ -33181,19 +33189,19 @@ Export-ModuleMember -Function Export-NsxtGlobalManagerTier0GatewayConfig
 Function Undo-NsxtGlobalManagerTier0Gateway {
     <#
         .SYNOPSIS
-        Remove the Tier 0 Gateway from the NSX Global Manager.
+        Remove the Tier-0 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Undo-NsxtGlobalManagerTier0Gateway cmdlet removes the Tier 0 Gateway from the NSX Global Manager.
+        The Undo-NsxtGlobalManagerTier0Gateway cmdlet removes the Tier-0 Gateway from the NSX Global Manager.
         - Validates that network connectivity and authentication is possible to NSX Global Manager.
-        - Removes the BGP neighbor config of Tier 0 Gateway from the NSX Global Manager if configured.
-        - Removes the service interface of Tier 0 Gateway from the NSX Global Manager if configured.
-        - Removes the locale service of Tier 0 Gateway from the NSX Global Manager if configured.
-        - Removes the Tier 0 Gateway from the NSX Global Manager.
+        - Removes the BGP neighbor config of Tier-0 Gateway from the NSX Global Manager if configured.
+        - Removes the service interface of Tier-0 Gateway from the NSX Global Manager if configured.
+        - Removes the locale service of Tier-0 Gateway from the NSX Global Manager if configured.
+        - Removes the Tier-0 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Undo-NsxtGlobalManagerTier0Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier0Gateway "lax-m01-ec01-t0-gw01" -location "lax-m01"
-        This example removes the Tier 0 Gateway from the NSX Global Manager.
+        This example removes the Tier-0 Gateway from the NSX Global Manager.
 
         .PARAMETER server
         The fully qualified domain name of the active NSX Global Manager.
@@ -33232,51 +33240,51 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
                             $configuredNeighbor = (Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredNeighbor) {
                                 $configuredNeighbor | ForEach-Object {
-                                    Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborId $_.id 
+                                    Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborId $_.id | Out-Null
                                 }
                                 $neighbor = Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId
                                 if (-Not ($neighbor)) {
-                                    Write-Output "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                                    Write-Output "Deleting neighbor on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                    Write-Error "Deleting neighbor on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                                 } 
                             } else {
-                                Write-Warning "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                                Write-Warning "Deleting neighbor on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                             }
                             $configuredInterface = (Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredInterface) {
                                 $configuredInterface | ForEach-Object {
-                                    Remove-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id  
+                                    Remove-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id | Out-Null
                                 }
                                 $interface = Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId 
                                 if (-Not ($interface) ) {
-                                    Write-Output "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                                    Write-Output "Deleting interface on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                    Write-Error "Deleting interface on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                                 } 
                             } else {
-                                Write-Warning "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                                Write-Warning "Deleting interface on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                             }
                             Remove-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId | Out-Null
-                            if (-Not (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path})) {
-                                Write-Output "Removing locale services onTier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                            if (-Not (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path })) {
+                                Write-Output "Removing locale services on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
-                                Write-Error "Removing locale services on Tier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                Write-Error "Removing locale services on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Warning "Removing locale services on Tier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                            Write-Warning "Removing locale services on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                         } 
-                        Remove-NsxtGlobalManagertier0Gateway -tier0GatewayId $t0Details.id #| Out-Null
-                        if (-Not (Get-NsxtGlobalManagertier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway})) {
-                            Write-Output "Removing Tier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                        Remove-NsxtGlobalManagertier0Gateway -tier0GatewayId $t0Details.id | Out-Null
+                        if (-Not (Get-NsxtGlobalManagertier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway })) {
+                            Write-Output "Removing Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                         } else {
-                            Write-Error "Removing Tier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                            Write-Error "Removing Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                         }
                     } else {
                         Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }    
                 } else {
-                        Write-Warning "Removing Tier 0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                    Write-Warning "Removing Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                 }
             }
         }
@@ -33289,17 +33297,17 @@ Export-ModuleMember -Function Undo-NsxtGlobalManagerTier0Gateway
 Function Update-NsxtGlobalManagerTier1Gateway {
     <#
         .SYNOPSIS
-        Update the Tier 1 Gateway on the NSX Global Manager.
+        Update the Tier-1 Gateway on the NSX Global Manager.
 
         .DESCRIPTION
-        The Update-NsxtGlobalManagerTier1Gateway cmdlet updates the Tier 1 Gateway on the NSX Global Manager.
+        The Update-NsxtGlobalManagerTier1Gateway cmdlet updates the Tier-1 Gateway on the NSX Global Manager.
         - Validates that network connectivity and authentication are possible to NSX Global Manager.
-        - Validates that the given tier 0 gateway and location exist in the NSX Global Manager. 
-        - Updates the Tier 1 Gateway on the NSX Global Manager.
+        - Validates that the given Tier-0 Gateway and location exist in the NSX Global Manager. 
+        - Updates the Tier-1 Gateway on the NSX Global Manager.
 
         .EXAMPLE
         Update-NsxtGlobalManagerTier1Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier1Gateway lax-m01-ec01-t1-gw01 -tier0Gateway sfo-m01-ec01-t0-gw01
-        This example updates the Tier 1 Gateway on the NSX Global Manager.
+        This example updates the Tier-1 Gateway on the NSX Global Manager.
 
         .PARAMETER server
         The fully qualified domain name of the NSX Global Manager.
@@ -33336,18 +33344,18 @@ Function Update-NsxtGlobalManagerTier1Gateway {
                             $jsonBody = $jsonBody | ConvertTo-Json
                             New-NsxtGlobalManagerTier1Gateway -tier1Gateway (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id -json $jsonBody | Out-Null
                             if ((Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).tier0_path -eq (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).path) {
-                                Write-Output "Updating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
+                                Write-Output "Updating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
-                                Write-Error "Updating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
+                                Write-Error "Updating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Warning "Updating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already applied: SKIPPED"
+                            Write-Warning "Updating Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already applied: SKIPPED"
                         }
                     } else {
-                        Write-Error "Unable to find Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
+                        Write-Error "Unable to find Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
                     }
                 } else {
-                    Write-Error "Unable to find Tier 1 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to find Tier-1 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
                 }
             }
         } 
@@ -33356,237 +33364,6 @@ Function Update-NsxtGlobalManagerTier1Gateway {
     }
 }
 Export-ModuleMember -Function Update-NsxtGlobalManagerTier1Gateway
-
-Function Get-NsxtGlobalManagerTier0BgpNeighborConfig {
-    <#
-        .SYNOPSIS
-        Retrieve the list of configured BGP neighbors from the Tier-0 Gateway.
-
-        .DESCRIPTION
-        The Get-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01"
-        This example retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -neighborID "172.27.34.10_65211"
-        This example retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
-
-        .PARAMETER tier0GatewayId
-        The ID of the NSX Tier0 Gateway.
-
-        .PARAMETER localeServiceId
-        The ID of the locale service.
-
-        .PARAMETER neighborId
-        The ID of the BGP neighbor
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$neighborID
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            if ($PsBoundParameters.ContainsKey("neighborID")) {
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/$neighborID"
-                Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders -SkipCertificateCheck
-            } else {
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/"
-                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
-                }
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-NsxtGlobalManagerTier0BgpNeighborConfig
-
-Function Get-NsxtGlobalManagerTier0ServiceInterface {
-    <#
-        .SYNOPSIS
-        Retrieve the list of configured service interfaces from the Tier-0 Gateway.
-
-        .DESCRIPTION
-        The Get-NsxtGlobalManagerTier0ServiceInterface cmdlet retrieves the list of configured service interfaces from the Tier-0 Gateway.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01"
-        This example retrieves the list of configured service interfaces from the Tier-0 Gateway.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905"
-        This example retrieves the list of configured service interfaces from the Tier-0 Gateway.
-
-        .PARAMETER tier0GatewayId
-        The ID of the NSX Tier0 Gateway where the interface is to be deleted.
-
-        .PARAMETER localeServiceId
-        The ID of the locale service.
-
-        .PARAMETER interfaceId
-        The ID of the interface.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$interfaceId
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            if ($PsBoundParameters.ContainsKey("interfaceId")) {
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces/$interfaceId"
-                Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders -SkipCertificateCheck
-            } else {
-                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces"
-                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results  
-            }
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-NsxtGlobalManagerTier0ServiceInterface
-
-Function New-NsxtGlobalManagerTier0LocaleServices {
-    <#
-        .SYNOPSIS
-        Create or update locale services on the Tier-0 Gateway.
-
-        .DESCRIPTION
-        The New-NsxtGlobalManagerTier0LocaleServices cmdlet creates or updates locale services on the Tier-0 Gateway.
-
-        .EXAMPLE
-        New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "sfo-m01" -json $ConfigJson 
-        This example creates or updates locale services on the Tier-0 Gateway.
-
-        .PARAMETER tier0GatewayId
-        The ID of the Tier-0 Gateway.
-
-        .PARAMETER localeServiceId
-        The ID of the locale service.
-
-        .PARAMETER json
-        The JSON configuration for the Tier-0 Gateway.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId"
-            Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function New-NsxtGlobalManagerTier0LocaleServices
-
-Function New-NsxtGlobalManagerTier0ServiceInterface {
-    <#
-        .SYNOPSIS
-        Create or update a service interface on Tier-0 Gateway.
-
-        .DESCRIPTION
-        The New-NsxtGlobalManagerTier0ServiceInterface cmdlet creates or updates a service interface on Tier-0 Gateway.
-
-        .EXAMPLE
-        New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905" -json $ConfigJson
-        This example creates or updates a service interface on Tier-0 Gateway.
-
-        .PARAMETER tier0GatewayId
-        The ID of the Tier-0 Gateway.
-
-        .PARAMETER localeServiceId
-        The ID of the locale service.
-
-        .PARAMETER interfaceId
-        The ID of the interface.
-
-        .PARAMETER json
-        The JSON configuration for the Tier-0 Gateway.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces/$interfaceId"
-            Invoke-RestMethod -Method PATCH -URI $uri -Headers $nsxtHeaders -body $json -SkipCertificateCheck
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function New-NsxtGlobalManagerTier0ServiceInterface
-
-Function New-NsxtGlobalManagerTier0BgpNeighborConfig {
-    <#
-        .SYNOPSIS
-        Create or update a BGP neighbor config for NSX Tier-0 gateways.
-
-        .DESCRIPTION
-        The New-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet creates or updates the BGP neighbor config for NSX Tier-0 gateways.
-
-        .EXAMPLE
-        New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -neighborID "172.27.34.10_65211" -localeServiceId "lax-m01" -json $ConfigJson
-        This example creates or updates the BGP neighbor config for NSX Tier-0 gateways.
-
-        .PARAMETER tier0GatewayId
-        The ID of the Tier0 Gateway.
-
-        .PARAMETER localeServiceId
-        The ID of the locale service.
-
-        .PARAMETER neighborId
-        The ID of the BGP neighbor.
-
-        .PARAMETER json
-        The JSON configuration for the Tier-0 Gateway.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$neighborID,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/$neighborID"
-            Invoke-RestMethod -Method PATCH -URI $uri -Headers $nsxtHeaders -body $json -SkipCertificateCheck
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function New-NsxtGlobalManagerTier0BgpNeighborConfig
 
 Function Update-NsxtGlobalManagerTier0LocaleService {
     <#
@@ -33613,7 +33390,7 @@ Function Update-NsxtGlobalManagerTier0LocaleService {
         The password to authenticate to the NSX Global Manager.
 
         .PARAMETER tier0Gateway
-         The name of the Tier-0 Gateway.
+        The name of the Tier-0 Gateway.
 
         .PARAMETER location
         The name of the location.
@@ -33630,16 +33407,16 @@ Function Update-NsxtGlobalManagerTier0LocaleService {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                if (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}) {
-                    if (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}) {
-                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                        $localeServiceId =  ((Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).id) | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
-                        if  (-Not ($localeServiceId)) {
+                if (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }) {
+                    if (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }) {
+                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
+                        $localeServiceId = ((Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).id) | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path }).id
+                        if (-Not ($localeServiceId)) {
                             $jsonBody = @{ 
-                                "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
+                                "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
                             } | ConvertTo-JSON
-                            New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).id -json $jsonBody -localeServiceId $location | Out-Null
-                            $localeServiceId =  ((Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).id) | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
+                            New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).id -json $jsonBody -localeServiceId $location | Out-Null
+                            $localeServiceId = ((Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).id) | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path }).id
                             if ($localeServiceId) {
                                 Write-Output "Updating locale services on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
@@ -33649,7 +33426,7 @@ Function Update-NsxtGlobalManagerTier0LocaleService {
                             Write-Warning "Updating locale services on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), already applied: SKIPPED"
                         }
                     } else {
-                             Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                        Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     } 
                 } else {
                     Write-Error "Unable to find Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
@@ -33676,7 +33453,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
         - Creates the route redistribution on the Tier-0 Gateway.
         
         .EXAMPLE
-        Update-NsxtGlobalManagerTier0Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier0Gateway sfo-m01-ec01-t0-gw01 -location lax-m01 -interfaceJsonFile .\tier0-interface.json -bgpNeighborJsonFile .\tier0-bgp-neighbor.json -bgpPassord "VMw@re1!"
+        Update-NsxtGlobalManagerTier0Gateway -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -tier0Gateway sfo-m01-ec01-t0-gw01 -location lax-m01 -interfaceJsonFile .\tier0-interface.json -bgpNeighborJsonFile .\tier0-bgp-neighbor.json -bgpPassword "VMw@re1!"
         This example updates the Tier-0 Gateway on the NSX Global Manager.
         
         .PARAMETER server
@@ -33700,7 +33477,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
         .PARAMETER bgpNeighborJsonFile
         The name of the BGP neighbor JSON file.
 
-        .PARAMETER bgpPassord
+        .PARAMETER bgpPassword
         The BGP neighbor password
 
     #>
@@ -33713,25 +33490,25 @@ Function Update-NsxtGlobalManagerTier0Gateway {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceJsonFile,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bgpNeighborJsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bgpPassord
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bgpPassword
     )
     
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                $locationDetail = (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location})
+                $locationDetail = (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location })
                 if ($locationDetail) {
-                    $t0Details = (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway})
+                    $t0Details = (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway })
                     if ($t0Details) {
-                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
+                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
+                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path }).id
                         if (Test-Path -Path $interfaceJsonFile) {
                             $configuredInterface = (Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             $json = get-content -raw $interfaceJsonFile | ConvertFrom-Json
                             $json | ForEach-Object { 
                                 $jsonDisplayName = $_.display_name
-                                if (-Not ($configuredInterface | where-object {$_.display_name -eq $jsonDisplayName})) {
-                                    New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id -json ($_ | ConvertTo-JSON -Depth 5) 
+                                if (-Not ($configuredInterface | where-object { $_.display_name -eq $jsonDisplayName })) {
+                                    New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id -json ($_ | ConvertTo-JSON -Depth 5) | Out-Null
                                     $interface = Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id
                                     if ($_.display_name -eq $interface.display_name ) {
                                         Write-Output "Creating interface ($($_.display_name)) on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
@@ -33750,9 +33527,9 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                             $json = get-content -raw $bgpNeighborJsonFile | ConvertFrom-Json
                             $json | ForEach-Object { 
                                 $jsonDisplayName = $_.display_name
-                                if (-Not ($configuredNeighbor | where-object {$_.display_name -eq $jsonDisplayName})) {
-                                    $_ | Add-Member -Notepropertyname 'password' -Notepropertyvalue $bgpPassord
-                                    New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id -json ($_ | ConvertTo-JSON -Depth 5) 
+                                if (-Not ($configuredNeighbor | where-object { $_.display_name -eq $jsonDisplayName })) {
+                                    $_ | Add-Member -Notepropertyname 'password' -Notepropertyvalue $bgpPassword
+                                    New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id -json ($_ | ConvertTo-JSON -Depth 5) | Out-Null
                                     $neighbor = Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id
                                     if ($_.display_name -eq $neighbor.display_name ) {
                                         Write-Output "Creating neighbor ($($_.display_name)) on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
@@ -33766,7 +33543,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                         } else {
                             Write-Error "JSON Specification file for  ($bgpNeighborJsonFile): File Not Found"
                         }
-                        $localeServiceObj = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path})
+                        $localeServiceObj = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path })
                         $jsonBody = '{
                             "route_redistribution_config": {
                                 "redistribution_rules": [
@@ -33794,8 +33571,8 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                         }'
                         $jsonPsObj = $jsonBody | ConvertFrom-JSON
                         if (-Not (($localeServiceObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress) -eq ($jsonPsObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress)) ) {
-                            New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id -json $jsonBody -localeServiceId $localeServiceId
-                            $localeServiceObj = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path})
+                            New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id -json $jsonBody -localeServiceId $localeServiceId | Out-Null
+                            $localeServiceObj = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path })
                             if (($localeServiceObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress) -eq ($jsonPsObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress)) {
                                 Write-Output "Creating route re-distribution on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
@@ -33808,7 +33585,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                         Write-Error "Unable to find Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
                     }
                 } else {
-                        Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -33861,14 +33638,14 @@ Function Update-NsxtGlobalManagerTier1LocaleService {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                if (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}) {
-                    if (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}) {
-                        if  (-Not (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id | Where-Object {$_.display_name -eq $location})) {
+                if (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }) {
+                    if (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }) {
+                        if (-Not (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id | Where-Object { $_.display_name -eq $location })) {
                             $jsonBody = @{ 
-                                "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
+                                "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
                             } | ConvertTo-JSON
-                            New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id | Out-Null
-                            if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id | Where-Object {$_.display_name -eq $location}) {
+                            New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id | Out-Null
+                            if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id | Where-Object { $_.display_name -eq $location }) {
                                 Write-Output "Updating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
                                 Write-Error "Updating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -33877,7 +33654,7 @@ Function Update-NsxtGlobalManagerTier1LocaleService {
                             Write-Warning "Updating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already applied: SKIPPED"
                         }
                     } else {
-                             Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                        Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     } 
                 } else {
                     Write-Error "Unable to find Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
@@ -42458,28 +42235,28 @@ Export-ModuleMember -Function Remove-NsxtSegment
 Function Get-NsxtTier0Gateway {
     <#
         .SYNOPSIS
-        Get a list of Tier 0 Gateways.
+        Get a list of Tier-0 Gateways.
 
         .DESCRIPTION
-        The Get-NsxtTier0 cmdlet retrieves a list of Tier 0 Gateways
+        The Get-NsxtTier0 cmdlet retrieves a list of Tier-0 Gateways
 
         .EXAMPLE
         Get-NsxtTier0Gateway
-        This example returns all Tier 0 Gateways
+        This example returns all Tier-0 Gateways
 
         .EXAMPLE
         Get-NsxtTier0Gateway -name sfo-w01-ec01-t0-gw01
-        This example returns the Tier 0 Gateway named sfo-w01-ec01-t0-gw01
+        This example returns the Tier-0 Gateway named sfo-w01-ec01-t0-gw01
 
         .EXAMPLE
         Get-NsxtTier0Gateway -id 84a6c7a5-9fe8-4446-8684-814663399584
-        This example returns the Tier 0 Gateway based on its id.
+        This example returns the Tier-0 Gateway based on its id.
 
         .PARAMETER name
-        The Tier 0 Gateway name.
+        The Tier-0 Gateway name.
 
         .PARAMETER id
-        The Tier 0 Gateway id.
+        The Tier-0 Gateway id.
     #>
 
     Param (
@@ -42510,28 +42287,28 @@ Export-ModuleMember -Function Get-NsxtTier0Gateway
 Function Get-NsxtTier1Gateway {
     <#
         .SYNOPSIS
-        Get a list of Tier 1 Gateways.
+        Get a list of Tier-1 Gateways.
 
         .DESCRIPTION
-        The Get-NsxtTier1Gateway cmdlet retrieves a list of Tier 1 Gateways
+        The Get-NsxtTier1Gateway cmdlet retrieves a list of Tier-1 Gateways
 
         .EXAMPLE
         Get-NsxtTier1Gateway
-        This example returns all Tier 1 Gateways
+        This example returns all Tier-1 Gateways
 
         .EXAMPLE
         Get-NsxtTier1Gateway -name sfo-w01-ec01-t1-gw01
-        This example returns the Tier 1 Gateway named sfo-w01-ec01-t1-gw01
+        This example returns the Tier-1 Gateway named sfo-w01-ec01-t1-gw01
 
         .EXAMPLE
         Get-NsxtTier1Gateway -id 84a6c7a5-9fe8-4446-8684-814663399584
-        This example returns the Tier 1 Gateway based on its id.
+        This example returns the Tier-1 Gateway based on its id.
 
         .PARAMETER name
-        The Tier 1 Gateway name.
+        The Tier-1 Gateway name.
 
         .PARAMETER id
-        The Tier 1 Gateway id.
+        The Tier-1 Gateway id.
     #>
 
     Param (
@@ -42639,7 +42416,7 @@ Function New-NsxtPrefixList {
 
         .EXAMPLE
         New-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01 -subnetCIDR 192.168.20.0/24 -action PERMIT
-        This example creates a new IP Prefix List on a Tier 0 Gateway.
+        This example creates a new IP Prefix List on a Tier-0 Gateway.
 
         .PARAMETER name
         The IP Prefix List name.
@@ -42744,7 +42521,7 @@ Function Remove-NsxtPrefixList {
 
         .EXAMPLE
         Remove-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01
-        This example removes a Prefix List on a Tier 0 Gateway.
+        This example removes a Prefix List on a Tier-0 Gateway.
 
         .PARAMETER name
         The IP Prefix List name.
@@ -42919,7 +42696,7 @@ Function Get-NsxtRouteMap {
         Break
     } elseif (!$inputObject) {
         if (!$tier0Gateway) {
-            Write-Output "Tier 0 Gateway: $Tier0Gateway"
+            Write-Output "Tier-0 Gateway: $Tier0Gateway"
             $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
         }
         $uriPath = (Get-NsxtTier0Gateway -Name $tier0Gateway).path
@@ -43152,10 +42929,10 @@ Export-ModuleMember Get-NsxtRouteRedistributionPolicy
 Function Set-NsxtRouteRedistributionPolicy {
     <#
         .SYNOPSIS
-        Set the route redistriution policy for a Tier 0 Gateway.
+        Set the route redistriution policy for a Tier-0 Gateway.
 
         .DESCRIPTION
-        The Set-NsxtRouteRedistributionPolicy cmdlet sets the route redistriution policy for a Tier 0 Gateway
+        The Set-NsxtRouteRedistributionPolicy cmdlet sets the route redistriution policy for a Tier-0 Gateway
 
         .EXAMPLE
         Get-NsxtRouteRedistributionPolicy -tier0Gateway "sfo-w01-ec01-t0-gw01" | Set-NsxtRouteRedistributionPolicy -RouteMap "sfo-w01-ec01-t0-gw01-routemap"
@@ -44393,20 +44170,20 @@ Export-ModuleMember -Function Get-NsxtEdgeCluster
 Function New-NsxtTier1 {
     <#
         .SYNOPSIS
-        Creates a Tier 1 Gateway
+        Creates a Tier-1 Gateway
 
         .DESCRIPTION
         The New-NsxtTier1 cmdlet creates a Teir 1 Gateway
 
         .EXAMPLE
         New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
-        This example creates a new Tier 1 Gateway.
+        This example creates a new Tier-1 Gateway.
 
         .PARAMETER tier1Gateway
-        The name of the Tier 1 Gateway.
+        The name of the Tier-1 Gateway.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
     #>
 
     Param (
@@ -44427,20 +44204,20 @@ Export-ModuleMember -Function New-NsxtTier1
 Function Set-NsxtTier1 {
     <#
         .SYNOPSIS
-        Configures Tier 1 Gateway
+        Configures Tier-1 Gateway
 
         .DESCRIPTION
-        The Set-NsxtTier1 cmdlet configures a Tier 1 Gateway
+        The Set-NsxtTier1 cmdlet configures a Tier-1 Gateway
 
         .EXAMPLE
         Set-NsxtTier1 -tier1Gateway -json
-        This example sets the configuration on a Tier 1 Gateway.
+        This example sets the configuration on a Tier-1 Gateway.
 
         .PARAMETER tier1Gateway
-        The name of the Tier 1 Gateway.
+        The name of the Tier-1 Gateway.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
     #>
 
     Param (
@@ -44461,23 +44238,23 @@ Export-ModuleMember -Function Set-NsxtTier1
 Function New-NsxtTier1ServiceInterface {
     <#
         .SYNOPSIS
-        Creates Service Interface on Tier 1 Gateway
+        Creates Service Interface on Tier-1 Gateway
 
         .DESCRIPTION
-        The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier 1 Gateway
+        The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier-1 Gateway
 
         .EXAMPLE
         New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
-        This example configures a Service Interface on a Tier 1 Gateway.
+        This example configures a Service Interface on a Tier-1 Gateway.
 
         .PARAMETER tier1Gateway
-        The name of the Tier 1 Gateway.
+        The name of the Tier-1 Gateway.
 
         .PARAMETER interfaceId
         The name of the Interface.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
     #>
 
     Param (
@@ -44499,23 +44276,23 @@ Export-ModuleMember -Function New-NsxtTier1ServiceInterface
 Function New-NsxtTier1StaticRoute {
     <#
         .SYNOPSIS
-        Creates Static Route on Tier 1 Gateway
+        Creates Static Route on Tier-1 Gateway
 
         .DESCRIPTION
-        The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier 1 Gateway
+        The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier-1 Gateway
 
         .EXAMPLE
         New-NsxtTier1StaticRoute -tier1Gateway -segment -json
-        This example configures a Service Interface on a Tier 1 Gateway.
+        This example configures a Service Interface on a Tier-1 Gateway.
 
         .PARAMETER tier1Gateway
-        The name of the Tier 1 Gateway.
+        The name of the Tier-1 Gateway.
 
         .PARAMETER segment
         The name of the Segment.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
     #>
 
     Param (
@@ -47207,7 +46984,7 @@ Function Get-NsxtGlobalManagerTier1LocaleServices {
         This example retrieves the locale services of the Tier-1 gateway from the NSX Global Manager.
 
         .PARAMETER tier1GatewayId
-        The ID of the Tier 1 Gateway.
+        The ID of the Tier-1 Gateway.
     #>
 
     Param (
@@ -47240,10 +47017,10 @@ Function New-NsxtGlobalManagerTier1Gateway {
         This example creates a new Teir 1 Gateway on the NSX Global Manager.
 
         .PARAMETER tier1Gateway
-        The name of the Tier 1 Gateway.
+        The name of the Tier-1 Gateway.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
     #>
 
     Param (
@@ -47277,10 +47054,10 @@ Function New-NsxtGlobalManagerTier1LocaleServices {
         This example creates locale services on the Teir 1 Gateway.
 
         .PARAMETER tier1GatewayId
-        The ID of the Tier 1 Gateway.
+        The ID of the Tier-1 Gateway.
 
         .PARAMETER json
-        The JSON configuration for the Tier 1 Gateway.
+        The JSON configuration for the Tier-1 Gateway.
 
         .PARAMETER localeServiceId
         The ID of the locale service.
@@ -47308,14 +47085,14 @@ Export-ModuleMember -Function New-NsxtGlobalManagerTier1LocaleServices
 Function Remove-NsxtGlobalManagerTier1Gateway {
     <#
         .SYNOPSIS
-        Delete the Tier 1 Gateway from the NSX Global Manager.
+        Delete the Tier-1 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier1Gateway cmdlet deletes the Tier 1 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier1Gateway cmdlet deletes the Tier-1 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier1Gateway -tier1GatewayId "xint-m01-ec01-t1-gw01"
-        This example deletes the Tier 1 Gateway from the NSX Global Manager.
+        This example deletes the Tier-1 Gateway from the NSX Global Manager.
 
         .PARAMETER tier1GatewayId
         The ID of the NSX Tier1 Gateway to be deleted.
@@ -47341,14 +47118,14 @@ Export-ModuleMember -Function Remove-NsxtGlobalManagerTier1Gateway
 Function Remove-NsxtGlobalManagerTier1LocaleServices {
     <#
         .SYNOPSIS
-        Delete the locale service of Tier 1 Gateway from the NSX Global Manager.
+        Delete the locale service of Tier-1 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier1LocaleServices cmdlet deletes the locale service of Tier 1 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier1LocaleServices cmdlet deletes the locale service of Tier-1 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId "xint-m01-ec01-t1-gw01 -localeServiceId "sfo-m01"
-        This example deletes the locale service of Tier 1 Gateway from the NSX Global Manager.
+        This example deletes the locale service of Tier-1 Gateway from the NSX Global Manager.
 
         .PARAMETER tier1GatewayId
         The ID of the NSX Tier1 Gateway where the local service is to be deleted.
@@ -47467,7 +47244,7 @@ Function Get-NsxtGlobalManagerTier0LocaleServices {
         This example retrieves the locale services of the Tier-0 gateway from the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
-        The ID of the Tier 0 Gateway.
+        The ID of the Tier-0 Gateway.
     #>
 
     Param (
@@ -47490,14 +47267,14 @@ Export-ModuleMember -Function Get-NsxtGlobalManagerTier0LocaleServices
 Function Remove-NsxtGlobalManagerTier0Gateway {
     <#
         .SYNOPSIS
-        Delete the Tier 0 Gateway from the NSX Global Manager.
+        Delete the Tier-0 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0Gateway cmdlet deletes the Tier 0 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0Gateway cmdlet deletes the Tier-0 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0Gateway -tier0GatewayId "lax-m01-ec01-t0-gw01"
-        This example deletes the Tier 0 Gateway from the NSX Global Manager.
+        This example deletes the Tier-0 Gateway from the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
         The ID of the NSX Tier0 Gateway to be deleted.
@@ -47523,14 +47300,14 @@ Export-ModuleMember -Function Remove-NsxtGlobalManagerTier0Gateway
 Function Remove-NsxtGlobalManagerTier0LocaleServices {
     <#
         .SYNOPSIS
-        Delete the locale service of Tier 0 Gateway from the NSX Global Manager.
+        Delete the locale service of Tier-0 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0LocaleServices cmdlet deletes the locale service of Tier 0 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0LocaleServices cmdlet deletes the locale service of Tier-0 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId "lax-m01-ec01-t0-gw01" -localeServiceId "lax-m01"
-        This example deletes the locale service of Tier 0 Gateway from the NSX Global Manager.
+        This example deletes the locale service of Tier-0 Gateway from the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
         The ID of the NSX Tier0 Gateway where the local service is to be deleted.
@@ -47560,14 +47337,14 @@ Export-ModuleMember -Function Remove-NsxtGlobalManagerTier0LocaleServices
 Function Remove-NsxtGlobalManagerTier0ServiceInterface {
     <#
         .SYNOPSIS
-        Delete the interface from the Tier 0 Gateway on the NSX Global Manager.
+        Delete the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0ServiceInterface cmdlet deletes the interface from the Tier 0 Gateway on the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0ServiceInterface cmdlet deletes the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905"
-        This example deletes the interface from the Tier 0 Gateway on the NSX Global Manager.
+        This example deletes the interface from the Tier-0 Gateway on the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
         The ID of the NSX Tier0 Gateway where the interface is to be deleted.
@@ -47601,17 +47378,17 @@ Export-ModuleMember -Function Remove-NsxtGlobalManagerTier0ServiceInterface
 Function Remove-NsxtGlobalManagerTier0BgpNeighborConfig {
     <#
         .SYNOPSIS
-        Delete the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        Delete the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .DESCRIPTION
-        The Remove-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet deletes the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        The Remove-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet deletes the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .EXAMPLE
         Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -neighborID "172.27.34.10_65211" -localeServiceId "lax-m01"
-        This example deletes the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+        This example deletes the BGP neighbor of Tier-0 Gateway from the NSX Global Manager.
 
         .PARAMETER tier0GatewayId
-        The ID of the NSX Tier0 Gateway.
+        The ID of the NSX Tier-0 Gateway.
 
         .PARAMETER localeServiceId
         The ID of the locale service.
@@ -47638,6 +47415,237 @@ Function Remove-NsxtGlobalManagerTier0BgpNeighborConfig {
     }
 }
 Export-ModuleMember -Function Remove-NsxtGlobalManagerTier0BgpNeighborConfig
+
+Function Get-NsxtGlobalManagerTier0BgpNeighborConfig {
+    <#
+        .SYNOPSIS
+        Retrieve the list of configured BGP neighbors from the Tier-0 Gateway.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01"
+        This example retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -neighborID "172.27.34.10_65211"
+        This example retrieves the list of configured BGP neighbors from the Tier-0 Gateway.
+
+        .PARAMETER tier0GatewayId
+        The ID of the NSX Tier0 Gateway.
+
+        .PARAMETER localeServiceId
+        The ID of the locale service.
+
+        .PARAMETER neighborId
+        The ID of the BGP neighbor
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$neighborID
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("neighborID")) {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/$neighborID"
+                Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerTier0BgpNeighborConfig
+
+Function Get-NsxtGlobalManagerTier0ServiceInterface {
+    <#
+        .SYNOPSIS
+        Retrieve the list of configured service interfaces from the Tier-0 Gateway.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerTier0ServiceInterface cmdlet retrieves the list of configured service interfaces from the Tier-0 Gateway.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01"
+        This example retrieves the list of configured service interfaces from the Tier-0 Gateway.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905"
+        This example retrieves the list of configured service interfaces from the Tier-0 Gateway.
+
+        .PARAMETER tier0GatewayId
+        The ID of the NSX Tier0 Gateway where the interface is to be deleted.
+
+        .PARAMETER localeServiceId
+        The ID of the locale service.
+
+        .PARAMETER interfaceId
+        The ID of the interface.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$interfaceId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("interfaceId")) {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces/$interfaceId"
+                Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders -SkipCertificateCheck
+            } else {
+                $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results  
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerTier0ServiceInterface
+
+Function New-NsxtGlobalManagerTier0LocaleServices {
+    <#
+        .SYNOPSIS
+        Create or update locale services on the Tier-0 Gateway.
+
+        .DESCRIPTION
+        The New-NsxtGlobalManagerTier0LocaleServices cmdlet creates or updates locale services on the Tier-0 Gateway.
+
+        .EXAMPLE
+        New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "sfo-m01" -json $ConfigJson 
+        This example creates or updates locale services on the Tier-0 Gateway.
+
+        .PARAMETER tier0GatewayId
+        The ID of the Tier-0 Gateway.
+
+        .PARAMETER localeServiceId
+        The ID of the locale service.
+
+        .PARAMETER json
+        The JSON configuration for the Tier-0 Gateway.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId"
+            Invoke-RestMethod -Method PATCH -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtGlobalManagerTier0LocaleServices
+
+Function New-NsxtGlobalManagerTier0ServiceInterface {
+    <#
+        .SYNOPSIS
+        Create or update a service interface on Tier-0 Gateway.
+
+        .DESCRIPTION
+        The New-NsxtGlobalManagerTier0ServiceInterface cmdlet creates or updates a service interface on Tier-0 Gateway.
+
+        .EXAMPLE
+        New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -localeServiceId "lax-m01" -interfaceId "lax-m01-r01-en01_901e6f07-d502-46fd-b71e-e6c27358e905" -json $ConfigJson
+        This example creates or updates a service interface on Tier-0 Gateway.
+
+        .PARAMETER tier0GatewayId
+        The ID of the Tier-0 Gateway.
+
+        .PARAMETER localeServiceId
+        The ID of the locale service.
+
+        .PARAMETER interfaceId
+        The ID of the interface.
+
+        .PARAMETER json
+        The JSON configuration for the Tier-0 Gateway.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/interfaces/$interfaceId"
+            Invoke-RestMethod -Method PATCH -URI $uri -Headers $nsxtHeaders -body $json -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtGlobalManagerTier0ServiceInterface
+
+Function New-NsxtGlobalManagerTier0BgpNeighborConfig {
+    <#
+        .SYNOPSIS
+        Create or update a BGP neighbor config for NSX Tier-0 gateways.
+
+        .DESCRIPTION
+        The New-NsxtGlobalManagerTier0BgpNeighborConfig cmdlet creates or updates the BGP neighbor config for NSX Tier-0 gateways.
+
+        .EXAMPLE
+        New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId "92a3a3b4-a1d1-48a9-8190-dca8e44c18c1" -neighborID "172.27.34.10_65211" -localeServiceId "lax-m01" -json $ConfigJson
+        This example creates or updates the BGP neighbor config for NSX Tier-0 gateways.
+
+        .PARAMETER tier0GatewayId
+        The ID of the Tier0 Gateway.
+
+        .PARAMETER localeServiceId
+        The ID of the locale service.
+
+        .PARAMETER neighborId
+        The ID of the BGP neighbor.
+
+        .PARAMETER json
+        The JSON configuration for the Tier-0 Gateway.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$neighborID,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/$neighborID"
+            Invoke-RestMethod -Method PATCH -URI $uri -Headers $nsxtHeaders -body $json -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtGlobalManagerTier0BgpNeighborConfig
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
