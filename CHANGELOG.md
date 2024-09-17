@@ -76,6 +76,14 @@
 - Added `Remove-NsxtGlobalManagerTier0ServiceInterface` cmdlet to delete the interface from the Tier 0 Gateway on the NSX Global Manager.
 - Added `Export-NsxtGlobalManagerTier0GatewayConfig` cmdlet to create the JSON specification file for the BGP neighbor and interface configuration.
 - Added `Update-NsxtGlobalManagerTier1Gateway` cmdlet to update the Tier 1 Gateway on the NSX Global Manager.
+- Added `Get-NsxtGlobalManagerTier0BgpNeighborConfig` cmdlet to retrieve the list of configured BGP neighbors from the Tier-0 Gateway.
+- Added `Get-NsxtGlobalManagerTier0ServiceInterface` cmdlet to retrieve the list of configured service interfaces from the Tier-0 Gateway.
+- Added `New-NsxtGlobalManagerTier0LocaleServices` cmdlet to create or update locale services on the Tier-0 Gateway.
+- Added `New-NsxtGlobalManagerTier0ServiceInterface` cmdlet to create or update a service interface on Tier-0 Gateway.
+- Added `New-NsxtGlobalManagerTier0BgpNeighborConfig` cmdlet to create or update a BGP neighbor config for NSX Tier-0 gateways.
+- Added `Update-NsxtGlobalManagerTier0LocaleService` cmdlet to update the locale services on Tier-0 Gateway.
+- Added `Update-NsxtGlobalManagerTier0Gateway` cmdlet to update the Tier-0 Gateway on the NSX Global Manager.
+- Added `Update-NsxtGlobalManagerTier1LocaleService` cmdlet to update the locale services on Tier-1 Gateway.
 - Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
