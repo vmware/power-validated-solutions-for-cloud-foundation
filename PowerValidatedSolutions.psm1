@@ -33621,7 +33621,7 @@ Function Update-NsxtGlobalManagerTier0LocaleService {
                         if  (-Not ($localeServiceId)) {
                             $jsonBody = @{ 
                                 "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                            } | convertto-json
+                            } | ConvertTo-JSON
                             New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).id -json $jsonBody -localeServiceId $location | Out-Null
                             $localeServiceId =  ((Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).id) | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
                             if ($localeServiceId) {
@@ -33715,7 +33715,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                             $json | ForEach-Object { 
                                 $jsonDisplayName = $_.display_name
                                 if (-Not ($configuredInterface | where-object {$_.display_name -eq $jsonDisplayName})) {
-                                    New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id -json ($_ | convertto-json -Depth 5) 
+                                    New-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id -json ($_ | ConvertTo-JSON -Depth 5) 
                                     $interface = Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -interfaceId $_.id
                                     if ($_.display_name -eq $interface.display_name ) {
                                         Write-Output "Creating interface ($($_.display_name)) on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
@@ -33736,7 +33736,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                                 $jsonDisplayName = $_.display_name
                                 if (-Not ($configuredNeighbor | where-object {$_.display_name -eq $jsonDisplayName})) {
                                     $_ | Add-Member -Notepropertyname 'password' -Notepropertyvalue $bgpPassord
-                                    New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id -json ($_ | convertto-json -Depth 5) 
+                                    New-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id -json ($_ | ConvertTo-JSON -Depth 5) 
                                     $neighbor = Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborID $_.id
                                     if ($_.display_name -eq $neighbor.display_name ) {
                                         Write-Output "Creating neighbor ($($_.display_name)) on Tier-0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
@@ -33776,7 +33776,7 @@ Function Update-NsxtGlobalManagerTier0Gateway {
                                 ]
                             }
                         }'
-                        $jsonPsObj = $jsonBody | convertfrom-json 
+                        $jsonPsObj = $jsonBody | ConvertFrom-JSON
                         if (-Not (($localeServiceObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress) -eq ($jsonPsObj.route_redistribution_config.redistribution_rules | ConvertTo-Json -Compress)) ) {
                             New-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id -json $jsonBody -localeServiceId $localeServiceId
                             $localeServiceObj = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path})
@@ -33850,7 +33850,7 @@ Function Update-NsxtGlobalManagerTier1LocaleService {
                         if  (-Not (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id | Where-Object {$_.display_name -eq $location})) {
                             $jsonBody = @{ 
                                 "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                            } | convertto-json
+                            } | ConvertTo-JSON
                             New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id | Out-Null
                             if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id | Where-Object {$_.display_name -eq $location}) {
                                 Write-Output "Updating locale services on Tier-1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
