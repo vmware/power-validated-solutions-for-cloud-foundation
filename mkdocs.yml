@@ -548,6 +548,7 @@ nav:
       - documentation/functions/nsx/Add-RouteMap.md
       - documentation/functions/nsx/Copy-vRealizeLoadBalancer.md
       - documentation/functions/nsx/Deploy-NsxtGlobalManager.md
+      - documentation/functions/nsx/Export-NsxtGlobalManagerTier0GatewayConfig.md
       - documentation/functions/nsx/Get-NsxEdgeCluster.md
       - documentation/functions/nsx/Get-NSXLBDetails.md
       - documentation/functions/nsx/Get-NsxtAlarm.md
@@ -640,8 +641,10 @@ nav:
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerStandby.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0BgpNeighborConfig.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0Gateway.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0LocaleServices.md
+      - documentation/functions/nsx/Remove-NsxtGlobalManagerTier0ServiceInterface.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGroup.md
@@ -695,6 +698,7 @@ nav:
       - documentation/functions/nsx/Undo-PrefixList.md
       - documentation/functions/nsx/Undo-RouteMap.md
       - documentation/functions/nsx/Update-NsxtGlobalManagerSegment.md
+      - documentation/functions/nsx/Update-NsxtGlobalManagerTier1Gateway.md
     - SDDC Manager:
       - documentation/functions/sddc-manager/Add-SddcManagerRole.md
       - documentation/functions/sddc-manager/Get-VCFDnsSearchDomain.md

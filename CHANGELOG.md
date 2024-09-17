@@ -72,7 +72,7 @@
 - Added `Remove-NsxtGlobalManagerTier0Gateway` cmdlet to delete the Tier 0 Gateway from the NSX Global Manager.
 - Added `Remove-NsxtGlobalManagerTier0LocaleServices` cmdlet to delete the locale service of Tier 0 Gateway from the NSX Global Manager.
 - Added `Undo-NsxtGlobalManagerTier0Gateway` cmdlet to remove the Tier 0 Gateway from the NSX Global Manager.
-- Added `Remove-NsxtGlobalManagerTier0BgpNeighborConfig ` cmdlet to delete the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
+- Added `Remove-NsxtGlobalManagerTier0BgpNeighborConfig` cmdlet to delete the BGP neighbor of Tier 0 Gateway from the NSX Global Manager.
 - Added `Remove-NsxtGlobalManagerTier0ServiceInterface` cmdlet to delete the interface from the Tier 0 Gateway on the NSX Global Manager.
 - Added `Export-NsxtGlobalManagerTier0GatewayConfig` cmdlet to create the JSON specification file for the BGP neighbor and interface configuration.
 - Added `Update-NsxtGlobalManagerTier1Gateway` cmdlet to update the Tier 1 Gateway on the NSX Global Manager.
