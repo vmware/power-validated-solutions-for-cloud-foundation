@@ -573,8 +573,10 @@ nav:
       - documentation/functions/nsx/Get-NsxtGlobalManagerOnBoarding.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerOperationalState.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerSegment.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier0BgpNeighborConfig.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier0Gateway.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier0LocaleServices.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerTier0ServiceInterface.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Get-NsxtGlobalSegmentID.md
@@ -638,6 +640,9 @@ nav:
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerClusterVirtualIp.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerLocation.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerTier0BgpNeighborConfig.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerTier0LocaleServices.md
+      - documentation/functions/nsx/New-NsxtGlobalManagerTier0ServiceInterface.md
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1Gateway.md
       - documentation/functions/nsx/New-NsxtGlobalManagerTier1LocaleServices.md
       - documentation/functions/nsx/Remove-NsxtGlobalManagerStandby.md
@@ -698,7 +703,10 @@ nav:
       - documentation/functions/nsx/Undo-PrefixList.md
       - documentation/functions/nsx/Undo-RouteMap.md
       - documentation/functions/nsx/Update-NsxtGlobalManagerSegment.md
+      - documentation/functions/nsx/Update-NsxtGlobalManagerTier0Gateway.md
+      - documentation/functions/nsx/Update-NsxtGlobalManagerTier0LocaleService.md
       - documentation/functions/nsx/Update-NsxtGlobalManagerTier1Gateway.md
+      - documentation/functions/nsx/Update-NsxtGlobalManagerTier1LocaleService.md
     - SDDC Manager:
       - documentation/functions/sddc-manager/Add-SddcManagerRole.md
       - documentation/functions/sddc-manager/Get-VCFDnsSearchDomain.md
@@ -940,7 +948,7 @@ nav:
       - documentation/functions/workspace-one-access/Get-WSAActiveDirectoryGroupDetail.md
       - documentation/functions/workspace-one-access/Get-WSAClient.md
       - documentation/functions/workspace-one-access/Get-WSAConnector.md
-      - documentation/functions/workspace-one-access/Get-WSADirectory.md
+      - documentation/functions/workspace-one-access/Get-WsaDirectory.md
       - documentation/functions/workspace-one-access/Get-WSADirectoryDomain.md
       - documentation/functions/workspace-one-access/Get-WSAGroup.md
       - documentation/functions/workspace-one-access/Get-WSAIdentityProvider.md
