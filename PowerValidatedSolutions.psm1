@@ -392,7 +392,7 @@ Function Invoke-IamDeployment {
                                 if ($StatusMsg -or $WarnMsg) { $null = $ErrorMsg } elseif ($ErrorMsg) { $failureDetected = $true }
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 if ($sddcDomain.type -eq "MANAGEMENT") {
-                                    $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" -and $_.ssoName -eq "vsphere.local"}
+                                    $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object { $_.type -eq "VI" -and $_.ssoName -eq "vsphere.local" }
                                     foreach ($viDomain in $viWorkloadDomains) {
                                         $viServiceAccount = (Get-VCFCredential | Where-Object { $_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER" -and $_.username -match (($viDomain.nsxtCluster.vipFqdn).Split('.', 2)[-0]) }).username.Split("@")[-0]
                                         $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -1665,55 +1665,65 @@ Function Add-WorkspaceOneDirectory {
             if (Test-WSAAuthentication -server $server -user $user -pass $pass) {
                 $checkAdAuthentication = Test-ADAuthentication -user ($bindUserDn.Split(",")[0]).Split("=")[1] -pass $bindUserPass -server $domain -domain $domain -ErrorAction SilentlyContinue
                 if ($checkAdAuthentication[1] -match "Authentication Successful") {
-                    if (!(Get-WSADirectory | Where-Object { ($_.name -eq $domain) })) {
-                        if ($protocol -eq "ldaps") {
+                    if (-Not(Get-WsaDirectory -domainName $domain) ) {
+                        if ( $protocol -eq "ldaps" ) {
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn -certificate $certificate
                         } else {
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn
                         }
-                        $connector = Get-WSAConnector | Where-Object { $_.host -eq $server }
-                        Set-WSABindPassword -directoryId $directory.directoryConfigId -connectorId $connector.instanceId -pass $bindUserPass | Out-Null
-                        $adUserJson = '{ "identityUserInfo": { "' + $bindUserDn + '": { "selected": true }, "' + $baseDnUser + '": { "selected": true }}}'
-                        $mappedGroupObject = @()
-                        foreach ($group in $adGroups) {
-                            $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user ($bindUserDn.Split(',')[0]).Split('=')[1] -pass $bindUserPass -principal $group
-                            if ($adGroupDetails) {
-                                $groupsObject = @()
-                                $groupsObject += [pscustomobject]@{
-                                    'horizonName' = $adGroupDetails.Name
-                                    'dn'          = $adGroupDetails.DistinguishedName
-                                    'objectGuid'  = $adGroupDetails.ObjectGuid
-                                    'groupBaseDN' = $baseDnGroup
-                                    'source'      = "DIRECTORY"
+                        $timeout = New-TimeSpan -Seconds 300
+                        $endTime = (Get-Date).Add($timeout)
+                        Do {
+                            $ldapCreated = Get-WsaDirectory -domainName $domain
+                        }
+                        Until ($ldapCreated -or ((Get-Date) -gt $endTime))
+                        if ($ldapCreated) {
+                            $connector = Get-WSAConnector | Where-Object { $_.host -eq $server }
+                            Set-WSABindPassword -directoryId $directory.directoryConfigId -connectorId $connector.instanceId -pass $bindUserPass | Out-Null
+                            $adUserJson = '{ "identityUserInfo": { "' + $bindUserDn + '": { "selected": true }, "' + $baseDnUser + '": { "selected": true }}}'
+                            $mappedGroupObject = @()
+                            foreach ($group in $adGroups) {
+                                $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user ($bindUserDn.Split(',')[0]).Split('=')[1] -pass $bindUserPass -principal $group
+                                if ($adGroupDetails) {
+                                    $groupsObject = @()
+                                    $groupsObject += [pscustomobject]@{
+                                        'horizonName' = $adGroupDetails.Name
+                                        'dn'          = $adGroupDetails.DistinguishedName
+                                        'objectGuid'  = $adGroupDetails.ObjectGuid
+                                        'groupBaseDN' = $baseDnGroup
+                                        'source'      = "DIRECTORY"
+                                    }
+                                    $mappedGroupObject += [pscustomobject]@{
+                                        'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
+                                        'selected'    = $true
+                                    }
+                                } else {
+                                    Write-Error "Group $group is not available in Active Directory Domain: PRE_VALIDATION_FAILED"
                                 }
-                                $mappedGroupObject += [pscustomobject]@{
-                                    'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
-                                    'selected'    = $true
-                                }
-                            } else {
-                                Write-Error "Group $group is not available in Active Directory Domain: PRE_VALIDATION_FAILED"
                             }
+                            $mappedGroupObjectData = @()
+                            $mappedGroupObjectData += [pscustomobject]@{
+                                'mappedGroupData' = $mappedGroupObject
+                                'selected'        = $false
+                            }
+                            $identityGroupObject = @()
+                            $identityGroupObject += [pscustomobject]@{
+                                $baseDnGroup = ($mappedGroupObjectData | Select-Object -Skip 0)
+                            }
+                            $adGroupObject = @()
+                            $adGroupObject += [pscustomobject]@{
+                                'identityGroupInfo'         = ($identityGroupObject | Select-Object -Skip 0)
+                                'excludeNestedGroupMembers' = $false
+                            }
+                            $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10
+                            Set-WSADirectoryUser -directoryId $directory.directoryConfigId -json $adUserJson | Out-Null
+                            Set-WSADirectoryGroup -directoryId $directory.directoryConfigId -json $adGroupJson | Out-Null
+                            Set-WSASyncSetting -directoryId $directory.directoryConfigId | Out-Null
+                            Start-WSADirectorySync -directoryId $directory.directoryConfigId | Out-Null
+                            Write-Output "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): SUCCESSFUL"
+                        } else {
+                            Write-Error "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): POST_VALIDATION_FAILED"
                         }
-                        $mappedGroupObjectData = @()
-                        $mappedGroupObjectData += [pscustomobject]@{
-                            'mappedGroupData' = $mappedGroupObject
-                            'selected'        = $false
-                        }
-                        $identityGroupObject = @()
-                        $identityGroupObject += [pscustomobject]@{
-                            $baseDnGroup = ($mappedGroupObjectData | Select-Object -Skip 0)
-                        }
-                        $adGroupObject = @()
-                        $adGroupObject += [pscustomobject]@{
-                            'identityGroupInfo'         = ($identityGroupObject | Select-Object -Skip 0)
-                            'excludeNestedGroupMembers' = $false
-                        }
-                        $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10
-                        Set-WSADirectoryUser -directoryId $directory.directoryConfigId -json $adUserJson | Out-Null
-                        Set-WSADirectoryGroup -directoryId $directory.directoryConfigId -json $adGroupJson | Out-Null
-                        Set-WSASyncSetting -directoryId $directory.directoryConfigId | Out-Null
-                        Start-WSADirectorySync -directoryId $directory.directoryConfigId | Out-Null
-                        Write-Output "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): SUCCESSFUL"
                     } else {
                         Write-Warning "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain), already exists: SKIPPED"
                     }
@@ -31236,8 +31246,8 @@ Function Invoke-WsaDirectorySync {
                 if (($vcfWsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-WSAConnection -server $vcfWsaDetails.loadBalancerFqdn) {
                         if (Test-WSAAuthentication -server $vcfWsaDetails.loadBalancerFqdn -user $vcfWsaDetails.adminUser -pass $vcfWsaDetails.adminPass) {
-                            if (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }) {
-                                Start-WSADirectorySync -directoryId ((Get-WSADirectory | Where-Object { ($_.name -eq $domain) })).directoryId | Out-Null
+                            if (Get-WsaDirectory | Where-Object { ($_.name -eq $domain) }) {
+                                Start-WSADirectorySync -directoryId ((Get-WsaDirectory | Where-Object { ($_.name -eq $domain) })).directoryId | Out-Null
                                 Write-Output "Start Synchronization of Active Directory Users: SUCCESSFUL"
                             } else {
                                 Write-Error "Unable to locate Domain ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn))"
@@ -31731,7 +31741,7 @@ Function Invoke-NsxFederationDeployment {
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
                 Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1,$jsonInput.protected.edgeNode2) -ipPoolId $jsonInput.protected.rtepName -rtepVlan $jsonInput.protected.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1, $jsonInput.protected.edgeNode2) -ipPoolId $jsonInput.protected.rtepName -rtepVlan $jsonInput.protected.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
@@ -31739,7 +31749,7 @@ Function Invoke-NsxFederationDeployment {
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
                 Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -localManagerFqdn $jsonInput.recovery.localManagerFqdn -localManagerUser $jsonInput.recovery.localManagerUser -localManagerPass $jsonInput.recovery.localManagerPass -edgeNodes @($jsonInput.recovery.edgeNode1,$jsonInput.recovery.edgeNode2) -ipPoolId $jsonInput.recovery.rtepName -rtepVlan $jsonInput.recovery.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -localManagerFqdn $jsonInput.recovery.localManagerFqdn -localManagerUser $jsonInput.recovery.localManagerUser -localManagerPass $jsonInput.recovery.localManagerPass -edgeNodes @($jsonInput.recovery.edgeNode1, $jsonInput.recovery.edgeNode2) -ipPoolId $jsonInput.recovery.rtepName -rtepVlan $jsonInput.recovery.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
@@ -32439,7 +32449,7 @@ Function Add-NsxtGlobalManagerMode {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
                 if (-Not ((Get-NsxtGlobalManager -id $displayName -ErrorAction Ignore).mode -eq $mode)) {
-                    if ($mode -eq "ACTIVE"){
+                    if ($mode -eq "ACTIVE") {
                         Set-NsxtGloblaManagerActive -displayName $displayName | Out-Null
                     } elseif ($mode -eq "STANDBY") {
                         if ((Test-NsxtVersionCompatibility -fqdn $standbyServer -username $standbyServerUser -password $standbyServerPass).version_compatible -eq "True") {
@@ -32699,15 +32709,15 @@ Function Undo-NsxtGlobalManagerStandby {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyServer,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$standbyDisplayName
     )
     Try {
         if (Test-NSXTConnection -server $server) {
             if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                if (Get-NsxtGlobalManager| Where-Object {$_.display_name -eq $standbyDisplayName}) {
+                if (Get-NsxtGlobalManager | Where-Object { $_.display_name -eq $standbyDisplayName }) {
                     Remove-NsxtGlobalManagerStandby -standbyServer $standbyServer -displayName $standbydisplayName | Out-Null
-                    if (-Not (Get-NsxtGlobalManager| Where-Object {$_.display_name -eq $standbyDisplayName})) {
+                    if (-Not (Get-NsxtGlobalManager | Where-Object { $_.display_name -eq $standbyDisplayName })) {
                         Write-Output "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): SUCCESSFUL"
                     } else {
                         Write-Error "Removing the STANDBY mode configuration from NSX Global Manager ($standbyServer): POST_VALIDATION_FAILED"
@@ -32771,35 +32781,35 @@ Function Add-NsxtGlobalManagerTier1Gateway {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                if (-Not (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway})) {
-                    if (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}) {
+                if (-Not (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway })) {
+                    if (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }) {
                         # $t0Details = Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}
-                        if (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}) {
+                        if (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }) {
                             $jsonBody = [PSCustomObject]@{
-                                resource_type = "Tier1"
-                                ha_mode = "ACTIVE_STANDBY"
-                                display_name = $tier1Gateway
-                                tier0_path = (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).path
-                                failover_mode = "NON_PREEMPTIVE"
+                                resource_type             = "Tier1"
+                                ha_mode                   = "ACTIVE_STANDBY"
+                                display_name              = $tier1Gateway
+                                tier0_path                = (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).path
+                                failover_mode             = "NON_PREEMPTIVE"
                                 enable_standby_relocation = "true"
-                                pool_allocation = "ROUTING"
-                                intersite_config =[PSCustomObject] @{
-                                    primary_site_path = (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).path
+                                pool_allocation           = "ROUTING"
+                                intersite_config          = [PSCustomObject] @{
+                                    primary_site_path = (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).path
                                 }
-                                route_advertisement_types = "TIER1_CONNECTED","TIER1_NAT","TIER1_LB_VIP","TIER1_STATIC_ROUTES","TIER1_LB_SNAT","TIER1_DNS_FORWARDER_IP","TIER1_IPSEC_LOCAL_ENDPOINT"
+                                route_advertisement_types = "TIER1_CONNECTED", "TIER1_NAT", "TIER1_LB_VIP", "TIER1_STATIC_ROUTES", "TIER1_LB_SNAT", "TIER1_DNS_FORWARDER_IP", "TIER1_IPSEC_LOCAL_ENDPOINT"
                             }
                             # $body | Add-Member -Notepropertyname 'route_advertisement_types' -Notepropertyvalue "TIER1_CONNECTED","TIER1_NAT","TIER1_LB_VIP","TIER1_STATIC_ROUTES","TIER1_LB_SNAT","TIER1_DNS_FORWARDER_IP","TIER1_IPSEC_LOCAL_ENDPOINT"
                             $jsonBody = $jsonBody | ConvertTo-Json
                             New-NsxtGlobalManagerTier1Gateway -tier1Gateway $tier1Gateway -json $jsonBody | Out-Null
                             # $t1Details = Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}
-                            if (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}) {
+                            if (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }) {
                                 Write-Output "Creating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 $jsonBody = @{
-                                    "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                                    "resource_type" = "LocaleServices"
+                                    "edge_cluster_path" = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
+                                    "resource_type"     = "LocaleServices"
                                 } | convertto-json
-                                New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id | Out-Null
-                                if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id | Where-Object {$_.display_name -eq $location}) {
+                                New-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id -json $jsonBody -localeServiceId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id | Out-Null
+                                if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id | Where-Object { $_.display_name -eq $location }) {
                                     Write-Output "Creating locale services on Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 } else {
                                     Write-Error "Creating locale services on Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -32811,7 +32821,7 @@ Function Add-NsxtGlobalManagerTier1Gateway {
                             Write-Error "Unable to find Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): PRE_VALIDATION_FAILED"
                         }
                     } else {
-                            Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                        Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }
                 } else {
                     Write-Warning "Creating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), already exists: SKIPPED"
@@ -32866,13 +32876,13 @@ Function Undo-NsxtGlobalManagerTier1Gateway {
     Try {
         if (Test-NSXTConnection -server $server) {
             if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                $t1Details = Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}
+                $t1Details = Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }
                 if ($t1Details) {
-                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}
+                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }
                     if ($locationDetails) {
-                        if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId $t1Details.id | Where-Object {$_.display_name -eq $location}) {
+                        if (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId $t1Details.id | Where-Object { $_.display_name -eq $location }) {
                             Remove-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId $t1Details.id -localeServiceId $locationDetails.id | Out-Null
-                            if (-Not (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId $t1Details.id | Where-Object {$_.display_name -eq $location})) {
+                            if (-Not (Get-NsxtGlobalManagerTier1LocaleServices -tier1GatewayId $t1Details.id | Where-Object { $_.display_name -eq $location })) {
                                 Write-Output "Removing locale services on NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
                                 Write-Error "Removing locale services on NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -32881,7 +32891,7 @@ Function Undo-NsxtGlobalManagerTier1Gateway {
                             Write-Warning "Removing locale services on NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                         }
                         Remove-NsxtGlobalManagerTier1Gateway -tier1GatewayId $t1Details.id | Out-Null
-                        if (-Not (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway})) {
+                        if (-Not (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway })) {
                             Write-Output "Removing NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                         } else {
                             Write-Error "Removing NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -32890,7 +32900,7 @@ Function Undo-NsxtGlobalManagerTier1Gateway {
                         Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }
                 } else {
-                        Write-Warning "Removing NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                    Write-Warning "Removing NSX T1 gateway ($tier1Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                 }
             }
         }
@@ -32943,16 +32953,16 @@ Function Update-NsxtGlobalManagerSegment {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                $tier1GatewayDetail = Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}
+                $tier1GatewayDetail = Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }
                 if ($tier1GatewayDetail) {
-                    $segmentDetail = Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName}
+                    $segmentDetail = Get-NsxtGlobalManagerSegment | Where-Object { $_.display_name -eq $segmentName }
                     if ($segmentDetail) {
-                        if (-Not ((Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName}).connectivity_path -eq $tier1GatewayDetail.path)) {
+                        if (-Not ((Get-NsxtGlobalManagerSegment | Where-Object { $_.display_name -eq $segmentName }).connectivity_path -eq $tier1GatewayDetail.path)) {
                             $jsonBody = [PSCustomObject]@{
-                                "connectivity_path" =  $tier1GatewayDetail.path
+                                "connectivity_path" = $tier1GatewayDetail.path
                             } | convertto-json
                             Set-NsxtGlobalManagerSegment -segmentId $segmentDetail.id -jsonBody $jsonBody | Out-Null
-                            if ((Get-NsxtGlobalManagerSegment | Where-Object {$_.display_name -eq $segmentName}).connectivity_path -eq $tier1GatewayDetail.path) {
+                            if ((Get-NsxtGlobalManagerSegment | Where-Object { $_.display_name -eq $segmentName }).connectivity_path -eq $tier1GatewayDetail.path) {
                                 Write-Output "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
                                 Write-Error "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -32961,7 +32971,7 @@ Function Update-NsxtGlobalManagerSegment {
                             Write-Warning "Updating NSX segment ($segmentName) in NSX Global Manager instance ($($server)), already exists: SKIPPED"
                         }
                     } else {
-                            Write-Error "Unable to find segment ($segmentName) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
+                        Write-Error "Unable to find segment ($segmentName) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }
                 } else {
                     Write-Error "Unable to find Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
@@ -33048,7 +33058,7 @@ Function Remove-NsxtGlobalManagerTier0BgpNeighborConfig {
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId/bgp/neighbors/$neighborId"
             Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
         } else {
-                Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -33105,27 +33115,27 @@ Function Export-NsxtGlobalManagerTier0GatewayConfig {
     Try {
         if (Test-NSXTConnection -server $server) {
             if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                $t0Details = Get-NsxtGlobalManagertier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}
+                $t0Details = Get-NsxtGlobalManagertier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }
                 if ($t0Details) {
-                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}
+                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }
                     if ($locationDetails) {
-                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
+                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
+                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path }).id
                         if ($localeServiceId) { 
                             $configuredNeighbor = (Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredNeighbor) {
-                                $configuredNeighbor  | Select-Object -Property neighbor_address,remote_as_num,keep_alive_time,hold_down_time,source_addresses,bfd,display_name,id | ConvertTo-Json -Depth 10 | Out-File $bgpNeighborJsonFile
+                                $configuredNeighbor | Select-Object -Property neighbor_address, remote_as_num, keep_alive_time, hold_down_time, source_addresses, bfd, display_name, id | ConvertTo-Json -Depth 10 | Out-File $bgpNeighborJsonFile
                                 if (Test-Path -Path $bgpNeighborJsonFile) {
                                     Write-Output "Creation of JSON Specification file $bgpNeighborJsonFile : SUCCESSFUL"             
-                                 } else {
+                                } else {
                                     Write-Error "Creation of JSON Specification file $bgpNeighborJsonFile : POST_VALIDATION_FAILED"   
-                                 }
+                                }
                             } else {
                                 Write-Warning "BGP neighbor is not configured on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
                             }
                             $configuredInterface = (Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredInterface) {
-                                $configuredInterface | Select-Object -Property segment_path,subnets,edge_path,type,mtu,id,display_name,urpf_mode | ConvertTo-Json -Depth 10 | Out-File $interfaceJsonFile
+                                $configuredInterface | Select-Object -Property segment_path, subnets, edge_path, type, mtu, id, display_name, urpf_mode | ConvertTo-Json -Depth 10 | Out-File $interfaceJsonFile
                                 if (Test-Path -Path $interfaceJsonFile) {
                                     Write-Output "Creation of JSON Specification file $interfaceJsonFile : SUCCESSFUL"             
                                 } else {
@@ -33133,7 +33143,7 @@ Function Export-NsxtGlobalManagerTier0GatewayConfig {
                                 }
                             } else {
                                 Write-Warning "Interface is not configured on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)) : SKIPPED"
-                                }
+                            }
                         } else {
                             Write-Error "Unable to find locale service for the specified location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                         } 
@@ -33195,17 +33205,17 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
     Try {
         if (Test-NSXTConnection -server $server) {
             if (Test-NSXTAuthentication -server $server -user $user -pass $pass) {
-                $t0Details = Get-NsxtGlobalManagertier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}
+                $t0Details = Get-NsxtGlobalManagertier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }
                 if ($t0Details) {
-                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}
+                    $locationDetails = Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }
                     if ($locationDetails) {
-                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object {$_.display_name -eq $location}).id).path
-                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path}).id
+                        $edge_cluster_path = (Get-NsxtGlobalManagerEdgeCluster -siteId (Get-NsxtGlobalManagerLocation | Where-Object { $_.display_name -eq $location }).id).path
+                        $localeServiceId = (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path }).id
                         if ($localeServiceId) { 
                             $configuredNeighbor = (Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredNeighbor) {
                                 $configuredNeighbor | ForEach-Object {
-                                Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborId $_.id 
+                                    Remove-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId -neighborId $_.id 
                                 }
                                 $neighbor = Get-NsxtGlobalManagerTier0BgpNeighborConfig -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId
                                 if (-Not ($neighbor)) {
@@ -33214,7 +33224,7 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
                                     Write-Error "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                                 } 
                             } else {
-                            Write-Warning "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                                Write-Warning "Deleting neighbor on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                             }
                             $configuredInterface = (Get-NsxtGlobalManagerTier0ServiceInterface -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId)
                             if ($configuredInterface) {
@@ -33228,10 +33238,10 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
                                     Write-Error "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
                                 } 
                             } else {
-                            Write-Warning "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                                Write-Warning "Deleting interface on Tier 0 Gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                             }
                             Remove-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id -localeServiceId $localeServiceId | Out-Null
-                            if (-Not (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object {$_.edge_cluster_path -eq $edge_cluster_path})) {
+                            if (-Not (Get-NsxtGlobalManagerTier0LocaleServices -tier0GatewayId $t0Details.id | Where-Object { $_.edge_cluster_path -eq $edge_cluster_path })) {
                                 Write-Output "Removing locale services on NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
                                 Write-Error "Removing locale services on NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -33240,7 +33250,7 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
                             Write-Warning "Removing locale services on NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                         } 
                         Remove-NsxtGlobalManagertier0Gateway -tier0GatewayId $t0Details.id #| Out-Null
-                        if (-Not (Get-NsxtGlobalManagertier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway})) {
+                        if (-Not (Get-NsxtGlobalManagertier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway })) {
                             Write-Output "Removing NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                         } else {
                             Write-Error "Removing NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -33249,7 +33259,7 @@ Function Undo-NsxtGlobalManagerTier0Gateway {
                         Write-Error "Unable to find location ($location) in NSX Global Manager instance ($server): PRE_VALIDATION_FAILED"
                     }    
                 } else {
-                        Write-Warning "Removing NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
+                    Write-Warning "Removing NSX T0 gateway ($tier0Gateway) in NSX Global Manager instance ($($server)), not configured : SKIPPED"
                 }
             }
         }
@@ -33302,14 +33312,14 @@ Function Update-NsxtGlobalManagerTier1Gateway {
     Try {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
-                if (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}) {
-                    if (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}) {
-                        if (-Not ((Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).tier0_path -eq (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).path)) {
-                            $jsonBody = (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway})
-                            $jsonBody.tier0_path = (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).path
+                if (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }) {
+                    if (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }) {
+                        if (-Not ((Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).tier0_path -eq (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).path)) {
+                            $jsonBody = (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway })
+                            $jsonBody.tier0_path = (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).path
                             $jsonBody = $jsonBody | ConvertTo-Json
-                            New-NsxtGlobalManagerTier1Gateway -tier1Gateway (Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).id -json $jsonBody | Out-Null
-                            if ((Get-NsxtGlobalManagerTier1Gateway | Where-Object {$_.display_name -eq $tier1Gateway}).tier0_path -eq (Get-NsxtGlobalManagerTier0Gateway | Where-Object {$_.display_name -eq $tier0Gateway}).path) {
+                            New-NsxtGlobalManagerTier1Gateway -tier1Gateway (Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).id -json $jsonBody | Out-Null
+                            if ((Get-NsxtGlobalManagerTier1Gateway | Where-Object { $_.display_name -eq $tier1Gateway }).tier0_path -eq (Get-NsxtGlobalManagerTier0Gateway | Where-Object { $_.display_name -eq $tier0Gateway }).path) {
                                 Write-Output "Updating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                             } else {
                                 Write-Error "Updating Tier 1 Gateway ($tier1Gateway) in NSX Global Manager instance ($($server)): POST_VALIDATION_FAILED"
@@ -36182,7 +36192,7 @@ Function Add-WorkspaceOneDirectoryGroup {
         if (Test-WSAConnection -server $server) {
             if (Test-WSAAuthentication -server $server -user $user -pass $pass) {
                 if ((Test-ADAuthentication -user $bindUser -pass $bindPass -server $domain -domain $domain) -match "AD Authentication Successful") {
-                    if (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }) {
+                    if (Get-WsaDirectory -domainName $domain) {
                         $configuredGroups = New-Object System.Collections.Generic.List[System.Object]
                         $allGroups = New-Object System.Collections.Generic.List[System.Object]
                         $existingGroupList = Get-WSAGroup | Where-Object { $_.displayName -Match $domain } | Select-Object displayName
@@ -36235,8 +36245,8 @@ Function Add-WorkspaceOneDirectoryGroup {
 
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
 
-                        Set-WSADirectoryGroup -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId -json $adGroupJson | Out-Null
-                        Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
+                        Set-WSADirectoryGroup -directoryId (Get-WsaDirectory -domainName $domain).directoryId -json $adGroupJson | Out-Null
+                        Start-WSADirectorySync -directoryId (Get-WsaDirectory -domainName $domain).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Adding Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
                     } else {
@@ -36307,7 +36317,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
         if (Test-WSAConnection -server $server) {
             if (Test-WSAAuthentication -server $server -user $user -pass $pass) {
                 if ((Test-ADAuthentication -user $bindUser -pass $bindPass -server $domain -domain $domain) -match "AD Authentication Successful") {
-                    if (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }) {
+                    if (Get-WsaDirectory -domainName $domain) {
                         $configuredGroups = New-Object System.Collections.Generic.List[System.Object]
                         $allGroups = New-Object System.Collections.Generic.List[System.Object]
                         $existingGroupList = Get-WSAGroup | Where-Object { $_.displayName -Match $domain } | Select-Object displayName
@@ -36356,8 +36366,8 @@ Function Undo-WorkspaceOneDirectoryGroup {
                         }
                         $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
-                        Set-WSADirectoryGroup -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId -json $adGroupJson | Out-Null
-                        Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
+                        Set-WSADirectoryGroup -directoryId (Get-WsaDirectory -domainName $domain).directoryId -json $adGroupJson | Out-Null
+                        Start-WSADirectorySync -directoryId (Get-WsaDirectory -domainName $domain).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Removing Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
                     } else {
@@ -36428,11 +36438,11 @@ Function Add-WorkspaceOneDirectoryConnector {
                 if (($vcfWsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-WSAConnection -server $vcfWsaDetails.loadBalancerFqdn) {
                         if (Test-WSAAuthentication -server $vcfWsaDetails.loadBalancerFqdn -user $wsaUser -pass $wsaPass) {
-                            if ($directoryId = (Get-WSADirectory | Where-Object { $_.name -eq $domain }).directoryId) {
+                            if ($directoryId = (Get-WsaDirectory | Where-Object { $_.name -eq $domain }).directoryId) {
                                 if (Get-WSAConnector | Where-Object { $_.host -eq $wsaNode }) {
-                                    if (!(Get-WSADirectory -directoryId $directoryId -connector | Where-Object { $_.host -eq $wsaNode })) {
+                                    if (!(Get-WsaDirectory -directoryId $directoryId -connector | Where-Object { $_.host -eq $wsaNode })) {
                                         Add-WSAConnector -wsaNode $wsaNode -domain $domain -bindUserPass $bindUserPass | Out-Null
-                                        if (Get-WSADirectory -directoryId $directoryId -connector | Where-Object { $_.host -eq $wsaNode }) {
+                                        if (Get-WsaDirectory -directoryId $directoryId -connector | Where-Object { $_.host -eq $wsaNode }) {
                                             Write-Output "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): SUCCESSFUL"
                                         } else {
                                             Write-Error "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): POST_VALIDATION_FAILED"
@@ -39648,21 +39658,28 @@ Function Add-WSAConnector {
 }
 Export-ModuleMember -Function Add-WSAConnector
 
-Function Get-WSADirectory {
+Function Get-WsaDirectory {
     <#
 		.SYNOPSIS
-        Get diretories.
+        Retrieve a list of directories.
 
         .DESCRIPTION
-        The Get-WSADirectory cmdlets retrieves all directories in Workspace ONE Access
+        The Get-WsaDirectory cmdlets retrieves all directories configured in Workspace ONE Access.
 
         .EXAMPLE
-        Get-WSADirectory
-        This example retrieves a list of directories in Workspace ONE Access
+        Get-WsaDirectory
+        This example retrieves a list of all directories in Workspace ONE Access.
 
         .EXAMPLE
-        Get-WSADirectory -directoryId <directoryId> -connector
+        Get-WsaDirectory -domainName sfo.rainpole.io
+        This example retrieves details for the directory provided if its exists in Workspace ONE Access
+
+        .EXAMPLE
+        Get-WsaDirectory -directoryId 7f17c9ef-1b7a-4df4-92cf-936ebab2ae0 -connector
         This example retrieves a list of connectors for a directory in Workspace ONE Access.
+
+        .PARAMETER domainName
+        The LDAP Directory domain name.
 
         .PARAMETER connector
         The connector switch.
@@ -39671,30 +39688,39 @@ Function Get-WSADirectory {
         The directory ID.
     #>
 
+
     Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domainName,
         [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$directoryId,
         [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$connector
     )
 
     Try {
-        if ($PsBoundParameters.ContainsKey("connector")) {
-            $wsaHeaders = @{"Accept" = "" }
-            $wsaHeaders.Add("Authorization", "$sessionToken")
-            $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
-            $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
-            $response.items
+        if ($sessionToken) {
+            if ($PsBoundParameters.ContainsKey("directoryId")) {
+                $wsaHeaders = @{"Accept" = "" }
+                $wsaHeaders.Add("Authorization", "$sessionToken")
+                $uri = "https://$workspaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
+                (Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders).items
+            } elseif ($PsBoundParameters.ContainsKey("domainName")) {
+                $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.directory.ad.over.ldap+json" }
+                $wsaHeaders.Add("Authorization", "$sessionToken")
+                $uri = "https://$workspaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs"
+                (Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders).items | Where-Object { $_.name -eq $domainName }
+            } else {
+                $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.directory.ad.over.ldap+json" }
+                $wsaHeaders.Add("Authorization", "$sessionToken")
+                $uri = "https://$workspaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs"
+                (Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders).items
+            }
         } else {
-            $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.directory.ad.over.ldap+json" }
-            $wsaHeaders.Add("Authorization", "$sessionToken")
-            $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs"
-            $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
-            $response.items
+            Write-Error "Not connected to a Workspace ONE Access instance, run Request-WsaToken and try again"
         }
     } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-WSADirectory
+Export-ModuleMember -Function Get-WsaDirectory
 
 Function Get-WSADirectoryDomain {
     <#
@@ -39839,8 +39865,7 @@ Function Set-WSABindPassword {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         $body = '{"directoryId":"' + $directoryId + '","directoryBindPassword":"' + $pass + '","usedForAuthentication":true}'
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/connectorinstances/$connectorId/associatedirectory"
-        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
-        $response
+        Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -46086,8 +46111,7 @@ Function Set-NsxtGloblaManagerActive {
             } | ConvertTo-Json -Depth 2
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
             Invoke-RestMethod -Uri $uri -Method PATCH -Headers $nsxtHeaders -body $body -SkipCertificateCheck
-        }
-        else {
+        } else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
@@ -46145,8 +46169,7 @@ Function Set-NsxtGloblaManagerStandby {
             $body = $body | ConvertTo-Json -Depth 5
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/global-managers/$displayName"
             Invoke-RestMethod -Uri $uri -Method PUT -Headers $nsxtHeaders -body $body -SkipCertificateCheck
-        }
-        else {
+        } else {
             Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
@@ -46179,13 +46202,13 @@ Function Remove-NsxtGlobalManagerStandby {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
     )
 
-        Try {
+    Try {
         if ($nsxtHeaders.Authorization) {
             $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/global-managers/$displayName"
             Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
             Do {
                 Start-Sleep 5
-            } While (Get-NsxtGlobalManager | Where-Object {$_.display_name -eq $displayName})
+            } While (Get-NsxtGlobalManager | Where-Object { $_.display_name -eq $displayName })
             $uri = "https://$standbyServer/global-manager/api/v1/global-infra/global-managers/$displayName"
             Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
         } else {
@@ -46229,9 +46252,9 @@ Function Test-NsxtVersionCompatibility {
         if ($nsxtHeaders.Authorization) {
             $thumbprint = (Get-SHA256Thumbprint -url "https://$fqdn").replace(":", "")
             $body = @{
-                fqdn = $fqdn
-                username = $username
-                password = $password
+                fqdn       = $fqdn
+                username   = $username
+                password   = $password
                 thumbprint = $thumbprint
             } | ConvertTo-Json -Depth 2
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/onboarding-check-compatibility"
@@ -46753,12 +46776,12 @@ Function Remove-NsxtGlobalManagerTier1Gateway {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1GatewayId
     )
 
-        Try {
-            if ($nsxtHeaders.Authorization) {
-                $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-1s/$tier1GatewayId"
-                Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
-            } else {
-                Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-1s/$tier1GatewayId"
+            Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -46790,7 +46813,7 @@ Function Remove-NsxtGlobalManagerTier1LocaleServices {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId
     )
 
-        Try {
+    Try {
         if ($nsxtHeaders.Authorization) {
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-1s/$tier1GatewayId/locale-services/$localeServiceId"
             Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
@@ -46935,12 +46958,12 @@ Function Remove-NsxtGlobalManagerTier0Gateway {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0GatewayId
     )
 
-        Try {
-            if ($nsxtHeaders.Authorization) {
-                $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId"
-                Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
-            } else {
-                Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId"
+            Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -46972,7 +46995,7 @@ Function Remove-NsxtGlobalManagerTier0LocaleServices {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeServiceId
     )
 
-        Try {
+    Try {
         if ($nsxtHeaders.Authorization) {
             $uri = "https://$nsxtManager/global-manager/api/v1/global-infra/tier-0s/$tier0GatewayId/locale-services/$localeServiceId"
             Invoke-RestMethod -Method DELETE -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
