@@ -1,38 +1,61 @@
-# Get-WSADirectory
+# Get-WsaDirectory
 
 ## Synopsis
 
-Get directories
+Retrieve a list of directories.
 
 ## Syntax
 
 ```powershell
-Get-WSADirectory [-directoryId <String>] [-connector] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-WsaDirectory [-domainName <String>] [-directoryId <String>] [-connector] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Get-WSADirectory` cmdlets retrieves all directories in Workspace ONE Access.
+The `Get-WsaDirectory` cmdlets retrieves all directories configured in Workspace ONE Access.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Get-WSADirectory
+Get-WsaDirectory
 ```
 
-This example retrieves a list of directories in Workspace ONE Access
+This example retrieves a list of all directories in Workspace ONE Access.
 
 ### Example 2
 
 ```powershell
-Get-WSADirectory -connector
+Get-WsaDirectory -domainName sfo.rainpole.io
 ```
 
+This example retrieves details for the directory provided if its exists in Workspace ONE Access
+
+### Example 3
+
+```powershell
+Get-WsaDirectory -directoryId 7f17c9ef-1b7a-4df4-92cf-936ebab2ae0 -connector
 This example retrieves a list of connectors for a directory in Workspace ONE Access.
+```
 
 ## Parameters
+
+### -domainName
+
+The LDAP Directory domain name.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
 
 ### -directoryId
 
@@ -62,22 +85,6 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
-Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
