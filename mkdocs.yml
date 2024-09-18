@@ -532,6 +532,7 @@ nav:
     - NSX:
       - documentation/functions/nsx/Add-CertToNsxCertificateStore.md
       - documentation/functions/nsx/Add-NetworkSegment.md
+      - documentation/functions/nsx/Add-NsxtGlobalManagerCertificate.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerClusterNode.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/Add-NsxtGlobalManagerMode.md
@@ -564,6 +565,8 @@ nav:
       - documentation/functions/nsx/Get-NsxtEvent.md
       - documentation/functions/nsx/Get-NsxtGlobalManager.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerBackupOverview.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerCertificate.md
+      - documentation/functions/nsx/Get-NsxtGlobalManagerCertificateResult.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterStatus.md
       - documentation/functions/nsx/Get-NsxtGlobalManagerClusterVirtualIp.md
@@ -615,7 +618,9 @@ nav:
       - documentation/functions/nsx/Get-NsxtVidmGroup.md
       - documentation/functions/nsx/Get-NsxtVidmStatus.md
       - documentation/functions/nsx/Get-NsxtVidmUser.md
+      - documentation/functions/nsx/Import-NsxtGlobalManagerCertificate.md
       - documentation/functions/nsx/Import-NsxtGlobalManagerLocation.md
+      - documentation/functions/nsx/Install-NsxtGlobalManagerCertificate.md
       - documentation/functions/nsx/Join-NsxtGlobalManagerCluster.md
       - documentation/functions/nsx/New-NsxtGlobalManagerLocation.md
       - documentation/functions/nsx/New-NsxtIpPool.md
@@ -688,6 +693,7 @@ nav:
       - documentation/functions/nsx/Start-NsxtGlobalManagerOnBoarding.md
       - documentation/functions/nsx/Test-NsxtAuthentication.md
       - documentation/functions/nsx/Test-NsxtConnection.md
+      - documentation/functions/nsx/Test-NsxtGlobalManagerCertificate.md
       - documentation/functions/nsx/Test-NsxtVersionCompatibility.md
       - documentation/functions/nsx/Undo-NetworkSegment.md
       - documentation/functions/nsx/Undo-NsxtGlobalManagerStandby.md
