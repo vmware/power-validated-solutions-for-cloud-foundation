@@ -14617,8 +14617,12 @@ Function Add-vRLISmtpConfiguration {
         - Configures SMTP server settings in VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
-        Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io
-        This example configures the SMTP server settings on VMware Aria Operations for Logs.
+        Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender aria-operations-for-logs-no-reply@rainpole.io
+        This example configures the SMTP server settings on VMware Aria Operations for Logs where no authentication is required.
+
+        .EXAMPLE
+        Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender aria-operations-for-logs-no-reply@rainpole.io -smtpUser administrator@rainpole.io -smtpPass VMw@re1!
+        This example configures the SMTP server settings on VMware Aria Operations for Logs where authentication to the SMTP server is required.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -14665,8 +14669,7 @@ Function Add-vRLISmtpConfiguration {
                             if (Test-Connection -ComputerName $smtpServer -Quiet -Count 1) {
                                 if (!(Get-vRLISmtpConfiguration | Where-Object { $_.server -eq $smtpServer })) {
                                     Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
-                                    Start-Sleep 2
-                                    if (Get-vRLISmtpConfiguration | Where-Object { $_.server -eq $smtpServer }) {
+                                    if (Request-ConfigurationCheck -timeoutSeconds 300 -command "Get-vRLISmtpConfiguration | Where-Object { $_.server -eq $smtpServer }") {
                                         Write-Output "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
                                     } else {
                                         Write-Error "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
@@ -62090,6 +62093,21 @@ namespace CertificateCapture
     # $thumbprint = [BitConverter]::ToString($hash).Replace('-', ':')
     $subject = $certificates[-1].Certificate.Subject
     Return $subject
+}
+
+Function Request-ConfigurationCheck {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$timeoutSeconds,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$command
+    )
+
+    $timeout = New-TimeSpan -Seconds $timeoutSeconds
+    $endTime = (Get-Date).Add($timeout)
+    Do {
+        $configCheck = $command
+    }
+    Until ($configCheck -or ((Get-Date) -gt $endTime))
+    $configCheck
 }
 
 #EndRegion  End Utility Functions                                            ######
