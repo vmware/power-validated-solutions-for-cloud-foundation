@@ -107,6 +107,36 @@
                 "AriaComponent": "WorkspaceONE",
                 "Version": "3.3.7"
             }
+        ],
+        "5.2.1":[
+             {
+                "AriaComponent": "AriaSuiteLifecycle",
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "AriaSuiteLifecyclePsPack",
+                "Version": ""
+            },
+            {
+                "AriaComponent": "AriaOperationsForLogs",
+                "Version": "8.18.0"
+            },
+            {
+                "AriaComponent": "AriaOperationsForNetworks",
+                "Version": "6.14.0"
+            },
+            {
+                "AriaComponent": "AriaOperations",
+                "Version": "8.18.1"
+            },
+            {
+                "AriaComponent": "AriaAutomation",
+                "Version": "8.18.1"
+            },
+            {
+                "AriaComponent": "WorkspaceONE",
+                "Version": "3.3.7"
+            }
         ]
     }]
 }
