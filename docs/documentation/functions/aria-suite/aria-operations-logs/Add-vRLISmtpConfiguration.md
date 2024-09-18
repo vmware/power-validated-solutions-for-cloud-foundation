@@ -2,12 +2,12 @@
 
 ## Synopsis
 
-Configure SMTP settings in VMware Aria Operations for Logs
+Configure SMTP settings in VMware Aria Operations for Logs.
 
 ## Syntax
 
 ```powershell
-Add-vRLISmtpConfiguration [-server] <String> [-user] <String> [-pass] <String> [-smtpServer] <String> [-port] <String> [-sender] <String> [[-smtpUser] <String>] [[-smtpPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLISmtpConfiguration [-server] <String> [-user] <String> [-pass] <String> [-smtpServer] <String> [-port] <String> [-sender] <String> [[-smtpUser] <String>] [[-smtpPass] <String>] [<CommonParameters>]
 ```
 
 ## Description
@@ -26,10 +26,18 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io
+Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender aria-operations-for-logs-no-reply@rainpole.io
 ```
 
-This example configures the SMTP server settings on VMware Aria Operations for Logs.
+This example configures the SMTP server settings on VMware Aria Operations for Logs where no authentication is required.
+
+### Example 2
+
+```powershell
+Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender aria-operations-for-logs-no-reply@rainpole.io -smtpUser administrator@rainpole.io -smtpPass VMw@re1!
+```
+
+This example configures the SMTP server settings on VMware Aria Operations for Logs where authentication to the SMTP server is required.
 
 ## Parameters
 
@@ -156,22 +164,6 @@ Aliases:
 
 Required: False
 Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

@@ -95,6 +95,7 @@
 - Enhanced `Test-CcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
 - Enhanced `Get-WsaDirectory` cmdlet with a -domainName parameter as an input and validation of authentication token.
+- Enhanced `Add-vRLISmtpConfiguration` cmdlet to perform multiple attempts at checking the configuration is applied correctly before failing.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
