@@ -84,6 +84,12 @@
 - Added `Update-NsxtGlobalManagerTier0LocaleService` cmdlet to update the locale services on Tier-0 Gateway.
 - Added `Update-NsxtGlobalManagerTier0Gateway` cmdlet to update the Tier-0 Gateway on the NSX Global Manager.
 - Added `Update-NsxtGlobalManagerTier1LocaleService` cmdlet to update the locale services on Tier-1 Gateway.
+- Added `Get-NsxtGlobalManagerCertificate` cmdlet to retrieve the list of certificates from the NSX Global Manager.
+- Added `Import-NsxtGlobalManagerCertificate` cmdlet to import a certificate to the NSX Global Manager.
+- Added `Test-NsxtGlobalManagerCertificate` cmdlet to verify the status of the imported certificate on the NSX Global Manager.
+- Added `Add-NsxtGlobalManagerCertificate` cmdlet to install a certificate in the NSX Global Manager.
+- Added `Get-NsxtGlobalManagerCertificateResult` cmdlet to retrieve the status of applied certificate from the NSX Global Manager.
+- Added `Install-NsxtGlobalManagerCertificate` cmdlet to install a certificate for the NSX Global Manager.
 - Enhanced `Test-VrslcmPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-GlobalWsaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
 - Enhanced `Test-IlaPrerequisite` cmdlet to ensure all associated DNS entries are resolvable for both forward and reverse lookups.
