@@ -31720,9 +31720,12 @@ Function Invoke-NsxFederationDeployment {
             }
 
             if (!$failureDetected) {
-                # TODO
-                #Show-PowerValidatedSolutionsOutput -message Replacing Global Manager Cluster Certificates for $solutionName"
-            }
+                Show-PowerValidatedSolutionsOutput -message "Replacing Global Manager Cluster Certificates for $solutionName"
+                foreach ($site in $sites) {
+                    $StatusMsg = Install-NsxtGlobalManagerCertificate -server $site.gmClusterFqdn -user admin -pass $site.adminPassword -certificateName $site.gmClusterFqdn -certFile ($certificates + $site.gmClusterFqdn + ".pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
+            } 
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Prepare NSX Local Manager for $solutionName"
@@ -33670,216 +33673,6 @@ Function Update-NsxtGlobalManagerTier1LocaleService {
 }
 Export-ModuleMember -Function Update-NsxtGlobalManagerTier1LocaleService
 
-Function Get-NsxtGlobalManagerCertificate {
-    <#
-        .SYNOPSIS
-        Retrieve the list of certificates from the NSX Global Manager.
-
-        .DESCRIPTION
-        The Get-NsxtGlobalManagerCertificate cmdlet retrieves the list of certificates from the NSX Global Manager.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerCertificate
-        This example retrieves the list of certificates from the NSX Global Manager.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerCertificate -certificateId f64fe940-9569-4621-940f-90ea2adafd93
-        This example retrieves a certificate from the NSX Global Manager.
-
-        .PARAMETER certificateId
-        The ID of the certificate in the NSX Global Manager.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateId
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            if ($PsBoundParameters.ContainsKey("certificateId")) {
-                $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/$certificateId"
-                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck)
-            } else {
-                $uri = "https://$nsxtmanager/api/v1/trust-management/certificates"
-                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
-            }
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-NsxtGlobalManagerCertificate
-
-Function Import-NsxtGlobalManagerCertificate {
-    <#
-        .SYNOPSIS
-        Import a certificate to the NSX Global Manager.
-
-        .DESCRIPTION
-        The Import-NsxtGlobalManagerCertificate cmdlet imports a certificate to the the NSX Global Manager.
-
-        .EXAMPLE
-        Import-NsxtGlobalManagerCertificate -certificateAlias sfo-m01-nsx-gm01-cert -certChainPath ".\certificates\sfo-m01-nsx-gm01.sfo.rainpole.io.pem" -certificatePassphrase "VMw@re1!"
-        This example imports a certificate to the the NSX Global Manager.
-
-        .PARAMETER certificateAlias
-        The alias of the certificate to add to the NSX Global Manager.
-
-        .PARAMETER certChainPath
-        The path to the certificate chain file to add to tthe NSX Global Manager.
-
-        .PARAMETER certificatePassphrase
-        The passphrase of the certificate to add to the NSX Global Manager.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateAlias,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certChainPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificatePassphrase
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $newPEMString
-            foreach ($line in Get-Content $certChainPath) {
-                $stringToAdd = $line + '\n'
-                $newPEMString += $stringToAdd
-            }
-            $chain = [regex]::split($newPEMString, "-----BEGIN RSA PRIVATE KEY-----")[0] -replace ".{2}$"
-            $key = [regex]::split($newPEMString, "-----END CERTIFICATE-----")[-1].substring(2)
-            if (!$PsBoundParameters.ContainsKey("certificatePassphrase")) {
-                $json = '{
-                    "display_name": "'+ $certificateAlias + '",
-                    "pem_encoded" : "'+ $chain + '",
-                    "private_key": "'+ $key + '",
-                    "passphrase": "'+ $certificatePassphrase + '"
-                }'
-            } else {
-                $json = '{
-                    "display_name": "'+ $certificateAlias + '",
-                    "pem_encoded" : "'+ $chain + '",
-                    "private_key": "'+ $key + '"
-                }'
-            }
-            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates?action=import"
-            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Import-NsxtGlobalManagerCertificate
-
-Function Test-NsxtGlobalManagerCertificate {
-    <#
-        .SYNOPSIS
-        Verify the status of the imported certificate on the NSX Global Manager.
-
-        .DESCRIPTION
-        The Test-NsxtGlobalManagerCertificate cmdlet verifies the status of the imported certificate on the NSX Global Manager.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerCertificate -certificateId f64fe940-9569-4621-940f-90ea2adafd93
-        This example verifies the status of the imported certificate on the NSX Global Manager.
-
-        .PARAMETER certificateId
-        The ID of the certificate in the NSX Global Manager.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateId
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/$($certificateId)?action=validate"
-            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck)
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Test-NsxtGlobalManagerCertificate
-
-Function Add-NsxtGlobalManagerCertificate {
-    <#
-        .SYNOPSIS
-        Install a certificate in the NSX Global Manager.
-
-        .DESCRIPTION
-        The Add-NsxtGlobalManagerCertificate cmdlet installs a certificate in the NSX Global Manager.
-
-        .EXAMPLE
-        Add-NsxtGlobalManagerCertificate -old_certificate_id 7f3561c7-4630-42fb-ae1e-54abe0945254 -new_certificate_id f64fe940-9569-4621-940f-90ea2adafd93
-        This example installs a certificate in the NSX Global Manager.
-
-        .PARAMETER old_certificate_id
-        The ID of the old certificate.
-
-        .PARAMETER new_certificate_id
-        The ID of the new certificate.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$old_certificate_id,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$new_certificate_id
-    )
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $json = '{
-                "certificate_replacements": [
-                    {
-                    "old_certificate_id": "'+ $old_certificate_id + '",
-                    "new_certificate_id": "'+ $new_certificate_id + '"
-                    }
-                ]
-            }'
-            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/action/batch-replace"
-            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Add-NsxtGlobalManagerCertificate
-
-
-Function Get-NsxtGlobalManagerCertificateResult {
-    <#
-        .SYNOPSIS
-        Retrieve the status of applied certificate from the NSX Global Manager.
-
-        .DESCRIPTION
-        The Get-NsxtGlobalManagerCertificateResult cmdlet retrieves the status of the applied certificate from the NSX Global Manager.
-
-        .EXAMPLE
-        Get-NsxtGlobalManagerCertificateResult
-        This example retrieves the status of the applied certificate from the NSX Global Manager.
-    #>
-
-    Try {
-        if ($nsxtHeaders.Authorization) {
-            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/batch-results"
-            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
-        } else {
-            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-NsxtGlobalManagerCertificateResult
-
-
 Function Install-NsxtGlobalManagerCertificate {
     <#
         .SYNOPSIS
@@ -33892,11 +33685,11 @@ Function Install-NsxtGlobalManagerCertificate {
         - Installs the certificate for the NSX Global Manager.
 
         .EXAMPLE
-        Install-NsxtGlobalManagerCertificate  -server lax-m01-nsx-gm01.lax.rainpole.io -user admin -pass VMw@re1!VMw@re1! -certificateName "lax-m0123" -certFile .\certificates\lax-m01-nsx-gm01.lax.rainpole.io.pem
+        Install-NsxtGlobalManagerCertificate -server lax-m01-nsx-gm01.lax.rainpole.io -user admin -pass VMw@re1!VMw@re1! -certificateName "lax-m0123" -certFile .\certificates\lax-m01-nsx-gm01.lax.rainpole.io.pem
         This example installs a certificate for the NSX Global Manager.
 
         .EXAMPLE
-        Install-NsxtGlobalManagerCertificate  -server lax-m01-nsx-gm01.lax.rainpole.io -user admin -pass VMw@re1!VMw@re1! -certificateName "lax-m0123" -certFile .\certificates\lax-m01-nsx-gm01.lax.rainpole.io.pem -certificatePassphrase "VMw@re1!"
+        Install-NsxtGlobalManagerCertificate -server lax-m01-nsx-gm01.lax.rainpole.io -user admin -pass VMw@re1!VMw@re1! -certificateName "lax-m0123" -certFile .\certificates\lax-m01-nsx-gm01.lax.rainpole.io.pem -certificatePassphrase "VMw@re1!"
         This example installs a certificate for the NSX Global Manager.
 
         .PARAMETER server
@@ -33943,12 +33736,12 @@ Function Install-NsxtGlobalManagerCertificate {
                                 Write-Output "Validating certificate ($certificateName) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                 $new_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -eq $certificateName}).id
                                 $old_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -match "MGMT_CLUSTER site"}).id
-                                Add-NsxtGlobalManagerCertificate -old_certificate_id $old_certificate_id -new_certificate_id $new_certificate_id
+                                Add-NsxtGlobalManagerCertificate -old_certificate_id $old_certificate_id -new_certificate_id $new_certificate_id | Out-Null
                                 $resultObj = (Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.certificate_name -eq $certificateName})
                                 foreach( $object in $resultObj) {
                                     Do { 
                                         $status = ((Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.id -eq $object.id})).status
-                                        start-sleep 3 
+                                        Start-Sleep 3 
                                     } while ($status -eq "PENDING")
                                 }
                                 (Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.certificate_name -eq $certificateName}) | ForEach-Object {
@@ -47957,6 +47750,215 @@ Function New-NsxtGlobalManagerTier0BgpNeighborConfig {
     }
 }
 Export-ModuleMember -Function New-NsxtGlobalManagerTier0BgpNeighborConfig
+
+Function Get-NsxtGlobalManagerCertificate {
+    <#
+        .SYNOPSIS
+        Retrieve the list of certificates from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerCertificate cmdlet retrieves the list of certificates from the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerCertificate
+        This example retrieves the list of certificates from the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerCertificate -certificateId f64fe940-9569-4621-940f-90ea2adafd93
+        This example retrieves a certificate from the NSX Global Manager.
+
+        .PARAMETER certificateId
+        The ID of the certificate in the NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            if ($PsBoundParameters.ContainsKey("certificateId")) {
+                $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/$certificateId"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck)
+            } else {
+                $uri = "https://$nsxtmanager/api/v1/trust-management/certificates"
+                (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+            }
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerCertificate
+
+Function Import-NsxtGlobalManagerCertificate {
+    <#
+        .SYNOPSIS
+        Import a certificate to the NSX Global Manager.
+
+        .DESCRIPTION
+        The Import-NsxtGlobalManagerCertificate cmdlet imports a certificate to the the NSX Global Manager.
+
+        .EXAMPLE
+        Import-NsxtGlobalManagerCertificate -certificateAlias sfo-m01-nsx-gm01-cert -certChainPath ".\certificates\sfo-m01-nsx-gm01.sfo.rainpole.io.pem" -certificatePassphrase "VMw@re1!"
+        This example imports a certificate to the the NSX Global Manager.
+
+        .PARAMETER certificateAlias
+        The alias of the certificate to add to the NSX Global Manager.
+
+        .PARAMETER certChainPath
+        The path to the certificate chain file to add to the NSX Global Manager.
+
+        .PARAMETER certificatePassphrase
+        The passphrase of the certificate to add to the NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateAlias,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certChainPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificatePassphrase
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $newPEMString
+            foreach ($line in Get-Content $certChainPath) {
+                $stringToAdd = $line + '\n'
+                $newPEMString += $stringToAdd
+            }
+            $chain = [regex]::split($newPEMString, "-----BEGIN RSA PRIVATE KEY-----")[0] -replace ".{2}$"
+            $key = [regex]::split($newPEMString, "-----END CERTIFICATE-----")[-1].substring(2)
+            if (!$PsBoundParameters.ContainsKey("certificatePassphrase")) {
+                $json = '{
+                    "display_name": "'+ $certificateAlias + '",
+                    "pem_encoded" : "'+ $chain + '",
+                    "private_key": "'+ $key + '",
+                    "passphrase": "'+ $certificatePassphrase + '"
+                }'
+            } else {
+                $json = '{
+                    "display_name": "'+ $certificateAlias + '",
+                    "pem_encoded" : "'+ $chain + '",
+                    "private_key": "'+ $key + '"
+                }'
+            }
+            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates?action=import"
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Import-NsxtGlobalManagerCertificate
+
+Function Test-NsxtGlobalManagerCertificate {
+    <#
+        .SYNOPSIS
+        Verify the status of the imported certificate on the NSX Global Manager.
+
+        .DESCRIPTION
+        The Test-NsxtGlobalManagerCertificate cmdlet verifies the status of the imported certificate on the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerCertificate -certificateId f64fe940-9569-4621-940f-90ea2adafd93
+        This example verifies the status of the imported certificate on the NSX Global Manager.
+
+        .PARAMETER certificateId
+        The ID of the certificate in the NSX Global Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateId
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/$($certificateId)?action=validate"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck)
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-NsxtGlobalManagerCertificate
+
+Function Add-NsxtGlobalManagerCertificate {
+    <#
+        .SYNOPSIS
+        Install a certificate in the NSX Global Manager.
+
+        .DESCRIPTION
+        The Add-NsxtGlobalManagerCertificate cmdlet installs a certificate in the NSX Global Manager.
+
+        .EXAMPLE
+        Add-NsxtGlobalManagerCertificate -old_certificate_id 7f3561c7-4630-42fb-ae1e-54abe0945254 -new_certificate_id f64fe940-9569-4621-940f-90ea2adafd93
+        This example installs a certificate in the NSX Global Manager.
+
+        .PARAMETER old_certificate_id
+        The ID of the old certificate.
+
+        .PARAMETER new_certificate_id
+        The ID of the new certificate.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$old_certificate_id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$new_certificate_id
+    )
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $json = '{
+                "certificate_replacements": [
+                    {
+                    "old_certificate_id": "'+ $old_certificate_id + '",
+                    "new_certificate_id": "'+ $new_certificate_id + '"
+                    }
+                ]
+            }'
+            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/action/batch-replace"
+            Invoke-RestMethod -Method POST -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck -body $json
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-NsxtGlobalManagerCertificate
+
+
+Function Get-NsxtGlobalManagerCertificateResult {
+    <#
+        .SYNOPSIS
+        Retrieve the status of applied certificate from the NSX Global Manager.
+
+        .DESCRIPTION
+        The Get-NsxtGlobalManagerCertificateResult cmdlet retrieves the status of the applied certificate from the NSX Global Manager.
+
+        .EXAMPLE
+        Get-NsxtGlobalManagerCertificateResult
+        This example retrieves the status of the applied certificate from the NSX Global Manager.
+    #>
+
+    Try {
+        if ($nsxtHeaders.Authorization) {
+            $uri = "https://$nsxtmanager/api/v1/trust-management/certificates/batch-results"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck).results
+        } else {
+            Write-Error "Not connected to NSX Local/Global Manager, run Request-NsxtToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGlobalManagerCertificateResult
 
 #EndRegion  End NSX Functions                                                ######
 ###################################################################################
