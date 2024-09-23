@@ -10,7 +10,7 @@
         },
         {
             "Name": "ImportExcel",
-            "MinimumVersion": "7.8.5"
+            "MinimumVersion": "7.8.9"
         },
         {
             "Name": "PowerVCF",

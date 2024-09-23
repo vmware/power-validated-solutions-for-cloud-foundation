@@ -49,7 +49,7 @@ PowerShell Module                                    | Version   | Publisher    
 [VMware.PowerCLI][psgallery-module-powercli]         | >= 13.3.0 | Broadcom      | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
 [VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | Broadcom      | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
 [PowerVCF][psgallery-module-powervcf]                | >= 2.4.1  | Broadcom      | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
-[ImportExcel][psgallery-module-importexcel]          | >= 7.8.5  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
+[ImportExcel][psgallery-module-importexcel]          | >= 7.8.9  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
 
 ## Related Projects
 
