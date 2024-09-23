@@ -5,6 +5,7 @@
 > Release Date: (Not Released)
 
 - Updated `VMware.PowerCLI` module dependency from 13.2.1 to 13.3.0.
+- Updated `Import-Excel` module dependency from 7.8.5 to 7.8.9.
 - Fixed `Invoke-IamDeployment` cmdlet when an isolated workload domain was deployed assigning global permissions was failing.
 - Fixed `Export-HrmJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
 - Fixed `Export-PdrJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
