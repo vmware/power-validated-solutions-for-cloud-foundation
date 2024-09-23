@@ -31742,26 +31742,46 @@ Function Invoke-NsxFederationDeployment {
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Set Active Global Manager for $solutionName"
                 $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode ACTIVE -displayName $jsonInput.protected.gmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
             }
 
             if (!$failureDetected) {
                 Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
                 Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
                 $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1, $jsonInput.protected.edgeNode2) -ipPoolId $jsonInput.protected.rtepName -rtepVlan $jsonInput.protected.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
                 $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmClusterFqdn -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
 
                 Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
                 $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -localManagerFqdn $jsonInput.recovery.localManagerFqdn -localManagerUser $jsonInput.recovery.localManagerUser -localManagerPass $jsonInput.recovery.localManagerPass -edgeNodes @($jsonInput.recovery.edgeNode1, $jsonInput.recovery.edgeNode2) -ipPoolId $jsonInput.recovery.rtepName -rtepVlan $jsonInput.recovery.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
                 $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmClusterFqdn -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                if ($StatusMsg -match "SUCCESSFUL") {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                } else {
+                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                }
             }
 
             if (!$failureDetected) {
@@ -33724,27 +33744,27 @@ Function Install-NsxtGlobalManagerCertificate {
         if (Test-NsxtConnection -server $server) {
             if (Test-NsxtAuthentication -server $server -user $user -pass $pass) {
                 if (Test-Path -Path $certFile) {
-                    if (-Not (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -eq $certificateName})) {
+                    if (-Not (Get-NsxtGlobalManagerCertificate | Where-Object { $_.display_name -eq $certificateName })) {
                         if ($PsBoundParameters.ContainsKey("certificatePassphrase")) {
-                            Import-NsxtGlobalManagerCertificate -certificateAlias $certificateName -certChainPath $certFile -certificatePassphrase $certificatePassphrase  | Out-Null
+                            Import-NsxtGlobalManagerCertificate -certificateAlias $certificateName -certChainPath $certFile -certificatePassphrase $certificatePassphrase | Out-Null
                         } else {
                             Import-NsxtGlobalManagerCertificate -certificateAlias $certificateName -certChainPath $certFile | Out-Null
                         }
-                        if (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -eq $certificateName}) {
+                        if (Get-NsxtGlobalManagerCertificate | Where-Object { $_.display_name -eq $certificateName }) {
                             Write-Output "Importing certificate ($certificateName) in NSX Global Manager instance ($($server)): SUCCESSFUL"
-                            if ((Test-NsxtGlobalManagerCertificate -certificateId (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -eq $certificateName}).id).status -eq "OK") {
+                            if ((Test-NsxtGlobalManagerCertificate -certificateId (Get-NsxtGlobalManagerCertificate | Where-Object { $_.display_name -eq $certificateName }).id).status -eq "OK") {
                                 Write-Output "Validating certificate ($certificateName) in NSX Global Manager instance ($($server)): SUCCESSFUL"
-                                $new_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -eq $certificateName}).id
-                                $old_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object {$_.display_name -match "MGMT_CLUSTER site"}).id
+                                $new_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object { $_.display_name -eq $certificateName }).id
+                                $old_certificate_id = (Get-NsxtGlobalManagerCertificate | Where-Object { $_.display_name -match "MGMT_CLUSTER site" }).id
                                 Add-NsxtGlobalManagerCertificate -old_certificate_id $old_certificate_id -new_certificate_id $new_certificate_id | Out-Null
-                                $resultObj = (Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.certificate_name -eq $certificateName})
-                                foreach( $object in $resultObj) {
+                                $resultObj = (Get-NsxtGlobalManagerCertificateResult | Where-Object { $_.certificate_name -eq $certificateName })
+                                foreach ( $object in $resultObj) {
                                     Do { 
-                                        $status = ((Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.id -eq $object.id})).status
+                                        $status = ((Get-NsxtGlobalManagerCertificateResult | Where-Object { $_.id -eq $object.id })).status
                                         Start-Sleep 3 
                                     } while ($status -eq "PENDING")
                                 }
-                                (Get-NsxtGlobalManagerCertificateResult | Where-Object {$_.certificate_name -eq $certificateName}) | ForEach-Object {
+                                (Get-NsxtGlobalManagerCertificateResult | Where-Object { $_.certificate_name -eq $certificateName }) | ForEach-Object {
                                     if ($_.status -eq "OK") {
                                         Write-Output "Installing the certificate ($certificateName) on node id ($($_.node_id)) in NSX Global Manager instance ($($server)): SUCCESSFUL"
                                     } else {
@@ -64768,10 +64788,11 @@ Function Start-ValidatedSolutionMenu {
 
         $submenuTitle = ("VMware Validated Solutions")
 
-        $headingItem01 = "Platform Prerequsites"
-        $menuitem01 = "(LCM) VMware Aria Suite Lifecycle"
-        $menuitem02 = "(WSA) Cross-Instance Workspace ONE Access"
-        $menuitem03 = "(FED) NSX Federation"
+        $headingItem01 = "Platform Prerequisites"
+        $menuitem01 = "(FED) NSX Federation"
+        $menuitem02 = "(LCM) VMware Aria Suite Lifecycle"
+        $menuitem03 = "(WSA) Cross-Instance Workspace ONE Access"
+        
 
         $headingItem02 = "On-Premises Validated Solutions"
         $menuitem04 = "(IAM) Identity and Access Management"
@@ -64822,16 +64843,17 @@ Function Start-ValidatedSolutionMenu {
             Switch ($menuInput) {
                 1 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-AriaSuiteLifecycleMenu
+                    Start-NsxFederationMenu
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-WorkspaceOneAccessMenu
+                    Start-AriaSuiteLifecycleMenu
                 }
                 3 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
-                    Start-NsxFederationMenu
+                    Start-WorkspaceOneAccessMenu
                 }
+
                 4 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
                     Start-IamMenu
