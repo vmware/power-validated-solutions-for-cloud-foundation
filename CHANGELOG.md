@@ -8,6 +8,8 @@
 - Fixed `Export-HrmJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
 - Fixed `Export-PdrJsonSpec` cmdlet to add the DNS servers with a "," in place of a space for consistency with other JSON specs.
 - Fixed `Test-PdrPrerequisite` cmdlet to split the DNS servers with a "," in place of a space for consistency with other test pre req functions.
+- Fixed `Export-CbrJsonSpec` cmdlet where is was exporting HCX Connector details incorrectly.
+- Fixed `Test-CbrPrerequisite` cmdlet to check for the DRaaS Connector FQDNs in DNS.
 - Added `Export-NsxFederationJsonSpec` cmdlet to generate a JSON specification file for NSX Federation.
 - Added `Invoke-NsxFederationDeployment` cmdlet to perform end-to-end automation of NSX Federation for VMware Cloud Foundation.
 - Added `Deploy-NsxGlobalManager` cmdlet to deploy a NSX Global Manager appliance.
@@ -102,6 +104,7 @@
 - Enhanced `Test-PdrPrerequisite` cmdlet to verify that NSX Federation is configured in the environment.
 - Enhanced `Get-WsaDirectory` cmdlet with a -domainName parameter as an input and validation of authentication token.
 - Enhanced `Add-vRLISmtpConfiguration` cmdlet to perform multiple attempts at checking the configuration is applied correctly before failing.
+- Enhanced `Export-CbrJsonSpec` cmdlet to export the DRaaS Connector hostname and FQDN.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1

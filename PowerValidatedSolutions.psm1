@@ -27639,6 +27639,12 @@ Function Export-CbrJsonSpec {
                 'certificateTemplate' = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
                 'caUsername'          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 'caUserPassword'      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+                'vmNameNodeA'         = ($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp1_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value) 
+                'hostNameNodeA'       = $pnpWorkbook.Workbook.Names["cbr_vcdr_cdp1_hostname"].Value
+                'ipNodeA'             = $pnpWorkbook.Workbook.Names["cbr_vcdr_cdp1_ip"].Value
+                'vmNameNodeB'         = ($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp2_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value) 
+                'hostNameNodeB'       = $pnpWorkbook.Workbook.Names["cbr_vcdr_cdp2_hostname"].Value
+                'ipNodeB'             = $pnpWorkbook.Workbook.Names["cbr_vcdr_cdp2_ip"].Value
             }
 
             if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
@@ -27648,7 +27654,7 @@ Function Export-CbrJsonSpec {
             if ($pnpWorkbook.Workbook.Names["intelligent_operations_result"].Value -eq "Included") {
                 $jsonObject | Add-Member -notepropertyname 'collectorGroup' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
                 $jsonObject | Add-Member -notepropertyname 'pingAdapterName' -notepropertyvalue "workload-protection-proxies"
-                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp_ip1"].Value),$($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp_ip2"].Value),$($pnpWorkbook.Workbook.Names["cbw_hcx_cdp_ip"].Value)"
+                $jsonObject | Add-Member -notepropertyname 'ipList' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp1_ip"].Value),$($pnpWorkbook.Workbook.Names["cbr_vcdr_cdp2_ip"].Value)"
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -27705,7 +27711,7 @@ Function Test-CbrPrerequisite {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                     Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
                     # Verify that DNS Entries are resolvable in the environment
-                    $dnsEntries = $jsonInput.ipList
+                    $dnsEntries = $jsonInput.vmNameNodeA, $jsonInput.vmNameNodeB
                     $dnsServers = (Get-VCFConfigurationDNS)
                     if ($dnsEntries) {
                         Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers.ipAddress
@@ -31760,7 +31766,7 @@ Function Invoke-NsxFederationDeployment {
                 }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmClusterFqdn -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg -match "SUCCESSFUL") {
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
                 } else {
@@ -31776,7 +31782,7 @@ Function Invoke-NsxFederationDeployment {
                 }
 
                 Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmClusterFqdn -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg -match "SUCCESSFUL") {
                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
                 } else {
@@ -32654,7 +32660,7 @@ Function Import-NsxtGlobalManagerLocation {
         - Imports the NSX Local Manager objects into the NSX Global Manager
 
         .EXAMPLE
-        Import-NsxtGlobalManagerLocation -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -globalManager sfo-m01-nsx-gm01.sfo.rainpole.io -location sfo-m01
+        Import-NsxtGlobalManagerLocation -server sfo-m01-nsx-gm01.sfo.rainpole.io -user admin -pass VMw@re1!VMw@re1! -globalManager sfo-m01-nsx-gm01 -location sfo-m01
         This example imports the NSX Local Manager objects into NSX Global Manager.
 
         .PARAMETER server
