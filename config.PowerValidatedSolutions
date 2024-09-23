@@ -2,7 +2,7 @@
     "supportingModules":[
         {
             "Name": "VMware.PowerCLI",
-            "MinimumVersion": "13.2.1"
+            "MinimumVersion": "13.3.0"
         },
         {
             "Name": "VMware.vSphere.SsoAdmin",
