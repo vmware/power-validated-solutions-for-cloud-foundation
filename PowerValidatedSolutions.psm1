@@ -9681,7 +9681,7 @@ Function Export-DriJsonSpec {
                 'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
                 'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
                 'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'ntp'                           = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
+                'ntp'                           = $pnpWorkbook.Workbook.Names["dri_ntp_servers"].Value
                 'dns'                           = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
                 'searchPath'                    = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
                 'nsxEdgeCluster'                = $pnpWorkbook.Workbook.Names["dri_ec_name"].Value
@@ -9834,9 +9834,11 @@ Function Invoke-DriDeployment {
                         $certificateRequestFile = $certificates + $jsonInput.supervisorClusterName + ".csr"
                         $certificateFile = $certificates + $jsonInput.supervisorClusterName + ".1.cer"
 
-                        Show-PowerValidatedSolutionsOutput -message "Adding a Network Segment for $solutionName"
-                        $StatusMsg = Add-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -connectedGateway $jsonInput.tier1GatewayName -cidr $jsonInput.tanzuSegmentGatewayCIDR -transportZone $jsonInput.overlayTzName -gatewayType Tier1 -segmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Adding a Network Segment for $solutionName"
+                            $StatusMsg = Add-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -connectedGateway $jsonInput.tier1GatewayName -cidr $jsonInput.tanzuSegmentGatewayCIDR -transportZone $jsonInput.overlayTzName -gatewayType Tier1 -segmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                        }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Adding IP Prefix Lists to the Tier-0 Gateway for $solutionName"
@@ -10235,25 +10237,24 @@ Function Add-NetworkSegment {
                 if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
                     if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
                         if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
-                            if (!(Get-NsxtSegment -name $segmentName)) {
+                            if (-Not (Get-NsxtSegment -name $segmentName)) {
                                 if ($gatewayType -eq "Tier0") { $tierGatewayExists = Get-NsxtTier0Gateway -name $connectedGateway }
                                 if ($gatewayType -eq "Tier1") { $tierGatewayExists = Get-NsxtTier1Gateway -name $connectedGateway }
                                 if ($tierGatewayExists) {
                                     $validateTransportZone = Get-NsxtTransportZone -Name $transportZone -ErrorAction SilentlyContinue
                                     if ($validateTransportZone.display_name -eq $transportZone) {
-                                        if ($validateTransportZone.tz_type -notmatch $segmentType.ToUpper()) {
+                                        if ($validateTransportZone.tz_type -match $segmentType.ToUpper()) {
+                                            New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
+                                            if (Get-NsxtSegment -name $segmentName) {
+                                                Write-Output "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
                                             Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                            Break
                                         }
                                     } else {
                                         Write-Error "Unable to find NSX Transport Zone ($transportZone) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                        Break
-                                    }
-                                    New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
-                                    if (Get-NsxtSegment -name $segmentName) {
-                                        Write-Output "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
-                                    } else {
-                                        Write-Error "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Write-Error "Unable to find NSX $gatewayType Gateway $connectedGateway in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
