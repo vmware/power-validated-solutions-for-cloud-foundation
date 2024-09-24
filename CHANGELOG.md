@@ -107,6 +107,7 @@
 - Enhanced `Get-WsaDirectory` cmdlet with a -domainName parameter as an input and validation of authentication token.
 - Enhanced `Add-vRLISmtpConfiguration` cmdlet to perform multiple attempts at checking the configuration is applied correctly before failing.
 - Enhanced `Export-CbrJsonSpec` cmdlet to export the DRaaS Connector hostname and FQDN.
+- Enhanced `Add-NetworkSegment` cmdlet to return the pre-validation error correctly (removed breaks in the code).
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
