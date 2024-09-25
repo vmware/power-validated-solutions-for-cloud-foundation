@@ -17665,6 +17665,7 @@ Function Invoke-IomDeployment {
                                                     $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal ($jsonInput.serviceAccountOperationsVsphere.Split('@'))[-0] -role $jsonInput.vsphereRoleNameOperations -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
+                                                Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                             }
                                         }
 
@@ -20536,12 +20537,12 @@ Function Add-vROPSAdapterVcf {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             if (Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName }) {
-                                if (!(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq $server })) {
+                                if (-Not (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq $server })) {
                                     $allWorkloadDomains = Get-VCFWorkloadDomain
                                     foreach ($workloadDomain in $allWorkloadDomains) {
                                         $vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $workloadDomain.name
                                         $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $workloadDomain.name
-                                        if (!((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" }))) {
+                                        if (-Not ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" }))) {
                                             $adapterJson = '{
                                                 "name": "'+ $workloadDomain.name + ' - vCenter",
                                                 "description": "vCenter Adapter - '+ $($vcfVcenterDetails.fqdn) + '",
@@ -20570,11 +20571,18 @@ Function Add-vROPSAdapterVcf {
                                             $adapterDetail.id = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" }).id
                                             $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\vcPatchAdapter.json -Force
                                             Set-vROPSAdapter -json .\vcPatchAdapter.json -patch | Out-Null
-                                            if (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" }) {
+                                            if (Request-ConfigurationCheck -timeoutSeconds 300 -command '(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" })') {
                                                 Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" }).id | Out-Null
                                             }
+                                            if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vCenter" })) {
+                                                Write-Output "Adding vCenter Server Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Adding vCenter Server Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Adding vCenter Server Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), already exists: SKIPPED"
                                         }
-                                        if (!((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" }))) {
+                                        if (-Not ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" }))) {
                                             $adapterJson = '{
                                                 "name": "'+ $workloadDomain.name + ' - vSAN",
                                                 "description": "vSAN Adapter - '+ $($vcfVcenterDetails.fqdn) + '",
@@ -20601,11 +20609,18 @@ Function Add-vROPSAdapterVcf {
                                             $adapterDetail.id = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" }).id
                                             $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\vsanPatchAdapter.json -Force
                                             #Set-vROPSAdapter -json .\vsanPatchAdapter.json -patch | Out-Null
-                                            if (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" }) {
+                                            if (Request-ConfigurationCheck -timeoutSeconds 300 -command '(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" })') {
                                                 Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" }).id | Out-Null
                                             }
+                                            if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - vSAN" })) {
+                                                Write-Output "Adding vSAN Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Adding vSAN Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Adding vSAN Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), already exists: SKIPPED"
                                         }
-                                        if (!((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }))) {
+                                        if (-Not ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }))) {
                                             $adapterJson = '{
                                                 "name": "'+ $workloadDomain.name + ' - NSX",
                                                 "description": "NSX Adapter - '+ $vcfNsxDetails.fqdn + '",
@@ -20633,9 +20648,17 @@ Function Add-vROPSAdapterVcf {
                                             $adapterDetail.id = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id
                                             $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\nsxPatchAdapter.json -Force
                                             Set-vROPSAdapter -json .\nsxPatchAdapter.json -patch | Out-Null
-                                            if (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }) {
+                                            #if (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }) {
+                                            if (Request-ConfigurationCheck -timeoutSeconds 300 -command '(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })') {
                                                 Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id | Out-Null
                                             }
+                                            if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })) {
+                                                Write-Output "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), already exists: SKIPPED"
                                         }
                                     }
                                     $adapterJson = '{
@@ -22082,6 +22105,7 @@ Function Invoke-InvDeployment {
                                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountNetworksVsphere -role $jsonInput.vsphereRoleNameNetworks -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
+                                            Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                         }
                                     }
 
@@ -23988,6 +24012,7 @@ Function Invoke-PcaDeployment {
                                                         $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.serviceAccountOrchestrator -role $jsonInput.vsphereRoleNameOrchestrator -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
+                                                    Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                                 }
                                             }
 
@@ -28198,6 +28223,7 @@ Function Invoke-CcmDeployment {
                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountHcx -role $jsonInput.vsphereRoleNameHcx -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
+                            Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                         }
                     }
 
@@ -31686,7 +31712,7 @@ Function Invoke-NsxFederationDeployment {
                     if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
                         $allWorkloadDomains = Get-VCFWorkloadDomain
                         [Array]$sites = $jsonInput.protected; $sites += $jsonInput.recovery
-                            $failureDetected = $false
+                        $failureDetected = $false
                         $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                         foreach ($vcfVersion in $moduleConfig.vcfVersion) {
                             if ($vcfVersion.$actualVcfVersion) {
@@ -33981,6 +34007,7 @@ Function Add-vCenterGlobalPermission {
                                             }
                                         }
                                         Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
+
                                     }
                                 } else {
                                     Write-Warning "Adding Global Permission to Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
