@@ -31438,7 +31438,6 @@ Function Export-NsxFederationJsonSpec {
                 $jsonObject | Add-Member -notepropertyname 'certificateTemplate' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_template_name"].Value
                 $jsonObject | Add-Member -notepropertyname 'caUsername' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
                 $jsonObject | Add-Member -notepropertyname 'caUserPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
-                $jsonObject | Add-Member -notepropertyname 'nsxOvaFile' -notepropertyvalue "nsx-unified-appliance-4.2.0.0.0.24029771.ova"
 
                 Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
                 Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -31510,43 +31509,55 @@ Function Test-NsxFederationPrerequisite {
     $solutionName = "NSX Federation for VMware Cloud Foundation"
 
     Try {
-        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Protected Site"
-            if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
-                if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
-                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                    Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
-                    # Verify that DNS Entries are resolvable in the environment
-                    $dnsEntries = $jsonInput.protected.gmClusterFqdn, $jsonInput.protected.gmNodeaFqdn, $jsonInput.protected.gmNodebFqdn, $jsonInput.protected.gmNodecFqdn
-                    $dnsServers = $jsonInput.protected.dns -split ','
-                    if ($dnsEntries) {
-                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation of $solutionName"
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Protected Site"
+                if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                            if ($vcfVersion.$actualVcfVersion) {
+                                $nsxVersion = ($vcfVersion.$actualVcfVersion | Where-Object { $_.vcfComponent -eq "Nsx" }).Version
+                            }
+                        }
+                        Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                        Test-PrereqApplicationVirtualNetwork -regionType X_REGION # Verify Application Virtual Networks are present
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.protected.gmClusterFqdn, $jsonInput.protected.gmNodeaFqdn, $jsonInput.protected.gmNodebFqdn, $jsonInput.protected.gmNodecFqdn
+                        $dnsServers = $jsonInput.protected.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
+                        Test-PrereqBinary -searchCriteria "nsx-unified-appliance-$nsxVersion" -productMessage "NSX Unified Appliance" # Verify that the required binaries are available
+                        Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
+                        Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
+                        Test-PrereqOpenSsl # Verify that OpenSSL is installed
                     }
-                    Test-PrereqBinary -searchCriteria "nsx-unified-appliance-" -productMessage "NSX Unified Appliance" # Verify that the required binaries are available
-                    Test-PrereqMsca -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword # Verify that a Microsoft Certificate Authority is available for the environment
-                    Test-PrereqMscaTemplate -server $jsonInput.mscaComputerName -user $jsonInput.caUsername -password $jsonInput.caUserPassword -template $jsonInput.certificateTemplate # Verify that the Microsoft Certificate Authority template is present in the environment
-                    Test-PrereqOpenSsl # Verify that OpenSSL is installed
                 }
-            }
 
-            Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Recovery Site"
-            if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
-                if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
-                    Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
-                    # Verify that DNS Entries are resolvable in the environment
-                    $dnsEntries = $jsonInput.recovery.gmClusterFqdn, $jsonInput.recovery.gmNodeaFqdn, $jsonInput.recovery.gmNodebFqdn, $jsonInput.recovery.gmNodecFqdn
-                    $dnsServers = $jsonInput.recovery.dns -split ','
-                    if ($dnsEntries) {
-                        Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Prerequisite Validation for the Recovery Site"
+                if (Test-VCFConnection -server $jsonInput.recovery.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.recovery.sddcManagerFqdn -user $jsonInput.recovery.sddcManagerUser -pass $jsonInput.recovery.sddcManagerPass) {
+                        Test-PrereqWorkloadDomains # Verify SDDC Manager has the required Workload Domains present
+                        # Verify that DNS Entries are resolvable in the environment
+                        $dnsEntries = $jsonInput.recovery.gmClusterFqdn, $jsonInput.recovery.gmNodeaFqdn, $jsonInput.recovery.gmNodebFqdn, $jsonInput.recovery.gmNodecFqdn
+                        $dnsServers = $jsonInput.recovery.dns -split ','
+                        if ($dnsEntries) {
+                            Test-PrereqDnsEntries -dnsEntries $dnsEntries -dnsServers $dnsServers
+                        }
                     }
                 }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
+            Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
         }
-        Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Prerequisite Validation of $solutionName"
     } Catch {
         Debug-CatchWriter -object $_
     }
@@ -31665,189 +31676,213 @@ Function Invoke-NsxFederationDeployment {
         $singleGlobalManager = Read-Host
         $singleGlobalManager = $singleGlobalManager -replace "`t|`n|`r", ""
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            [Array]$sites = $jsonInput.protected; $sites += $jsonInput.recovery
-            $failureDetected = $false
+        $pvsModulePath = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+        $configFile = "config.PowerValidatedSolutions"
+        if (Test-Path -Path "$pvsModulePath\$configFile") {
+            $moduleConfig = (Get-Content -Path "$pvsModulePath\$configFile") | ConvertFrom-Json
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.protected.sddcManagerFqdn) {
+                    if (Test-VCFAuthentication -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass) {
+                        $allWorkloadDomains = Get-VCFWorkloadDomain
+                        [Array]$sites = $jsonInput.protected; $sites += $jsonInput.recovery
+                            $failureDetected = $false
+                        $actualVcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                        foreach ($vcfVersion in $moduleConfig.vcfVersion) {
+                            if ($vcfVersion.$actualVcfVersion) {
+                                $nsxVersion = ($vcfVersion.$actualVcfVersion | Where-Object { $_.vcfComponent -eq "Nsx" }).Version
+                            }
+                        }
+                        $nsxOva = (Get-ChildItem $binaries | Where-Object { $_.name -match "nsx-unified-appliance-$nsxVersion" }).name
+                        $nsxOvaPath = $binaries + $nsxOva
+                        if ($nsxOva) {
 
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Deploy NSX Global Manager Nodes for $solutionName"
-                foreach ($site in $sites) {
-                    Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodeaHostname)), please be paitent..."
-                    $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodeaHostname -portgroup $site.portgroup -ipAddress $site.gmNodeaIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath ($binaries + $jsonInput.nsxOvaFile) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodeaHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Deploy NSX Global Manager Nodes for $solutionName"
+                                foreach ($site in $sites) {
+                                    Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodeaHostname)), please be paitent..."
+                                    $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodeaHostname -portgroup $site.portgroup -ipAddress $site.gmNodeaIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath $nsxOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodeaHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
 
-                    if ($singleGlobalManager -eq "N") {
-                        Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodebHostname)), please be paitent..."
-                        $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodebHostname -portgroup $site.portgroup -ipAddress $site.gmNodebIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath ($binaries + $jsonInput.nsxOvaFile) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodebHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
+                                    if ($singleGlobalManager -eq "N") {
+                                        Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodebHostname)), please be paitent..."
+                                        $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodebHostname -portgroup $site.portgroup -ipAddress $site.gmNodebIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath $nsxOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodebHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
 
-                        Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodecHostname)), please be paitent..."
-                        $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodecHostname -portgroup $site.portgroup -ipAddress $site.gmNodecIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath ($binaries + $jsonInput.nsxOvaFile) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodecHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
+                                        Show-PowerValidatedSolutionsOutput -message "Deploying NSX Global Manager node ($($site.gmNodecHostname)), please be paitent..."
+                                        $StatusMsg = Deploy-NsxtGlobalManager -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -hostname $site.gmNodecHostname -portgroup $site.portgroup -ipAddress $site.gmNodecIp -netmask $site.netmask -gateway $site.gateway -domain $site.domain -dnsServer $site.dns -ntpServer $site.ntp -adminPassword $site.adminPassword -folder $site.vmFolder -ovaPath $nsxOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ($StatusMsg -match "SUCCESSFUL") { messageHandler -alternativeMessage "Deploying Global Manager Nodes ($($site.gmNodecHostname)): SUCCESSFUL" $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } } else { messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true } }
+                                    }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager Nodes to form a Cluster for $solutionName"
+                                if ($singleGlobalManager -eq "N") {
+                                    foreach ($site in $sites) {
+                                        Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager node ($($site.gmNodebHostname)) to the cluster, please be paitent..."
+                                        $StatusMsg = Add-NsxtGlobalManagerClusterNode -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -primaryIp $site.gmNodeaIp -nodeFqdn $site.gmNodebFqdn -nodeIp $site.gmNodebIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                        Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager node ($($site.gmNodecHostname)) to the cluster, please be paitent..."
+                                        $StatusMsg = Add-NsxtGlobalManagerClusterNode -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -primaryIp $site.gmNodeaIp -nodeFqdn $site.gmNodecFqdn -nodeIp $site.gmNodecIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Joining NSX Global Manager Nodes to Form a Cluster Not Required: SKIPPED"
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Creating Anti-Affinity Rule for the NSX Global Manager Cluster for $solutionName"
+                                if ($singleGlobalManager -eq "N") {
+                                    foreach ($site in $sites) {
+                                        $StatusMsg = Add-AntiAffinityRule -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -ruleName $site.antiAffinityRuleName -antiAffinityVMs $site.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Creating Anti-Affinity Rule for the NSX Global Manager Cluster Not Required: SKIPPED"
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Assigning a Virtual IP Address to NSX Global Manager Cluster for $solutionName"
+                                foreach ($site in $sites) {
+                                    $StatusMsg = Add-NsxtGlobalManagerVirtualIp -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -virtualIp $site.gmClusterIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Replacing Global Manager Cluster Certificates for $solutionName"
+                                foreach ($site in $sites) {
+                                    $StatusMsg = Install-NsxtGlobalManagerCertificate -server $site.gmClusterFqdn -user admin -pass $site.adminPassword -certificateName $site.gmClusterFqdn -certFile ($certificates + $site.gmClusterFqdn + ".pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            } 
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Prepare NSX Local Manager for $solutionName"
+                                foreach ($site in $sites) {
+                                    $StatusMsg = Add-NsxtRemoteTunnelEndpoint -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -ipPoolName $site.rtepName -startIpRange $site.rtepIpRangeStart -endIpRange $site.rtepIpRangeEnd -cidr $site.rtepCidr -gateway $site.rtepGateway -mtu $site.rtepMtu -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg -match "SUCCESSFUL") {
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                    } else {
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                    }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Set Active Global Manager for $solutionName"
+                                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode ACTIVE -displayName $jsonInput.protected.gmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
+                                Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
+                                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1, $jsonInput.protected.edgeNode2) -ipPoolId $jsonInput.protected.rtepName -rtepVlan $jsonInput.protected.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
+                                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
+                                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -localManagerFqdn $jsonInput.recovery.localManagerFqdn -localManagerUser $jsonInput.recovery.localManagerUser -localManagerPass $jsonInput.recovery.localManagerPass -edgeNodes @($jsonInput.recovery.edgeNode1, $jsonInput.recovery.edgeNode2) -ipPoolId $jsonInput.recovery.rtepName -rtepVlan $jsonInput.recovery.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+
+                                Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
+                                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Creating and Configuring Cross-Instance Tier-1 Gateway for $solutionName"
+                                $StatusMsg = Add-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Connecting Cross-Instance Segments to Cross-Instance Tier-1 Gateway for $solutionName"
+                                $StatusMsg = Update-NsxtGlobalManagerSegment -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -segmentName $jsonInput.protected.xregSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Connect Local Tier-1 Gateway to Cross-Instance Tier-0 Gateway for $solutionName"
+                                $StatusMsg = Update-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.recovery.localTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Deleting Existing Tier-0 Gateways in an Additional Instance for $solutionName"
+                                $StatusMsg = Export-NsxtGlobalManagerTier0GatewayConfig -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -bgpNeighborJsonFile ./recovery_tier0-bgp-neighbor.json -interfaceJsonFile ./recovery_tier0-interface.json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+
+                                $StatusMsg = Undo-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Connect Additional VMware Cloud Foundation Instances to Cross-Instance Tier-0 Gateway for $solutionName"
+                                $StatusMsg = Update-NsxtGlobalManagerTier0LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                
+                                $StatusMsg = Update-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -interfaceJsonFile .\recovery_tier0-interface.json -bgpNeighborJsonFile .\recovery_tier0-bgp-neighbor.json -bgpPassword $jsonInput.recovery.bgpPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Add Additional Instance as Locations to the Cross-Instance Tier-1 Gateway for $solutionName"
+                                $StatusMsg = Update-NsxtGlobalManagerTier1LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Setting Standby Global Manager for $solutionName"
+                                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode STANDBY -displayName $jsonInput.recovery.gmName -standbyServer $jsonInput.recovery.gmClusterFqdn -standbyServerUser admin -standbyServerPass $jsonInput.recovery.adminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg -match "SUCCESSFUL") {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
+                                } else {
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+                            }
+                        } else {
+                            Show-PowerValidatedSolutionsOutput -type ERROR -message "VMware NSX OVA for version ($nsxVersion) File Not Found: PRE_VALIDATION_FAILED"
+                        }
                     }
                 }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager Nodes to form a Cluster for $solutionName"
-                if ($singleGlobalManager -eq "N") {
-                    foreach ($site in $sites) {
-                        Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager node ($($site.gmNodebHostname)) to the cluster, please be paitent..."
-                        $StatusMsg = Add-NsxtGlobalManagerClusterNode -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -primaryIp $site.gmNodeaIp -nodeFqdn $site.gmNodebFqdn -nodeIp $site.gmNodebIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                        Show-PowerValidatedSolutionsOutput -message "Joining NSX Global Manager node ($($site.gmNodecHostname)) to the cluster, please be paitent..."
-                        $StatusMsg = Add-NsxtGlobalManagerClusterNode -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -primaryIp $site.gmNodeaIp -nodeFqdn $site.gmNodecFqdn -nodeIp $site.gmNodecIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                    }
-                } else {
-                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Joining NSX Global Manager Nodes to Form a Cluster Not Required: SKIPPED"
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Creating Anti-Affinity Rule for the NSX Global Manager Cluster for $solutionName"
-                if ($singleGlobalManager -eq "N") {
-                    foreach ($site in $sites) {
-                        $StatusMsg = Add-AntiAffinityRule -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -domain $site.mgmtSddcDomainName -ruleName $site.antiAffinityRuleName -antiAffinityVMs $site.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                    }
-                } else {
-                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Creating Anti-Affinity Rule for the NSX Global Manager Cluster Not Required: SKIPPED"
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Assigning a Virtual IP Address to NSX Global Manager Cluster for $solutionName"
-                foreach ($site in $sites) {
-                    $StatusMsg = Add-NsxtGlobalManagerVirtualIp -server $site.gmNodeaFqdn -user admin -pass $site.adminPassword -virtualIp $site.gmClusterIp -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Replacing Global Manager Cluster Certificates for $solutionName"
-                foreach ($site in $sites) {
-                    $StatusMsg = Install-NsxtGlobalManagerCertificate -server $site.gmClusterFqdn -user admin -pass $site.adminPassword -certificateName $site.gmClusterFqdn -certFile ($certificates + $site.gmClusterFqdn + ".pem") -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-            } 
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Prepare NSX Local Manager for $solutionName"
-                foreach ($site in $sites) {
-                    $StatusMsg = Add-NsxtRemoteTunnelEndpoint -server $site.sddcManagerFqdn -user $site.sddcManagerUser -pass $site.sddcManagerPass -sddcDomain $site.mgmtSddcDomainName -ipPoolName $site.rtepName -startIpRange $site.rtepIpRangeStart -endIpRange $site.rtepIpRangeEnd -cidr $site.rtepCidr -gateway $site.rtepGateway -mtu $site.rtepMtu -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg -match "SUCCESSFUL") {
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                    } else {
-                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                    }
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Set Active Global Manager for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode ACTIVE -displayName $jsonInput.protected.gmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Add NSX Local Manager to Global Manager for $solutionName"
-                Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -localManagerFqdn $jsonInput.protected.localManagerFqdn -localManagerUser $jsonInput.protected.localManagerUser -localManagerPass $jsonInput.protected.localManagerPass -edgeNodes @($jsonInput.protected.edgeNode1, $jsonInput.protected.edgeNode2) -ipPoolId $jsonInput.protected.rtepName -rtepVlan $jsonInput.protected.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.protected.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                Show-PowerValidatedSolutionsOutput -message "Adding NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -localManagerFqdn $jsonInput.recovery.localManagerFqdn -localManagerUser $jsonInput.recovery.localManagerUser -localManagerPass $jsonInput.recovery.localManagerPass -edgeNodes @($jsonInput.recovery.edgeNode1, $jsonInput.recovery.edgeNode2) -ipPoolId $jsonInput.recovery.rtepName -rtepVlan $jsonInput.recovery.rtepVlan -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-
-                Show-PowerValidatedSolutionsOutput -message "Importing NSX Local Manager ($($jsonInput.recovery.localManagerFqdn)) Object to Global Manager ($($jsonInput.protected.gmClusterFqdn)) for $solutionName"
-                $StatusMsg = Import-NsxtGlobalManagerLocation -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -globalManager $jsonInput.protected.gmName -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Creating and Configuring Cross-Instance Tier-1 Gateway for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.protected.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Connecting Cross-Instance Segments to Cross-Instance Tier-1 Gateway for $solutionName"
-                $StatusMsg = Update-NsxtGlobalManagerSegment -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -segmentName $jsonInput.protected.xregSegment -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Connect Local Tier-1 Gateway to Cross-Instance Tier-0 Gateway for $solutionName"
-                $StatusMsg = Update-NsxtGlobalManagerTier1Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.recovery.localTier1Gateway -tier0Gateway $jsonInput.protected.localTier0Gateway -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Deleting Existing Tier-0 Gateways in an Additional Instance for $solutionName"
-                $StatusMsg = Export-NsxtGlobalManagerTier0GatewayConfig -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -bgpNeighborJsonFile ./recovery_tier0-bgp-neighbor.json -interfaceJsonFile ./recovery_tier0-interface.json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-
-                $StatusMsg = Undo-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.recovery.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Connect Additional VMware Cloud Foundation Instances to Cross-Instance Tier-0 Gateway for $solutionName"
-                $StatusMsg = Update-NsxtGlobalManagerTier0LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                
-                $StatusMsg = Update-NsxtGlobalManagerTier0Gateway -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier0Gateway $jsonInput.protected.localTier0Gateway -location $jsonInput.recovery.location -interfaceJsonFile .\recovery_tier0-interface.json -bgpNeighborJsonFile .\recovery_tier0-bgp-neighbor.json -bgpPassword $jsonInput.recovery.bgpPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Add Additional Instance as Locations to the Cross-Instance Tier-1 Gateway for $solutionName"
-                $StatusMsg = Update-NsxtGlobalManagerTier1LocaleService -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -tier1Gateway $jsonInput.protected.xregTier1Gateway -location $jsonInput.recovery.location -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -message "Setting Standby Global Manager for $solutionName"
-                $StatusMsg = Add-NsxtGlobalManagerMode -server $jsonInput.protected.gmClusterFqdn -user admin -pass $jsonInput.protected.adminPassword -mode STANDBY -displayName $jsonInput.recovery.gmName -standbyServer $jsonInput.recovery.gmClusterFqdn -standbyServerUser admin -standbyServerPass $jsonInput.recovery.adminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg -match "SUCCESSFUL") {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg
-                } else {
-                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
-                }
-            }
-
-            if (!$failureDetected) {
-                Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Deployment of $solutionName"
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            Write-Error "Unable to find configuration file ($pvsModulePath\$configFile)"
         }
     } Catch {
         Debug-ExceptionWriter -object $_

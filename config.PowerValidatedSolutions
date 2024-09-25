@@ -46,6 +46,10 @@
             {
                 "AriaComponent": "WorkspaceONE",
                 "Version": "3.3.7"
+            },
+            {
+                "vcfComponent": "Nsx",
+                "Version": "4.1.2.1"
             }
         ],
         "5.1.1":[
@@ -76,6 +80,10 @@
             {
                 "AriaComponent": "WorkspaceONE",
                 "Version": "3.3.7"
+            },
+            {
+                "vcfComponent": "Nsx",
+                "Version": "4.1.2.3"
             }
         ],
         "5.2.0":[
@@ -106,6 +114,10 @@
             {
                 "AriaComponent": "WorkspaceONE",
                 "Version": "3.3.7"
+            },
+            {
+                "vcfComponent": "Nsx",
+                "Version": "4.2.0.0"
             }
         ],
         "5.2.1":[
@@ -136,6 +148,10 @@
             {
                 "AriaComponent": "WorkspaceONE",
                 "Version": "3.3.7"
+            },
+            {
+                "vcfComponent": "Nsx",
+                "Version": "4.2.1.0"
             }
         ]
     }]
