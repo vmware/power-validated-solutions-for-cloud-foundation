@@ -110,6 +110,7 @@
 - Enhanced `Add-NetworkSegment` cmdlet to return the pre-validation error correctly (removed breaks in the code).
 - Enhanced `config.PowerValidatedSolutions` configuration file to include NSX version so be able to check for the binary for NSX Federation.
 - Enhanced `Add-vROPSAdapterVcf` cmdlet updated to provide additional output on progress.
+- Enhanced `Add-vCenterGlobalPermission` cmdlet to force synchronization of global permissions.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1

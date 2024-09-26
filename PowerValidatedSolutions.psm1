@@ -17665,7 +17665,6 @@ Function Invoke-IomDeployment {
                                                     $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal ($jsonInput.serviceAccountOperationsVsphere.Split('@'))[-0] -role $jsonInput.vsphereRoleNameOperations -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
-                                                Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                             }
                                         }
 
@@ -22105,7 +22104,6 @@ Function Invoke-InvDeployment {
                                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountNetworksVsphere -role $jsonInput.vsphereRoleNameNetworks -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
-                                            Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                         }
                                     }
 
@@ -24012,7 +24010,6 @@ Function Invoke-PcaDeployment {
                                                         $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.serviceAccountOrchestrator -role $jsonInput.vsphereRoleNameOrchestrator -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
-                                                    Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                                                 }
                                             }
 
@@ -28223,7 +28220,6 @@ Function Invoke-CcmDeployment {
                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountHcx -role $jsonInput.vsphereRoleNameHcx -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                             }
-                            Invoke-VcenterCommand -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -command "service-control --restart vmware-vpxd" | Out-Null
                         }
                     }
 
@@ -33965,14 +33961,14 @@ Function Add-vCenterGlobalPermission {
                             if (Get-VIRole -Server $vcfVcenterDetails.fqdn -Name $role -ErrorAction Ignore ) {
                                 Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
                                 $roleAssigned = (Get-GlobalPermission | Where-Object { $_.Principal -match $principal })
-                                if (!($roleAssigned | Where-Object { $_.Role -eq $role })) {
+                                if (-Not ($roleAssigned | Where-Object { $_.Role -eq $role })) {
                                     if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                                         if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                             if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
                                                 Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                             } else {
                                                 if ($type -eq "group") {
-                                                    if (!$localDomain) {
+                                                    if (-Not $localDomain) {
                                                         $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     } else {
@@ -33980,7 +33976,7 @@ Function Add-vCenterGlobalPermission {
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     }
                                                 } elseif ($type -eq "user") {
-                                                    if (!$localDomain) {
+                                                    if (-Not $localDomain) {
                                                         $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     } else {
@@ -34007,7 +34003,6 @@ Function Add-vCenterGlobalPermission {
                                             }
                                         }
                                         Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
-
                                     }
                                 } else {
                                     Write-Warning "Adding Global Permission to Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
@@ -34017,6 +34012,9 @@ Function Add-vCenterGlobalPermission {
                                 Write-Error "Unable to find role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
+                            Connect-VIServer -Server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass -AllLinked -WarningAction SilentlyContinue | Out-Null
+                            Invoke-RestartService -Service vpxd | Out-Null
+                            Disconnect-VIServer -Server * -Confirm:$false -Force -WarningAction SilentlyContinue | Out-Null
                         }
                     }
                 }
@@ -37099,7 +37097,7 @@ Function Invoke-VcenterCommand {
                             $workloadDomainVcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             $output = Invoke-VMScript -VM $workloadDomainVcenter.vmName -ScriptText $command -GuestUser $workloadDomainVcenter.root -GuestPassword $workloadDomainVcenter.rootPass -Server $vcfVcenterDetails.fqdn
                             Write-Output ""; Write-Output "Executing command ($command) on vCenter Server ($($workloadDomainVcenter.fqdn))"
-                            Write-Output ""; Write-Output "$output"
+                            Write-Output ""; Write-Output $output.Scriptoutput
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
