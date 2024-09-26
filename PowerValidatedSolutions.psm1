@@ -2656,7 +2656,7 @@ Function Export-PdrJsonSpec {
                     'replicationGateway'       = if ($null -eq $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value) { $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_vrms_gateway_ip"].Value } else { $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value }
                     'replicationNetmask'       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
                     'remoteReplicationNetwork' = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
-                    'replicationIpAddresses'   = ($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host_vrms_ips"].Value) | Where-Object { $_ -ne "Value Missing" }
+                    'replicationIpAddresses'   = ($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host_vrms_ips"].Value) | Where-Object { $_ -ne "Value Missing" }
                     'vmFolderSrm'              = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_vm_folder"].Value
                     'srmVmName'                = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_hostname"].Value
                     'srmFqdn'                  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value
@@ -2698,7 +2698,7 @@ Function Export-PdrJsonSpec {
                     'vmListLifecycle'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
                     'serviceInterfaceIp'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_t1_si_ip"].Value
                     'certificateNameWsa'          = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value
-                    'dns'                         = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
+                    'dns'                         = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + " " + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
                     'searchDomain'                = $pnpProtectedWorkbook.Workbook.Names["parent_dns_zone"].Value
                     'environmentName'             = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                     'recoveryPointObjective'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value -as [Int]
