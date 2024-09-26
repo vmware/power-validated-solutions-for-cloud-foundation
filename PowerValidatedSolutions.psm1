@@ -1364,7 +1364,11 @@ Function Set-WorkspaceOneNtpConfig {
                                     Break
                                 }
                             } else {
-                                $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0]
+                                if (((Get-VCFConfigurationNTP).ipAddress).Count -gt 1) {
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0]
+                                    } else {
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress
+                                }
                             }
                             if ($vrslcmIntegrated) {
                                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -1386,7 +1390,7 @@ Function Set-WorkspaceOneNtpConfig {
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
                             } else {
-                                if (!$wsaFqdn) {
+                                if (-Not $wsaFqdn) {
                                     Write-Error "The FQDN parameter (-wsaFqdn) is required for a standalone Workspace ONE Access instance: PRE_VALIDATION_FAILED"
                                 }
                                 $vmName = $wsaFqdn.Split(".")[0]
@@ -34012,7 +34016,7 @@ Function Add-vCenterGlobalPermission {
                                 Write-Error "Unable to find role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
-                            Connect-VIServer -Server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass -AllLinked -WarningAction SilentlyContinue | Out-Null
+                            Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -AllLinked -WarningAction SilentlyContinue | Out-Null
                             Invoke-RestartService -Service vpxd | Out-Null
                             Disconnect-VIServer -Server * -Confirm:$false -Force -WarningAction SilentlyContinue | Out-Null
                         }
@@ -41269,14 +41273,14 @@ Function Set-WorkspaceOneApplianceNtpConfig {
     Try {
         $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
-        if ($output.ScriptOutput -match "^server=$ntpServer$") {
+        if ($output.ScriptOutput.Trim() -match "server=$ntpServer") {
             Write-Warning "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer), already performed: SKIPPED"
         } else {
             $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
             $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
-            if ($output.ScriptOutput -match "^server=$ntpServer$") {
+            if ($output.ScriptOutput.Trim() -match "server=$ntpServer") {
                 Write-Output "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): SUCCESSFUL"
             } else {
                 Write-Error "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): POST_VALIDATION_FAILED"
