@@ -111,6 +111,7 @@
 - Enhanced `config.PowerValidatedSolutions` configuration file to include NSX version so be able to check for the binary for NSX Federation.
 - Enhanced `Add-vROPSAdapterVcf` cmdlet updated to provide additional output on progress.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to force synchronization of global permissions.
+- Enhanced `Set-WorkspaceOneNtpConfig` cmdlet to handle a single NTP server.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
