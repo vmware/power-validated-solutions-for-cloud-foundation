@@ -17222,165 +17222,238 @@ Function Export-IomJsonSpec {
         - Generates the JSON specification file using the Planning and Preparation workbook
 
         .EXAMPLE
-        Export-IomJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iomDeploySpec.json
-        This example creates a JSON specification Intelligent Operations Management using the Planning and Preparation Workbook.
+        Export-IomJsonSpec -protectedWorkbook .\pnp-workbook.xlsx -jsonFile .\iomDeploySpec.json
+        This example creates a JSON specification Intelligent Operations Management using the Planning and Preparation Workbook for a single site.
 
-        .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx) file.
+        .EXAMPLE
+        Export-IomJsonSpec -protectedWorkbook .\pnp-workbook.xlsx -jsonFile .\iomDeploySpec.json -recoveryWorkbook .\pnp-workbook.xlsx
+        This example creates a JSON specification Intelligent Operations Management using the Planning and Preparation Workbook for dual site.
+
+        .PARAMETER protectedWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the protected site.
+
+        .PARAMETER recoveryWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the recovery site.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
 
     $solutionName = "Intelligent Operations Management"
 
     Try {
-        if (!$PsBoundParameters.ContainsKey("workbook")) {
-            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        if (-Not $PsBoundParameters.ContainsKey("protectedWorkbook")) {
+            $protectedWorkbook = Get-ExternalFileName -title "Select the Protected Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
         }
         Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of $solutionName (.json) Specification File"
-        if (Test-Path -Path $workbook) {
-            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
-            $jsonObject = @()
-            $jsonObject += [pscustomobject]@{
-                'sddcManagerFqdn'                     = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
-                'sddcManagerUser'                     = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
-                'sddcManagerPass'                     = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
-                'mgmtSddcDomainName'                  = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'contentLibraryName'                  = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
-                'licenseAlias'                        = $pnpWorkbook.Workbook.Names["vrops_license_alias"].Value
-                'licenseKey'                          = $pnpWorkbook.Workbook.Names["vrops_license"].Value
-                'certificateAlias'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
-                'rootPasswordAlias'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
-                'rootPassword'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
-                'rootUserName'                        = "root"
-                'xintPasswordAlias'                   = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
-                'xintPassword'                        = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
-                'xintUserName'                        = $pnpWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
-                'environmentName'                     = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                'datacenter'                          = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
-                'vcenterFqdn'                         = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                'vcenterDatacenter'                   = $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value
-                'vcenterCluster'                      = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value }
-                'vcenterDatastore'                    = if ($null -eq $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $pnpWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
-                'network'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                'gateway'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                'netmask'                             = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                'domain'                              = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                'searchpath'                          = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                'dns'                                 = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                'ntp'                                 = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                'deployOption'                        = $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
-                'clusterFqdn'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
-                'clusterIp'                           = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value
-                'vmNameNodeA'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                'hostNameNodeA'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
-                'ipNodeA'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
-                'vmNameNodeB'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
-                'hostNameNodeB'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
-                'ipNodeB'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
-                'vmNameNodeC'                         = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                'hostNameNodeC'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
-                'ipNodeC'                             = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
-                'networkProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
-                'gatewayProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                'netmaskProxies'                      = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-                'domainProxies'                       = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'searchpathProxies'                   = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'vmNameProxyA'                        = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
-                'hostNameProxyA'                      = $pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
-                'ipProxyA'                            = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
-                'vmNameProxyB'                        = $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'hostNameProxyB'                      = $pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
-                'ipProxyB'                            = $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
-                'vmFolderOperations'                  = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
-                'vmFolderProxies'                     = $pnpWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
-                'vmListOperations'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                'vmListProxies'                       = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'vmListAll'                           = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
-                'antiAffinityRuleNameOperations'      = $pnpWorkbook.Workbook.Names["xreg_vrops_anti_affinity_rule_name"].Value
-                'antiAffinityRuleNameProxies'         = $pnpWorkbook.Workbook.Names["xreg_vropsrc_anti_affinity_rule_name"].Value
-                'drsGroupNameOperations'              = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
-                'drsGroupNameIdentity'                = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
-                'drsGroupNameProxies'                 = $pnpWorkbook.Workbook.Names["region_vropsrc_vm_group_name"].Value
-                'vmToVmRuleNameWsa'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
-                'vmToVmRuleNameOperations'            = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
-                'vmToVmRuleNameProxies'               = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
-                'stretchedCluster'                    = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'currency'                            = $pnpWorkbook.Workbook.Names["xreg_vrops_currency"].Value
-                'wsaUser'                             = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
-                'wsaPass'                             = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
-                'domainFqdn'                          = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                      = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-                'domainBindPass'                      = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
-                'domainControllerMachineName'         = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'serviceAccountOperationsVcf'         = $pnpWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
-                'serviceAccountOperationsVcfPass'     = $pnpWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
-                'serviceAccountOperationsVsphere'     = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_user"].Value
-                'serviceAccountOperationsVspherePass' = $pnpWorkbook.Workbook.Names["iom_vsphere_svc_password"].Value
-                'vsphereRoleNameOperations'           = $pnpWorkbook.Workbook.Names["iom_vsphere_role"].Value
-                'wsaBindUser'                         = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
-                'wsaBindPass'                         = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-                'baseDnGroup'                         = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
-                'adGroups'                            = "$($pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value)"
-                'alertPluginInstanceName'             = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-                'alertReceiverEmail'                  = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_receiver_email_address"].Value
-                'smtpServer'                          = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-                'smtpPort'                            = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
-                'smtpAuthUser'                        = $pnpWorkbook.Workbook.Names["smtp_sender_username"].Value
-                'smtpAuthPass'                        = $pnpWorkbook.Workbook.Names["smtp_sender_password"].Value
-                'senderAddress'                       = $pnpWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
-                'notificationInterval'                = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int]
-                'notificationMax'                     = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int]
-                'notificationDelay'                   = $pnpWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int]
-                'operationsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
-                'operationsContentAdminGroup'         = $pnpWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
-                'operationsReadOnlyGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
-                'collectorGroupName'                  = $pnpWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
-                'defaultCollectorGroup'               = $pnpWorkbook.Workbook.Names["xreg_vrops_default_collector_group"].Value
-                'ipListOperations'                    = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
-                'ipListProxies'                       = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
-                'ipListIdentity'                      = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
-                'pingAdapterNameProxies'              = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-operations-proxies"
-                'pingAdapterNameOperations'           = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value + "-cluster"
-                'pingAdapterNameIdentity'             = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value + "-cluster"
-                'organization'                        = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-                'organizationalUnit'                  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-                'country'                             = $pnpWorkbook.Workbook.Names["ca_country"].Value
-                'stateOrProvince'                     = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'locality'                            = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-                'adminEmailAddress'                   = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "certificate-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
-                'KeySize'                             = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int]
-                'mscaComputerName'                    = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
-                'mscaName'                            = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
-                'certificateTemplate'                 = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
-                'caUsername'                          = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
-                'caUserPassword'                      = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+        if (Test-Path -Path $protectedWorkbook) {
+            $pnpProtectedWorkbook = Open-ExcelPackage -Path $protectedWorkbook
+            $pnpRecoveryWorkbook = Open-ExcelPackage -Path $recoveryWorkbook
+
+            if ($recoveryWorkbook) {
+                $recoveryObject = New-Object -TypeName PSCustomObject
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["sso_default_admin"].Value
+                $recoveryObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountLcmVcenter' -notepropertyvalue ("svc-" + $pnpRecoveryWorkbook.Workbook.Names["xreg_existing_vrslcm_fqdn"].Value.SubString(0, $pnpRecoveryWorkbook.Workbook.Names["xreg_existing_vrslcm_fqdn"].Value.IndexOf(".")) + "-" + $pnpRecoveryWorkbook.Workbook.Names["mgmt_vc_hostname"].Value)
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountLcmVcenterPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["vrslcm_bespoke_svc_vrslcm_vsphere_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vsphereRoleNameLcm' -notepropertyvalue "VMware Aria Suite Lifecycle to vSphere Integration"
+                $recoveryObject | Add-Member -notepropertyname 'xintDatacenter' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vcenterFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'contentLibraryName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+                $recoveryObject | Add-Member -notepropertyname 'antiAffinityRuleNameProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vropsrc_anti_affinity_rule_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'collectorGroupName' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'defaultCollectorGroup' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["xreg_vrops_default_collector_group"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmFolderProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmListProxies' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpRecoveryWorkbook.Workbook.Names["region_vropscb_hostname"].Value)
+                $recoveryObject | Add-Member -notepropertyname 'networkProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["reg_seg01_name"].Value
+                $recoveryObject | Add-Member -notepropertyname 'gatewayProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'netmaskProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                $recoveryObject | Add-Member -notepropertyname 'domainProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'searchpathProxies' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmNameProxyA' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropsca_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'hostNameProxyA' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'ipProxyA' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropsca_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vmNameProxyB' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+                $recoveryObject | Add-Member -notepropertyname 'hostNameProxyB' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'ipProxyB' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_vropscb_ip"].Value
+                $recoveryObject | Add-Member -notepropertyname 'ipListProxies' -notepropertyvalue ($pnpRecoveryWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpRecoveryWorkbook.Workbook.Names["region_vropscb_ip"].Value)
+                $recoveryObject | Add-Member -notepropertyname 'stretchedCluster' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+                $recoveryObject | Add-Member -notepropertyname 'domainFqdn' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                $recoveryObject | Add-Member -notepropertyname 'domainBindUser' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                $recoveryObject | Add-Member -notepropertyname 'domainBindPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountOperationsVcf' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountOperationsVcfPass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountOperationsVsphere' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["iom_vsphere_svc_user"].Value
+                $recoveryObject | Add-Member -notepropertyname 'serviceAccountOperationsVspherePass' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["iom_vsphere_svc_password"].Value
+                $recoveryObject | Add-Member -notepropertyname 'vsphereRoleNameOperations' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["iom_vsphere_role"].Value
             }
 
-            if ($pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
-                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            if ($pnpRecoveryWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $recoveryObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
             }
 
-            if ($pnpWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
+            $jsonObject = New-Object -TypeName PSCustomObject
+            if ($recoveryWorkbook) {
+                $jsonObject | Add-Member -notepropertyname 'recovery' -notepropertyvalue $recoveryObject
+            }
+            $jsonObject | Add-Member -notepropertyname 'sddcManagerFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'sddcManagerUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["sso_default_admin"].Value
+            $jsonObject | Add-Member -notepropertyname 'sddcManagerPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'mgmtSddcDomainName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+            $jsonObject | Add-Member -notepropertyname 'contentLibraryName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+            $jsonObject | Add-Member -notepropertyname 'licenseAlias' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrops_license_alias"].Value
+            $jsonObject | Add-Member -notepropertyname 'licenseKey' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrops_license"].Value
+            $jsonObject | Add-Member -notepropertyname 'certificateAlias' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'rootPasswordAlias' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value
+            $jsonObject | Add-Member -notepropertyname 'rootPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_root_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'rootUserName' -notepropertyvalue "root"
+            $jsonObject | Add-Member -notepropertyname 'xintPasswordAlias' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
+            $jsonObject | Add-Member -notepropertyname 'xintPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'xintUserName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
+            $jsonObject | Add-Member -notepropertyname 'environmentName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+            $jsonObject | Add-Member -notepropertyname 'datacenter' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+            $jsonObject | Add-Member -notepropertyname 'vcenterFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'vcenterDatacenter' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_datacenter"].Value
+            if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value) { $vcenterCluster = $pnpProtectedWorkbook.Workbook.Names["mgmt_cl01_cluster"].Value } else { $vcenterCluster = $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value }
+            $jsonObject | Add-Member -notepropertyname 'vcenterCluster' -notepropertyvalue $vcenterCluster
+            if ($null -eq $pnpProtectedWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value) { $vcenterDatastore = $pnpProtectedWorkbook.Workbook.Names["mgmt_cl01_vsan_datastore"].Value } else { $vcenterDatastore = $pnpProtectedWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value }
+            $jsonObject | Add-Member -notepropertyname 'vcenterDatastore' -notepropertyvalue $vcenterDatastore
+            $jsonObject | Add-Member -notepropertyname 'network' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'gateway' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+            $jsonObject | Add-Member -notepropertyname 'domain' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["region_dns2_ip"].Value)
+            $jsonObject | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+            $jsonObject | Add-Member -notepropertyname 'deployOption' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
+            $jsonObject | Add-Member -notepropertyname 'clusterFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'clusterIp' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmNameNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'hostNameNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipNodeA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmNameNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'hostNameNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipNodeB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmNameNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'hostNameNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipNodeC' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'networkProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["reg_seg01_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'gatewayProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'netmaskProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+            $jsonObject | Add-Member -notepropertyname 'domainProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'searchpathProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmNameProxyA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropsca_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'hostNameProxyA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipProxyA' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropsca_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmNameProxyB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'hostNameProxyB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipProxyB' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropscb_ip"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmFolderOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmFolderProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmListOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value)
+            $jsonObject | Add-Member -notepropertyname 'vmListProxies' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["region_vropscb_hostname"].Value)
+            $jsonObject | Add-Member -notepropertyname 'vmListAll' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["region_vropscb_hostname"].Value)
+            $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_anti_affinity_rule_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'antiAffinityRuleNameProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vropsrc_anti_affinity_rule_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'drsGroupNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_group_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'drsGroupNameIdentity' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'drsGroupNameProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vropsrc_vm_group_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameWsa' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vrops_vm_to_vm_rule_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'vmToVmRuleNameProxies' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'stretchedCluster' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            $jsonObject | Add-Member -notepropertyname 'currency' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_currency"].Value
+            $jsonObject | Add-Member -notepropertyname 'wsaUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["local_admin_username"].Value
+            $jsonObject | Add-Member -notepropertyname 'wsaPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["local_admin_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'domainFqdn' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'domainBindUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+            $jsonObject | Add-Member -notepropertyname 'domainBindPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'domainControllerMachineName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["domain_controller_hostname"].Value
+            $jsonObject | Add-Member -notepropertyname 'serviceAccountOperationsVcf' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["iom_vcf_svc_user"].Value
+            $jsonObject | Add-Member -notepropertyname 'serviceAccountOperationsVcfPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["iom_vcf_svc_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'serviceAccountOperationsVsphere' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["iom_vsphere_svc_user"].Value
+            $jsonObject | Add-Member -notepropertyname 'serviceAccountOperationsVspherePass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["iom_vsphere_svc_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'vsphereRoleNameOperations' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["iom_vsphere_role"].Value
+            $jsonObject | Add-Member -notepropertyname 'wsaBindUser' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
+            $jsonObject | Add-Member -notepropertyname 'wsaBindPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'baseDnGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["child_ad_groups_ou"].Value
+            $jsonObject | Add-Member -notepropertyname 'adGroups' -notepropertyvalue "$($pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_admins"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value)"
+            $jsonObject | Add-Member -notepropertyname 'alertPluginInstanceName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["smtp_server"].Value
+            $jsonObject | Add-Member -notepropertyname 'alertReceiverEmail' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_smtp_receiver_email_address"].Value
+            $jsonObject | Add-Member -notepropertyname 'smtpServer' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["smtp_server"].Value
+            $jsonObject | Add-Member -notepropertyname 'smtpPort' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int])
+            $jsonObject | Add-Member -notepropertyname 'smtpAuthUser' $pnpProtectedWorkbook.Workbook.Names["smtp_sender_username"].Value
+            $jsonObject | Add-Member -notepropertyname 'smtpAuthPass' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["smtp_sender_password"].Value
+            $jsonObject | Add-Member -notepropertyname 'senderAddress' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_smtp_sender_email_address"].Value
+            $jsonObject | Add-Member -notepropertyname 'notificationInterval' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_interval"].Value -as [Int])
+            $jsonObject | Add-Member -notepropertyname 'notificationMax' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_max"].Value -as [Int])
+            $jsonObject | Add-Member -notepropertyname 'notificationDelay' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_notification_delay"].Value -as [Int])
+            $jsonObject | Add-Member -notepropertyname 'operationsAdminGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_admins"].Value
+            $jsonObject | Add-Member -notepropertyname 'operationsContentAdminGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_content_admins"].Value
+            $jsonObject | Add-Member -notepropertyname 'operationsReadOnlyGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["group_gg_vrops_read_only"].Value
+            $jsonObject | Add-Member -notepropertyname 'collectorGroupName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["region_vrops_collector_group_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'defaultCollectorGroup' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_default_collector_group"].Value
+            $jsonObject | Add-Member -notepropertyname 'ipListOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value)
+            $jsonObject | Add-Member -notepropertyname 'ipListProxies' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["region_vropscb_ip"].Value)
+            $jsonObject | Add-Member -notepropertyname 'ipListIdentity' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value + "," + $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value)
+            $jsonObject | Add-Member -notepropertyname 'pingAdapterNameProxies' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-operations-proxies")
+            $jsonObject | Add-Member -notepropertyname 'pingAdapterNameOperations' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value + "-cluster")
+            $jsonObject | Add-Member -notepropertyname 'pingAdapterNameIdentity' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value + "-cluster")
+            $jsonObject | Add-Member -notepropertyname 'organization' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_organization"].Value
+            $jsonObject | Add-Member -notepropertyname 'organizationalUnit' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_organization_unit"].Value
+            $jsonObject | Add-Member -notepropertyname 'country' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_country"].Value
+            $jsonObject | Add-Member -notepropertyname 'stateOrProvince' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_state"].Value
+            $jsonObject | Add-Member -notepropertyname 'locality' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_locality"].Value
+            if ($null -eq $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value) { $adminEmailAddress = "certificate-admin@" + $pnpProtectedWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $adminEmailAddress = $pnpProtectedWorkbook.Workbook.Names["ca_email_address"].Value }
+            $jsonObject | Add-Member -notepropertyname 'adminEmailAddress' -notepropertyvalue $adminEmailAddress
+            $jsonObject | Add-Member -notepropertyname 'KeySize' -notepropertyvalue ($pnpProtectedWorkbook.Workbook.Names["ca_key_size"].Value -as [Int])
+            $jsonObject | Add-Member -notepropertyname 'mscaComputerName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+            $jsonObject | Add-Member -notepropertyname 'mscaName' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["certificate_authority_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'certificateTemplate' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["ca_template_name"].Value
+            $jsonObject | Add-Member -notepropertyname 'caUsername' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+            $jsonObject | Add-Member -notepropertyname 'caUserPassword' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+
+            if ($pnpProtectedWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value -eq "Include") {
+                $jsonObject | Add-Member -notepropertyname 'drsVmGroupNameAz' -notepropertyvalue $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            }
+
+            if ($pnpProtectedWorkbook.Workbook.Names["intelligent_logging_result"].Value -eq "Included") {
                 $jsonObject | Add-Member -notepropertyname 'agentGroupName' -notepropertyvalue "Photon OS (IOM) - Appliance Agent Group"
-                $jsonObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value)", "$($pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value)"
+                $jsonObject | Add-Member -notepropertyname 'vmListFqdn' -notepropertyvalue "$($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["region_vropsca_fqdn"].Value)", "$($pnpProtectedWorkbook.Workbook.Names["region_vropscb_fqdn"].Value)"
             }
 
-            Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+            Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
+            Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
+            $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
+            Foreach ($jsonValue in $baseData.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value -or $jsonValue.value -eq "N/A" -or $jsonValue.value -eq "N/A" -or $jsonValue.value -match "#VALUE" ) {
                     Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
+            $protectedData = $protectedObject | ConvertTo-Json -Depth 12; $protectedData = $protectedData | ConvertFrom-Json
+            Foreach ($objectValue in $protectedData.psobject.properties) {
+                if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Protected property: {0}' -f $objectValue.Name)
+                    $issueWithJson = $true
+                }
+            }
+            $recoveryData = $recoveryObject | ConvertTo-Json -Depth 12; $recoveryData = $recoveryData | ConvertFrom-Json
+            Foreach ($objectValue in $recoveryData.psobject.properties) {
+                if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value -or $objectValue.value -eq "N/A" -or $objectValue.value -eq "N/A" -or $objectValue.value -match "#VALUE" ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Recovery property: {0}' -f $objectValue.Name)
+                    $issueWithJson = $true
+                }
+            }
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             if ($issueWithJson) {
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for $solutionName, missing data: POST_VALIDATION_FAILED"
             } else {
@@ -17388,7 +17461,7 @@ Function Export-IomJsonSpec {
             }
             Show-PowerValidatedSolutionsOutput -type NOTE -message "Finished Generation of $solutionName (.json) Specification File"
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($protectedWorkbook) for the Protected Site: File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -17789,7 +17862,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Grouping the VMware Cloud Proxy Appliances in $operationsProductName"
-                                            $StatusMsg = Add-vROPSGroupRemoteCollectors -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Add-vROPSGroupRemoteCollectors -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroupName -ipList $jsonInput.ipListProxies.Split(',') -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
 
@@ -19078,8 +19151,8 @@ Function Add-vROPSGroupRemoteCollectors {
         - Assigns the deployed collectors to the collector group in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSGroupRemoteCollectors -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a Collector group called 'sfo-remote-collectors' and assigns the Remove Collector Nodes in VMware Aria Operations.
+        Add-vROPSGroupRemoteCollectors -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-m01-collector-group" -ipList ("192.168.31.31","192.168.31.32")
+        This example creates a Collector group called 'sfo-m01-collector-group' and assigns the Remove Collector Nodes in VMware Aria Operations.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -19092,13 +19165,17 @@ Function Add-vROPSGroupRemoteCollectors {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to create in VMware Aria Operations.
+
+        .PARAMETER ipList
+        The IP list of the Cloud Proxies in VMware Aria Operations.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$ipList
     )
 
     Try {
@@ -19107,9 +19184,18 @@ Function Add-vROPSGroupRemoteCollectors {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            if (!(Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName })) {
-                                $collectors = (Get-vROPSCollector | Where-Object { $_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY" } | Select-Object id).id
-                                $collectorIds = $collectors -join ","
+                            if (-Not (Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName })) {
+                                $collectors = @()
+                                foreach ($ip in $ipList) {
+                                    if ((Get-vROPSCollector | Where-Object { $_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY" -and $_.hostName -eq $ip} | Select-Object id).id) {
+                                        $collectors += (Get-vROPSCollector | Where-Object { $_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY" -and $_.hostName -eq $ip} | Select-Object id).id
+                                    }
+                                }
+                                if ($collectors.Count -gt 1) {
+                                    [String]$collectorIds = $collectors -Join ","
+                                } else {
+                                    [String]$collectorIds = $collectors
+                                }
                                 Add-vROPSCollectorGroup -name $collectorGroupName -collectorIds $collectorIds
                                 if (Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName }) {
                                     Write-Output "Creating Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName): SUCCESSFUL"
@@ -19147,8 +19233,8 @@ Function Update-vROPSAdapterVcenter {
         - Updates the assigned collector group for the vCenter Adapter in VMware Aria Operations
 
         .EXAMPLE
-        Update-vROPSAdapterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example updates all vCenter Adapters to use the collector group named 'sfo-remote-collectors'.
+        Update-vROPSAdapterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-m01-collector-group"
+        This example updates all vCenter Adapters to use the collector group named 'sfo-m01-collector-group'.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -19253,16 +19339,16 @@ Function Update-vROPSAdapterCollecterGroup {
         - Updates the assigned Collector group for the Adapter in VMware Aria Operations
 
         .EXAMPLE
-        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "LogInsightAdapter"
-        This example updates VMware Aria Operations for Logs Adapter to use the collector group named 'sfo-remote-collectors'
+        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-m01-collector-group" -adaptertype "LogInsightAdapter"
+        This example updates VMware Aria Operations for Logs Adapter to use the collector group named 'sfo-m01-collector-group'
 
         .EXAMPLE
-        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "VMWARE"
-        This example updates all vCenter Adapters to use the collector group named 'sfo-remote-collectors'
+        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-m01-collector-group" -adaptertype "VMWARE"
+        This example updates all vCenter Adapters to use the collector group named 'sfo-m01-collector-group'
 
         .EXAMPLE
-        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "IdentityManagerAdapter" -adaptername "sfo-wsa01"
-        This example updates Identity Manager Adapter with name "sfo-wsa01" to use the collector group named 'sfo-remote-collectors'
+        Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-m01-collector-group" -adaptertype "IdentityManagerAdapter" -adaptername "sfo-wsa01"
+        This example updates Identity Manager Adapter with name "sfo-wsa01" to use the collector group named 'sfo-m01-collector-group'
 
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adaptertype "IdentityManagerAdapter" -adaptername "vRSLCM_VCF_Workspace ONE Access Adapter"
@@ -19693,11 +19779,11 @@ Function Add-vROPSAdapterNsxt {
         - Starts the collection of the NSX Adapter in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -collectorGroupName "sfo-m01-collector-group"
         This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the collector group defined
 
         .EXAMPLE
-        Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -collectorGroupName "sfo-m01-collector-group"
         This example creates an NSX Adapter for the VI Workload Domain named in VMware  Aria Operations and assigns to the collector group defined
 
         .EXAMPLE
@@ -19821,8 +19907,8 @@ Function Add-vROPSAdapterPing {
         - Creates a new Ping adapter in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.30,192.168.11.31,192.168.11.32,192.168.11.33" -adapterName xint-vrops01 -collectorGroupName "sfo-remote-collectors"
-        This example creates a new Ping adapter called 'xint-vrops01', assigns the IP Addresses provided and assigned the collector group called 'sfo-remote-collectors'
+        Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.30,192.168.11.31,192.168.11.32,192.168.11.33" -adapterName xint-vrops01 -collectorGroupName "sfo-m01-collector-group"
+        This example creates a new Ping adapter called 'xint-vrops01', assigns the IP Addresses provided and assigned the collector group called 'sfo-m01-collector-group'
 
         .EXAMPLE
         Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.50,192.168.11.51,192.168.11.52,192.168.11.53" -adapterName xint-vra01
@@ -20139,7 +20225,7 @@ Function Add-vROPSAdapterIdentityManager {
         - Creates a new Identity Manager adapter in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSAdapterIdentityManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterIdentityManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -collectorGroupName "sfo-m01-collector-group"
         This example creates a new Identity Manager adapter and assigns it to the collector group
 
         .EXAMPLE
@@ -20277,7 +20363,7 @@ Function Add-vROPSAdapterSrm {
         - Starts the collection of the Site Recovery Manager Adapter in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSAdapterSrm -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-m01-srm01.sfo.rainpole.io -srmUser vrops-srm -srmPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterSrm -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-m01-srm01.sfo.rainpole.io -srmUser vrops-srm -srmPass VMw@re1!VMw@re1! -collectorGroupName "sfo-m01-collector-group"
         This example creates a Site Recovery Manager Adapter in VMware Aria Operations and assigns to the collector group defined.
 
         .PARAMETER server
@@ -20404,7 +20490,7 @@ Function Add-vROPSAdapterVr {
         - Starts the collection of the vSphere Replication Adapter in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-m01-collector-group"
         This example creates a vSphere Replication Adapter in VMware Aria Operations and assigns to the collector group defined.
 
         .PARAMETER server
@@ -29153,7 +29239,7 @@ Function New-vRSLCMDatacenterVcenter {
                                     if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction Ignore -ErrorVariable FunctionError)) {
                                         Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
                                         Start-Sleep 10
-                                        if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction Ignore -ErrorVariable FunctionError) {
+                                        if (Request-ConfigurationCheck -timeoutSeconds 300 -command "Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split('.')[0]) -ErrorAction Ignore -ErrorVariable FunctionError") {
                                             Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
                                         } else {
                                             Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
@@ -31355,8 +31441,8 @@ Function Export-NsxFederationJsonSpec {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
 
@@ -34032,17 +34118,18 @@ Function Add-vCenterGlobalPermission {
                                         }
                                         Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                                     }
+                                    
                                 } else {
                                     Write-Warning "Adding Global Permission to Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
                                 }
                                 Disconnect-vSphereMobServer
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
+                                Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -AllLinked -WarningAction SilentlyContinue | Out-Null
+                                Invoke-RestartService -Service vpxd | Out-Null
+                                Disconnect-VIServer -Server * -Confirm:$false -Force -WarningAction SilentlyContinue | Out-Null
                             } else {
                                 Write-Error "Unable to find role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                             }
-                            Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
-                            Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -AllLinked -WarningAction SilentlyContinue | Out-Null
-                            Invoke-RestartService -Service vpxd | Out-Null
-                            Disconnect-VIServer -Server * -Confirm:$false -Force -WarningAction SilentlyContinue | Out-Null
                         }
                     }
                 }
@@ -53976,7 +54063,7 @@ Function Add-vROPSCollectorGroup {
         The Add-vROPSCollectorGroup cmdlet adds a collector group in VMware Aria Operations
 
         .EXAMPLE
-        Add-vROPSCollectorGroup -name sfo-remote-collectors -description "Collector Group for SFO" -collectorIds "1,2"
+        Add-vROPSCollectorGroup -name sfo-m01-collector-group -description "Collector Group for SFO" -collectorIds "1,2"
         This example gets a list of collector groups.
 
         .PARAMETER name
@@ -65009,16 +65096,28 @@ Export-ModuleMember -Function Start-ValidatedSolutionMenu
 
 Function Start-AriaSuiteLifecycleMenu {
     Try {
-        $jsonSpecFile = "validatedSolution-vrslcmDeploySpec.json"
+        $protectedJsonSpecFile = "validatedSolution-vrslcmDeploySpec-protected.json"
+        $recoveryJsonSpecFile = "validatedSolution-vrslcmDeploySpec-recovery.json"
         $submenuTitle = ("VMware Aria Suite Lifecycle for VMware Cloud Foundation")
 
         $headingItem01 = "Planning and Preperation"
-        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem01 = "Generate JSON Specification File ($protectedJsonSpecFile)"
         $menuitem02 = "Verify Prerequisites"
 
         $headingItem02 = "Implementation"
         $menuitem05 = "End-to-End Deployment"
         $menuitem06 = "Remove from Environment"
+
+        if ($recoveryWorkbook) {
+            $headingItem06 = "Recovery Instance"
+            $headingItem07 = "Planning and Preperation"
+            $menuitem10 = "Generate JSON Specification File ($recoveryJsonSpecFile)"
+            $menuitem11 = "Verify Prerequisites"
+
+            $headingItem08 = "Implementation"
+            $menuitem15 = "End-to-End Deployment"
+            $menuitem16 = "Remove from Environment"
+        }
 
         Do {
             if (!$headlessPassed) { Clear-Host }
@@ -65037,6 +65136,17 @@ Function Start-AriaSuiteLifecycleMenu {
             Write-Host -Object " 05. $menuItem05" -ForegroundColor White
             Write-Host -Object " 06. $menuItem06" -ForegroundColor White
 
+            if ($recoveryWorkbook) {
+                Write-Host ""; Write-Host -Object " $headingItem06" -ForegroundColor Cyan
+                Write-Host ""; Write-Host -Object " $headingItem07" -ForegroundColor Yellow
+                Write-Host -Object " 10. $menuItem10" -ForegroundColor White
+                Write-Host -Object " 11. $menuItem11" -ForegroundColor White
+
+                Write-Host ""; Write-Host -Object " $headingItem08" -ForegroundColor Yellow
+                Write-Host -Object " 15. $menuItem15" -ForegroundColor White
+                Write-Host -Object " 16. $menuItem16" -ForegroundColor White
+            }
+
             Write-Host -Object ''
             $menuInput = if ($clioptions) { Get-NextSolutionOption } else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
             $menuInput = $MenuInput -replace "`t|`n|`r", ""
@@ -65044,22 +65154,42 @@ Function Start-AriaSuiteLifecycleMenu {
             Switch ($menuInput) {
                 1 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem01" -Foregroundcolor Cyan; Write-Host ''
-                    Export-VrslcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    Export-VrslcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
                 2 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem02" -Foregroundcolor Cyan; Write-Host ''
-                    Test-VrslcmPrerequisite -jsonFile ($jsonPath + $jsonSpecFile)
+                    Test-VrslcmPrerequisite -jsonFile ($jsonPath + $protectedJsonSpecFile)
                     waitKey
                 }
                 5 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem05" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-VrslcmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    Invoke-VrslcmDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -binaries $binaryPath
                     waitKey
                 }
                 6 {
                     if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem06" -Foregroundcolor Cyan; Write-Host ''
-                    Invoke-VrslcmUndoDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    Invoke-VrslcmUndoDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile)
+                    waitKey
+                }
+                10 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem10" -Foregroundcolor Cyan; Write-Host ''
+                    Export-VrslcmJsonSpec -workbook $recoveryWorkbook -jsonFile ($jsonPath + $recoveryJsonSpecFile)
+                    waitKey
+                }
+                11 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem1" -Foregroundcolor Cyan; Write-Host ''
+                    Test-VrslcmPrerequisite -jsonFile ($jsonPath + $recoveryJsonSpecFile)
+                    waitKey
+                }
+                15 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem15" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-VrslcmDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -binaries $binaryPath
+                    waitKey
+                }
+                16 {
+                    if (!$headlessPassed) { Clear-Host }; Write-Host `n " $submenuTitle : $menuItem16" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-VrslcmUndoDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile)
                     waitKey
                 }
                 B {
