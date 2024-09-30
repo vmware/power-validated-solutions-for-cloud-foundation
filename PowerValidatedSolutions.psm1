@@ -3877,11 +3877,10 @@ Function Invoke-PdrSolutionInterop {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Install the $operationsProductName Management Pack for Site Recovery Manager"
+                                            Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for Site Recovery Manager"
                                             $srmPak = (Get-ChildItem $binaries | Where-Object { $_.name -match "VMware-srm-vrops-mp-" }).name
                                             $srmPakPath = $binaries + $srmPak
                                             if ($srmPak) {
-                                                Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for Site Recovery Manager"
                                                 $StatusMsg = Enable-vROPSManagementPack -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -packType SrmAdapter -pakfile $srmPakPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             } else {
@@ -3891,11 +3890,10 @@ Function Invoke-PdrSolutionInterop {
                                         }
 
                                         if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Install the $operationsProductName Management Pack for vSphere Replication"
+                                            Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for vSphere Replication"
                                             $vrsmPak = (Get-ChildItem $binaries | Where-Object { $_.name -match "VrAdapter-" }).name
                                             $vrmsPakPath = $binaries + $vrsmPak
                                             if ($vrsmPak) {
-                                                Show-PowerValidatedSolutionsOutput -message "Installing the $operationsProductName Management Pack for vSphere Replication"
                                                 $StatusMsg = Enable-vROPSManagementPack -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -packType VrAdapter -pakfile $vrmsPakPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             } else {
@@ -9360,7 +9358,7 @@ Function Set-RecoveryPlan {
                                                             if (!$newCallout) {
                                                                 Write-Error "Adding Callout Step to Recovery Plan ($rpName): POST_VALIDATION_FAILED"
                                                             } else {
-                                                                Write-Output "Adding Callout Step to Recovery Plan (($rpName): SUCCESSFUL"
+                                                                Write-Output "Adding Callout Step to Recovery Plan ($rpName): SUCCESSFUL"
                                                             }
                                                         }
                                                     }
@@ -9906,11 +9904,6 @@ Function Invoke-DriDeployment {
                         }
 
                         if (!$failureDetected) {
-                            $dnsA = $jsonInput.dns.Split(',')[0]
-                            $dnsB = $jsonInput.dns.Split(',')[1]
-                            $ntpA = $jsonInput.ntp.Split(',')[0]
-                            $ntpB = $jsonInput.ntp.Split(',')[1]
-
                             $wmClusterInput = @{
                                 server                            = $jsonInput.sddcManagerFqdn
                                 user                              = $jsonInput.sddcManagerUser
@@ -9925,20 +9918,20 @@ Function Invoke-DriDeployment {
                                 managementNetworkGateway          = $jsonInput.tanzuManagementGateway
                                 managementNetworkSubnetMask       = $jsonInput.tanzuManagementSubnetMask
                                 masterDnsName                     = $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn
-                                masterNtpServers                  = @($ntpA, $ntpB)
-                                masterDnsServers                  = @($dnsA, $dnsB)
+                                masterNtpServers                  = $ntpServers =  $jsonInput.ntp -split ","
+                                masterDnsServers                  = $dnsServers =  $jsonInput.dns -split ","
+                                masterDnsSearchDomain             = $jsonInput.searchPath
+                                masterStoragePolicy               = $jsonInput.storagePolicyName
+                                workerDnsServers                  = $dnsServers =  $jsonInput.dns -split ","
                                 contentLibrary                    = $jsonInput.contentLibraryName
                                 ephemeralStoragePolicy            = $jsonInput.storagePolicyName
                                 imageStoragePolicy                = $jsonInput.storagePolicyName
-                                masterStoragePolicy               = $jsonInput.storagePolicyName
                                 nsxEdgeCluster                    = $jsonInput.nsxEdgeCluster
                                 distributedSwitch                 = $jsonInput.distributedSwitch
                                 podCIDRs                          = $jsonInput.supervisorPodPoolCIDRs
                                 serviceCIDR                       = $jsonInput.supervisorServicePoolCIDR
                                 externalIngressCIDRs              = $jsonInput.tanzuIngressSubnetCidr
                                 externalEgressCIDRs               = $jsonInput.tanzuEgressSubnetCidr
-                                masterDnsSearchDomain             = $jsonInput.searchPath
-                                workerDnsServers                  = @($dnsA, $dnsB)
                             }
                             Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor"
                             $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -63969,6 +63962,8 @@ Function Test-SrmAuthenticationREST {
     )
 
     Try {
+        Remove-Variable -Name srmServerConnection -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+        Remove-Variable -Name srmRemoteAuthentication -Scope Global -Force -Confirm:$false -ErrorAction Ignore
         $srmServerConnection = Request-SrmTokenREST -fqdn $server -username $user -password $pass
 
         if ($srmServerConnection -match "Successfully") {
@@ -64005,6 +64000,8 @@ Function Test-VrmsAuthenticationREST {
     )
 
     Try {
+        Remove-Variable -Name vrmsServerConnection -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+        Remove-Variable -Name vrmsRemoteAuthentication -Scope Global -Force -Confirm:$false -ErrorAction Ignore
         $vrmsServerConnection = Request-VrmsTokenREST -fqdn $server -username $user -password $pass
 
         if ($vrmsServerConnection -match "Successfully") {
