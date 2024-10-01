@@ -20650,41 +20650,44 @@ Function Add-vROPSAdapterVcf {
                                             Write-Warning "Adding vSAN Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), already exists: SKIPPED"
                                         }
                                         if (-Not ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }))) {
-                                            $adapterJson = '{
-                                                "name": "'+ $workloadDomain.name + ' - NSX",
-                                                "description": "NSX Adapter - '+ $vcfNsxDetails.fqdn + '",
-                                                "adapterKindKey" : "NSXTAdapter",
-                                                "resourceKindKey" : "NSXTAdapterInstance",
-                                                "monitoringInterval": 5,
-                                                "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName }).id + '",
-                                                "resourceIdentifiers" : [
-                                                    { "name": "NSXTHOST", "value": "'+ $($vcfNsxDetails.fqdn) + '" },
-                                                    { "name": "VCURL", "value": "'+ $($vcfVcenterDetails.fqdn) + '" }
-                                                ],
-                                                "credential": {
-                                                    "id": "'+ (Get-vROPSCredential | Where-Object { $_.name -match "NSX Credential - $($($vcfNsxDetails.fqdn).Split('.')[-0])" }).id + '"
-                                                    }
-                                            }'
-                                            $adapterJson | Out-File .\nsxAddAdapter.json
-                                            Add-vROPSAdapter -json .\nsxAddAdapter.json | Out-Null
-                                            $testAdapter = Test-vROPSAdapterConnection -json .\nsxAddAdapter.json
-                                            $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\nsxCreatedAdapter.json
-                                            Test-vROPSAdapterConnection -json .\nsxCreatedAdapter.json -patch | Out-Null
-                                            $adapterDetail = Get-Content -Path .\nsxCreatedAdapter.json -Raw | ConvertFrom-Json
-                                            $adapterDetail.PSObject.Properties.Remove('links')
-                                            $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "NSX Adapter - $($vcfNsxDetails.fqdn)"
-                                            $adapterDetail.'adapter-certificates' = $adapterDetail.'adapter-certificates' | Select-Object * -ExcludeProperty certificateDetails
-                                            $adapterDetail.id = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id
-                                            $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\nsxPatchAdapter.json -Force
-                                            Set-vROPSAdapter -json .\nsxPatchAdapter.json -patch | Out-Null
-                                            #if (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }) {
-                                            if (Request-ConfigurationCheck -timeoutSeconds 300 -command '(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })') {
-                                                Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id | Out-Null
-                                            }
-                                            if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })) {
-                                                Write-Output "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): SUCCESSFUL"
+                                            if (-Not ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).description -match $vcfNsxDetails.fqdn)) {
+                                                $adapterJson = '{
+                                                    "name": "'+ $workloadDomain.name + ' - NSX",
+                                                    "description": "NSX Adapter - '+ $vcfNsxDetails.fqdn + '",
+                                                    "adapterKindKey" : "NSXTAdapter",
+                                                    "resourceKindKey" : "NSXTAdapterInstance",
+                                                    "monitoringInterval": 5,
+                                                    "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object { $_.name -eq $collectorGroupName }).id + '",
+                                                    "resourceIdentifiers" : [
+                                                        { "name": "NSXTHOST", "value": "'+ $($vcfNsxDetails.fqdn) + '" },
+                                                        { "name": "VCURL", "value": "'+ $($vcfVcenterDetails.fqdn) + '" }
+                                                    ],
+                                                    "credential": {
+                                                        "id": "'+ (Get-vROPSCredential | Where-Object { $_.name -match "NSX Credential - $($($vcfNsxDetails.fqdn).Split('.')[-0])" }).id + '"
+                                                        }
+                                                }'
+                                                $adapterJson | Out-File .\nsxAddAdapter.json
+                                                Add-vROPSAdapter -json .\nsxAddAdapter.json | Out-Null
+                                                $testAdapter = Test-vROPSAdapterConnection -json .\nsxAddAdapter.json
+                                                $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\nsxCreatedAdapter.json
+                                                Test-vROPSAdapterConnection -json .\nsxCreatedAdapter.json -patch | Out-Null
+                                                $adapterDetail = Get-Content -Path .\nsxCreatedAdapter.json -Raw | ConvertFrom-Json
+                                                $adapterDetail.PSObject.Properties.Remove('links')
+                                                $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "NSX Adapter - $($vcfNsxDetails.fqdn)"
+                                                $adapterDetail.'adapter-certificates' = $adapterDetail.'adapter-certificates' | Select-Object * -ExcludeProperty certificateDetails
+                                                $adapterDetail.id = (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id
+                                                $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\nsxPatchAdapter.json -Force
+                                                Set-vROPSAdapter -json .\nsxPatchAdapter.json -patch | Out-Null
+                                                if (Request-ConfigurationCheck -timeoutSeconds 300 -command '(Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })') {
+                                                    Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" }).id | Out-Null
+                                                }
+                                                if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.name -eq "$($workloadDomain.name) - NSX" })) {
+                                                    Write-Output "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): POST_VALIDATION_FAILED"
+                                                }
                                             } else {
-                                                Write-Error "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)): POST_VALIDATION_FAILED"
+                                                Write-Warning "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), shared NSX Manager: SKIPPED"
                                             }
                                         } else {
                                             Write-Warning "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for Workload Domain ($($workloadDomain.name)), already exists: SKIPPED"

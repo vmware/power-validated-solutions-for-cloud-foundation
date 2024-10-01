@@ -109,7 +109,7 @@
 - Enhanced `Export-CbrJsonSpec` cmdlet to export the DRaaS Connector hostname and FQDN.
 - Enhanced `Add-NetworkSegment` cmdlet to return the pre-validation error correctly (removed breaks in the code).
 - Enhanced `config.PowerValidatedSolutions` configuration file to include NSX version so be able to check for the binary for NSX Federation.
-- Enhanced `Add-vROPSAdapterVcf` cmdlet updated to provide additional output on progress.
+- Enhanced `Add-vROPSAdapterVcf` cmdlet updated to provide additional output on progress and checks on configuration process.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to force synchronization of global permissions.
 - Enhanced `Set-WorkspaceOneNtpConfig` cmdlet to handle a single NTP server.
 - Enhanced `Invoke-DriDeployment` cmdlet to handle single NTP and DNS servers.
