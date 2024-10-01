@@ -2,12 +2,12 @@
 
 ## Synopsis
 
-Adds Active Directory Group to sync in Workspace ONE Access Appliance
+Adds Active Directory Group to sync in Workspace ONE Access Appliance.
 
 ## Syntax
 
 ```powershell
-Add-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domainController] <String> [-domain] <String> [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [<CommonParameters>]
 ```
 
 ## Description
@@ -15,14 +15,14 @@ Add-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <Stri
 The `Add-WorkspaceOneDirectoryGroup` cmdlet adds an Active Directory Group to sync in Workspace ONE Access Appliance
 
 - Validates that network connectivity and authentication is possible to Workspace ONE Access
-- Adds Active Directory Groups to Workspace ONE Access.
+- Adds Active Directory Groups to Workspace ONE Access
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Add-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
+Add-WorkspaceOneDirectoryGroup -server xint-idm01.rainpole.io -user admin -pass VMw@re1! -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -bindUser svc-idm-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-ops-admins", "gg-ops-content-admins", "gg-ops-read-only"
 ```
 
 This example adds Active Directory groups to Workspace ONE Access directory.
@@ -77,6 +77,22 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -domainController
+
+The FQDN of the Domain Controller.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -domain
 
 The Active Directory Domain name.
@@ -87,7 +103,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 4
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -103,7 +119,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 5
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -119,7 +135,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 6
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -135,7 +151,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 7
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -151,23 +167,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
+Position: 9
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

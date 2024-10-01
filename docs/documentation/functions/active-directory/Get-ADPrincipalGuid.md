@@ -2,12 +2,12 @@
 
 ## Synopsis
 
-Get principal GUID details
+Get principal GUID details.
 
-## Syntax
+## SYNTAX
 
 ```powershell
-Get-ADPrincipalGuid [-domain] <String> [-user] <String> [-pass] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-ADPrincipalGuid [-domainController] <String> [-domain] <String> [-user] <String> [-pass] <String> [-principal] <String> [<CommonParameters>]
 ```
 
 ## Description
@@ -19,12 +19,28 @@ The `Get-ADPrincipalGuid` cmdlet retrieves the GUID details for an Active Direct
 ### Example 1
 
 ```powershell
-Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
+Get-ADPrincipalGuid -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-vc-admins
 ```
 
-This example retrieves the details for the group gg-sso-admin from the domain.
+This example retrieves the details for the group gg-vc-admins from the domain.
 
 ## Parameters
+
+### -domainController
+
+The FQDN of the Domain Controller.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
 
 ### -domain
 
@@ -36,7 +52,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 1
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -52,7 +68,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 2
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -68,7 +84,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 3
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -84,23 +100,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 4
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

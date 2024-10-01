@@ -7,7 +7,7 @@ Removes Active Directory Group from Workspace ONE Access.
 ## Syntax
 
 ```powershell
-Undo-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domainController] <String> [-domain] <String> [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [<CommonParameters>]
 ```
 
 ## Description
@@ -22,7 +22,7 @@ The `Undo-WorkspaceOneDirectoryGroup` cmdlet removes an Active Directory Group f
 ### Example 1
 
 ```powershell
-Undo-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
+Undo-WorkspaceOneDirectoryGroup -server xint-idm01.rainpole.io -user admin -pass VMw@re1! -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -bindUser svc-idm-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-ops-admins", "gg-ops-content-admins", "gg-ops-read-only"
 ```
 
 This example removes Active Directory groups from Workspace ONE Access directory.
@@ -77,6 +77,22 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -domainController
+
+The FQDN of the Domain Controller.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -domain
 
 The Active Directory Domain name.
@@ -87,7 +103,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 4
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -103,7 +119,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 5
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -119,7 +135,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 6
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -135,7 +151,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 7
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -151,23 +167,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-
-Progress Action
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
+Position: 9
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
