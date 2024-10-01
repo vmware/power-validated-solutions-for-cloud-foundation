@@ -1602,7 +1602,7 @@ Function Add-WorkspaceOneDirectory {
         - Creates an identity provider within Workspace ONE Access
 
         .EXAMPLE
-        Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
+        Add-WorkspaceOneDirectory -server xint-idm01.rainpole.io -user admin -pass VMw@re1! -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-idm-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-idm-admins", "gg-idm-directory-admins", "gg-idm-read-only", "gg-lcm-admins", "gg-lcm-release-managers", "gg-lcm-content-developers" -protocol "ldaps" -certificate ".\Root64.pem"
         This example configures the domain sfo.rainpole.io as a directory source in Workspace ONE Access Virtual Appliance and syncronises the groups provided
 
         .PARAMETER server
@@ -1613,6 +1613,9 @@ Function Add-WorkspaceOneDirectory {
 
         .PARAMETER pass
         The admin password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER domainController
+        The FQDN of the Domain Controller.
 
         .PARAMETER domain
         The domain name of the Active Directory Domain.
@@ -1643,6 +1646,7 @@ Function Add-WorkspaceOneDirectory {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainController,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDnUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDnGroup,
@@ -1685,7 +1689,7 @@ Function Add-WorkspaceOneDirectory {
                             $adUserJson = '{ "identityUserInfo": { "' + $bindUserDn + '": { "selected": true }, "' + $baseDnUser + '": { "selected": true }}}'
                             $mappedGroupObject = @()
                             foreach ($group in $adGroups) {
-                                $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user ($bindUserDn.Split(',')[0]).Split('=')[1] -pass $bindUserPass -principal $group
+                                $adGroupDetails = Get-ADPrincipalGuid -domainController $domainController -domain $domain -user ($bindUserDn.Split(',')[0]).Split('=')[1] -pass $bindUserPass -principal $group
                                 if ($adGroupDetails) {
                                     $groupsObject = @()
                                     $groupsObject += [pscustomobject]@{
@@ -17783,7 +17787,7 @@ Function Invoke-IomDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $operationsProductName in Workspace ONE Access"
-                                            $StatusMsg = Add-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Add-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domainController ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn -bindUser $jsonInput.wsaBindUser -bindPass $jsonInput.wsaBindPass -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                         }
 
@@ -24066,7 +24070,7 @@ Function Invoke-PcaDeployment {
 
                                             if (!$failureDetected) {
                                                 Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Groups for $automationProductName in Workspace ONE Access"
-                                                $StatusMsg = Add-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUserWsa -bindPass $jsonInput.domainBindPassWsa -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-WorkspaceOneDirectoryGroup -server (Get-VCFWSA).loadbalancerfqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domainController ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUserWsa -bindPass $jsonInput.domainBindPassWsa -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
 
@@ -30535,10 +30539,10 @@ Function Invoke-GlobalWsaDeployment {
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
                                             if ($PsBoundParameters.ContainsKey("standard")) {
-                                                $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.clusterFqdn -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.clusterFqdn -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domainController ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             } else {
-                                                $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.hostNameNodeA -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domainController ($jsonInput.domainControllerMachineName + "." + $jsonInput.domainFqdn) -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                             }
                                         }
@@ -36694,7 +36698,7 @@ Function Add-WorkspaceOneDirectoryGroup {
         - Adds Active Directory Groups to Workspace ONE Access
 
         .EXAMPLE
-        Add-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
+        Add-WorkspaceOneDirectoryGroup -server xint-idm01.rainpole.io -user admin -pass VMw@re1! -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -bindUser svc-idm-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-ops-admins", "gg-ops-content-admins", "gg-ops-read-only"
         This example adds Active Directory groups to Workspace ONE Access directory.
 
         .PARAMETER server
@@ -36705,6 +36709,9 @@ Function Add-WorkspaceOneDirectoryGroup {
 
         .PARAMETER pass
         The Workspace ONE Access Appliance admin password.
+
+        .PARAMETER domainController
+        The FQDN of the Domain Controller.
 
         .PARAMETER domain
         The Active Directory Domain name.
@@ -36726,6 +36733,7 @@ Function Add-WorkspaceOneDirectoryGroup {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainController,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindPass,
@@ -36754,7 +36762,7 @@ Function Add-WorkspaceOneDirectoryGroup {
 
                         $mappedGroupObject = @()
                         foreach ($group in $allGroups) {
-                            $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user $bindUser -pass $bindPass -principal $group
+                            $adGroupDetails = Get-ADPrincipalGuid -domainController $domainController -domain $domain -user $bindUser -pass $bindPass -principal $group
                             if ($adGroupDetails) {
                                 $groupsObject = @()
                                 $groupsObject += [pscustomobject]@{
@@ -36819,7 +36827,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
         - Remove Active Directory Groups from Workspace ONE Access
 
         .EXAMPLE
-        Undo-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
+        Undo-WorkspaceOneDirectoryGroup -server xint-idm01.rainpole.io -user admin -pass VMw@re1! -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -bindUser svc-idm-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-ops-admins", "gg-ops-content-admins", "gg-ops-read-only"
         This example removes Active Directory groups from Workspace ONE Access directory.
 
         .PARAMETER server
@@ -36830,6 +36838,9 @@ Function Undo-WorkspaceOneDirectoryGroup {
 
         .PARAMETER pass
         The Workspace ONE Access Appliance administrator password.
+
+        .PARAMETER domainController
+        The FQDN of the Domain Controller.
 
         .PARAMETER domain
         The Active Directory Domain name.
@@ -36851,6 +36862,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainController,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindPass,
@@ -36877,7 +36889,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
                         $allGroups.ToArray() | Out-Null
                         $mappedGroupObject = @()
                         foreach ($group in $allGroups) {
-                            $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user $bindUser -pass $bindPass -principal $group
+                            $adGroupDetails = Get-ADPrincipalGuid -domainController $domainController -domain $domain -user $bindUser -pass $bindPass -principal $group
                             if ($adGroupDetails) {
                                 $groupsObject = @()
                                 $groupsObject += [pscustomobject]@{
@@ -37447,8 +37459,11 @@ Function Get-ADPrincipalGuid {
         The Get-ADPrincipalGuid cmdlet retrieves the GUID details for an Active Directory user or group from a domain.
 
         .EXAMPLE
-        Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
-        This example retrieves the details for the group gg-sso-admin from the domain.
+        Get-ADPrincipalGuid -domainController sfo-ad01.sfo.rainpole.io -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-vc-admins
+        This example retrieves the details for the group gg-vc-admins from the domain.
+
+        .PARAMETER domainController
+        The FQDN of the Domain Controller.
 
         .PARAMETER domain
         The Active Directory Domain name.
@@ -37464,6 +37479,7 @@ Function Get-ADPrincipalGuid {
     #>
 
     Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainController,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
@@ -37471,11 +37487,11 @@ Function Get-ADPrincipalGuid {
     )
 
     Try {
-        $checkAdAuthentication = Test-ADAuthentication -user $user -pass $pass -server $domain -domain $domain
+        $checkAdAuthentication = Test-ADAuthentication -user $user -pass $pass -server $domainController -domain $domain
         if ($checkAdAuthentication[1] -match "AD Authentication Successful") {
             $securePassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
             $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
-            $nsxAdminGroupObject = (Get-ADGroup -Server $domain -Credential $creds -Filter { SamAccountName -eq $principal })
+            $nsxAdminGroupObject = (Get-ADGroup -Server $domainController -Credential $creds -Filter { SamAccountName -eq $principal})
             $nsxAdminGroupObject
         } else {
             Write-Error "Domain User $user Authentication Failed"

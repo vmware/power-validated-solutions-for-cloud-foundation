@@ -113,6 +113,13 @@
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to force synchronization of global permissions.
 - Enhanced `Set-WorkspaceOneNtpConfig` cmdlet to handle a single NTP server.
 - Enhanced `Invoke-DriDeployment` cmdlet to handle single NTP and DNS servers.
+- Enhanced `Add-WorkspaceOneDirectory` cmdlet with -domainController parameter.
+- Enhanced `Add-WorkspaceOneDirectoryGroup` cmdlet with -domainController parameter.
+- Enhanced `Undo-WorkspaceOneDirectoryGroup` cmdlet with -domainController parameter.
+- Enhanced `Get-ADPrincipalGuid` cmdlet with -domainController parameter.
+- Enhanced `Invoke-IomDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectoryGroup`.
+- Enhanced `Invoke-PcaDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectoryGroup`.
+- Enhanced `Invoke-GlobalWsaDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectory`.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
