@@ -2,7 +2,7 @@
 
 ## v2.12.0
 
-> Release Date: (Not Released)
+> Release Date: 2024-10-09
 
 - Updated `VMware.PowerCLI` module dependency from 13.2.1 to 13.3.0.
 - Updated `Import-Excel` module dependency from 7.8.5 to 7.8.9.
