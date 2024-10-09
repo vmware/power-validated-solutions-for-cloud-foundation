@@ -24064,7 +24064,7 @@ Function Invoke-PcaDeployment {
                                                         $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -folderName ($sddcDomain.name + $jsonInput.folderSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         Foreach ($cluster in $sddcDomain.clusters) {
-                                                            $StatusMsg = Add-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -resourcePoolName (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                            $StatusMsg = Add-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -resourcePoolName (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -cluster ((Get-VCFCluster -id $cluster.id).name) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                         }
                                                     }
@@ -24169,7 +24169,7 @@ Function Invoke-PcaDeployment {
                                                 foreach ($sddcDomain in $allWorkloadDomains) {
                                                     if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                         Show-PowerValidatedSolutionsOutput -message "Configuring the Cloud Zones in $automationProductName for Workload Domain ($($sddcDomain.name))"
-                                                        $StatusMsg = Update-vRACloudAccountZone -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -tagKey $jsoninput.tagKey -tagValue $jsonInput.tagValue -folder ($sddcDomain.name + $jsonInput.folderSuffix) -resourcePool (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                        $StatusMsg = Update-vRACloudAccountZone -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPassword -tagKey $jsoninput.tagKey -tagValue $jsonInput.tagValue -folder ($sddcDomain.name + $jsonInput.folderSuffix) -resourcePoolSuffix $jsonInput.resourcePoolSuffix -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                     }
                                                 }
@@ -25461,8 +25461,8 @@ Function Update-vRACloudAccountZone {
         .PARAMETER folder
         The folder name.
 
-        .PARAMETER resourcePool
-        The resource pool name.
+        .PARAMETER resourcePoolSuffix
+        The resource pool suffix.
 
         .PARAMETER placementPolicy
         The placement policy.
@@ -25478,7 +25478,7 @@ Function Update-vRACloudAccountZone {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagKey,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagValue,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folder,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$resourcePool,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$resourcePoolSuffix,
         [Parameter (Mandatory = $false)] [ValidateSet("ADVANCED", "DEFAULT", "SPREAD", "BINPACK")][ValidateNotNullOrEmpty()] [String]$placementPolicy
     )
 
@@ -25491,16 +25491,21 @@ Function Update-vRACloudAccountZone {
                             $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
                                 if (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }) {
-                                    if ($PsBoundParameters.ContainsKey("resourcePool")) {
-                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                                        if (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }) {
-                                            $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
-                                            Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }).id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                            Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
-                                            Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                            Write-Output "Updating Cloud Zone Configuration in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
-                                        } else {
-                                            Write-Error "Unable to find Resource Pool in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
+                                    if ($PsBoundParameters.ContainsKey("resourcePoolSuffix")) {
+                                        $clusters = (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id
+                                        foreach ($cluster in $clusters) {
+                                            $cluster = (Get-VCFCluster -id $cluster).Name
+                                            $rpWithSuffix = $cluster+$resourcePoolSuffix
+                                            if (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $rpWithSuffix) }) {
+                                                $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
+                                                Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $rpWithSuffix) }).id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                                Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
+                                                Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                                Write-Output "Updating Cloud Zone Configuration in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $rpWithSuffix)): SUCCESSFUL"
+
+                                            } else {
+                                                Write-Error "Unable to find Resource Pool in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn) named ($rpWithSuffix): PRE_VALIDATION_FAILED"
+                                            }
                                         }
                                     }
                                     if ($PsBoundParameters.ContainsKey("placementPolicy")) {
@@ -35056,7 +35061,7 @@ Function Add-VMFolder {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id | Select-Object -first 1) }).Name
                                 $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcfVcenterDetails.fqdn).Name
                                 if (Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore) {
                                     Write-Warning "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName), already exists: SKIPPED"
@@ -35275,6 +35280,9 @@ Function Add-ResourcePool {
         .PARAMETER Domain
         The VMware Cloud Foundation domain name.
 
+        .PARAMETER cluster
+        (Optional) the cluster name, if none is given the first cluster of the Domain will be used.
+
         .PARAMETER resourcePoolName
         The name of the resource pool to create.
     #>
@@ -35284,7 +35292,8 @@ Function Add-ResourcePool {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourcePoolName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourcePoolName,
+        [Parameter (Mandatory = $false)] [String]$cluster
     )
 
     Try {
@@ -35294,7 +35303,9 @@ Function Add-ResourcePool {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                if (!$cluster) {
+                                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id | Select-Object -first 1) }).Name
+                                }
                                 if (!(Get-ResourcePool -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $resourcePoolName })) {
                                     New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcfVcenterDetails.fqdn | Out-Null
                                     if (Get-ResourcePool -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $resourcePoolName }) {
