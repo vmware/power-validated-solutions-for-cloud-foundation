@@ -8,10 +8,10 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'PowerValidatedSolutions.psm1'
+    RootModule        = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion = '2.12.0.1050'
+    ModuleVersion     = '2.12.0.1050'
 
     # ID used to uniquely identify this module
     GUID              = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
