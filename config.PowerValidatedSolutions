@@ -33,15 +33,15 @@
             },
             {
                 "AriaComponent": "AriaOperationsForNetworks",
-                "Version": "6.13.0"
+                "Version": "6.14.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "WorkspaceONE",
@@ -67,15 +67,15 @@
             },
             {
                 "AriaComponent": "AriaOperationsForNetworks",
-                "Version": "6.13.0"
+                "Version": "6.14.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "WorkspaceONE",
@@ -101,15 +101,15 @@
             },
             {
                 "AriaComponent": "AriaOperationsForNetworks",
-                "Version": "6.13.0"
+                "Version": "6.14.0"
             },
             {
                 "AriaComponent": "AriaOperations",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "AriaAutomation",
-                "Version": "8.18.0"
+                "Version": "8.18.1"
             },
             {
                 "AriaComponent": "WorkspaceONE",
@@ -127,7 +127,7 @@
             },
             {
                 "AriaComponent": "AriaSuiteLifecyclePsPack",
-                "Version": ""
+                "Version": "PSPACK3"
             },
             {
                 "AriaComponent": "AriaOperationsForLogs",
