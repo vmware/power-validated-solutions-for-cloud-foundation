@@ -1,5 +1,12 @@
 # Release History
 
+## v2.12.1
+
+> Release Date: Not Released
+
+- Update `Invoke-DriDeployment` cmdlet to support updated releases of VMware vSphere Kubernetes (Vkr), *f.k.a.*, Tanzu Kubernetes (TKr).
+  [Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-releases/services/rn/vmware-tanzu-kubernetes-releases-release-notes/index.html)
+
 ## v2.12.0
 
 > Release Date: 2024-10-09
