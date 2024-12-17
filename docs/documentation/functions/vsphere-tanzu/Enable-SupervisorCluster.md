@@ -7,7 +7,7 @@ Enables Workload Management on a VCF cluster
 ## Syntax
 
 ```powershell
-Enable-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-sizeHint] <String> [-managementNetworkMode] <String> [-managementVirtualNetwork] <String> [-managementNetworkStartIpAddress] <String> [-managementNetworkAddressRangeSize] <Int32> [-managementNetworkGateway] <String> [-managementNetworkSubnetMask] <String> [-masterDnsName] <Array> [-masterNtpServers] <Array> [-masterDnsServers] <Array> [-contentLibrary] <String> [-ephemeralStoragePolicy] <String> [-imageStoragePolicy] <String> [-masterStoragePolicy] <String> [-nsxEdgeCluster] <String> [-distributedSwitch] <String> [-podCIDRs] <String> [-serviceCIDR] <String> [-externalIngressCIDRs] <String> [-externalEgressCIDRs] <String> [-masterDnsSearchDomain] <String> [-workerDnsServers] <Array> [[-ConfigurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Enable-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-cluster] <String> [-supervisorName] <String> [-sizeHint] <String> [-managementNetworkMode] <String> [-managementVirtualNetwork] <String> [-managementNetworkStartIpAddress] <String> [-managementNetworkAddressRangeSize] <Int32> [-managementNetworkGateway] <String> [-managementNetworkSubnetMask] <String> [-masterDnsName] <Array> [-masterNtpServers] <Array> [-masterDnsServers] <Array> [-contentLibrary] <String> [-ephemeralStoragePolicy] <String> [-imageStoragePolicy] <String> [-masterStoragePolicy] <String> [-nsxEdgeCluster] <String> [-distributedSwitch] <String> [-podCIDRs] <String> [-serviceCIDR] <String> [-externalIngressCIDRs] <String> [-externalEgressCIDRs] <String> [-masterDnsSearchDomain] <String> [-workerDnsServers] <Array> [[-configurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -55,17 +55,12 @@ $wmClusterInput = @{
     workerDnsServers = @("172.16.11.4", "172.16.11.5")
     masterDnsSearchDomain = "sfo.rainpole.io"
 }
-```
-
-### Example 2
-
-```powershell
-Enable-SupervisorCluster @wmClusterInput 
+Enable-SupervisorCluster @wmClusterInput
 ```
 
 This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
 
-### Example 3
+### Example 2
 
 ```powershell
 Enable-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -sizeHint Tiny -managementVirtualNetwork sfo-w01-kub-seg01 -managementNetworkMode StaticRange -managementNetworkStartIpAddress 192.168.20.10 -managementNetworkAddressRangeSize 5 -managementNetworkGateway 192.168.20.1 -managementNetworkSubnetMask 255.255.255.0 -cluster sfo-w01-cl01 -contentLibrary Kubernetes -ephemeralStoragePolicy vsphere-with-tanzu-storage-policy -imageStoragePolicy vsphere-with-tanzu-storage-policy -masterStoragePolicy vsphere-with-tanzu-storage-policy -nsxEdgeCluster sfo-w01-ec01 -distributedSwitch sfo-w01-sfo-w01-vc01-sfo-w01-cl01-vds01 -podCIDRs "100.100.0.0/20" -serviceCIDR "100.200.0.0/22" -externalIngressCIDRs "192.168.21.0/24" -externalEgressCIDRs "192.168.22.0/24" -masterNtpServers @("172.16.11.253", "172.16.12.253") -masterDnsServers @("172.16.11.4", "172.16.11.5") -masterDnsName sfo-w01-cl01.sfo.rainpole.io -masterDnsSearchDomain sfo.rainpole.io -workerDnsServers @("172.16.11.4", "172.16.11.5")
@@ -155,6 +150,22 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -supervisorCluster
+
+The name of the supervisor cluster.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 6
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -sizeHint
 
 The size of the vSphere cluster.
@@ -165,7 +176,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 6
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -181,7 +192,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 7
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -197,7 +208,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 8
+Position: 9
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -213,7 +224,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 9
+Position: 10
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -229,7 +240,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 10
+Position: 11
 Default value: 0
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -245,7 +256,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 11
+Position: 12
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -261,7 +272,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 12
+Position: 13
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -277,7 +288,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 13
+Position: 14
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -293,7 +304,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 14
+Position: 15
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -309,7 +320,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 15
+Position: 16
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -325,7 +336,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 16
+Position: 17
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -341,7 +352,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 17
+Position: 18
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -357,7 +368,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 18
+Position: 19
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -373,7 +384,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 19
+Position: 20
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -389,7 +400,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 20
+Position: 21
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -405,7 +416,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 21
+Position: 22
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -421,7 +432,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 22
+Position: 23
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -437,7 +448,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 23
+Position: 24
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -453,7 +464,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 24
+Position: 25
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -469,7 +480,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 25
+Position: 26
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -485,7 +496,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 26
+Position: 27
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -501,13 +512,13 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 27
+Position: 28
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ConfigurationTimeoutSeconds
+### -configurationTimeoutSeconds
 
 The timeout in seconds for the configuration to complete.
 
@@ -517,7 +528,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 28
+Position: 29
 Default value: 3600
 Accept pipeline input: False
 Accept wildcard characters: False

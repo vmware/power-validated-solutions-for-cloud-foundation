@@ -11276,8 +11276,6 @@ Function Enable-SupervisorCluster {
             workerDnsServers = @("172.16.11.4", "172.16.11.5")
             masterDnsSearchDomain = "sfo.rainpole.io"
         }
-
-        .EXAMPLE
         Enable-SupervisorCluster @wmClusterInput
         This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
 
@@ -11299,6 +11297,9 @@ Function Enable-SupervisorCluster {
 
         .PARAMETER cluster
         The name of the vSphere cluster.
+
+        .PARAMETER supervisorName
+        The name of the supervisor cluster.
 
         .PARAMETER sizeHint
         The size of the vSphere cluster.
@@ -11382,6 +11383,7 @@ Function Enable-SupervisorCluster {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$supervisorName,
         [Parameter (Mandatory = $true)] [ValidateSet("Tiny", "Small", "Medium", "Large")] [String]$sizeHint,
         [Parameter (Mandatory = $true)] [ValidateSet("DHCP", "StaticRange")][String]$managementNetworkMode,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementVirtualNetwork,
@@ -11717,7 +11719,7 @@ Function Enable-SupervisorCluster {
                                                     ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
                                                     MasterDnsNames                    = $masterDnsName
                                                     MasterNtpServer                   = $masterNtpServers
-                                                    Cluster                           = (Get-Cluster -Name $cluster)
+                                                    Cluster                           = $supervisorName -or (Get-Cluster -Name $cluster)
                                                     EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
                                                     ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
                                                     MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
