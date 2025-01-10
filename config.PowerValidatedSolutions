@@ -50,6 +50,10 @@
             {
                 "vcfComponent": "Nsx",
                 "Version": "4.1.2.1"
+            },
+                        {
+                "vcfComponent": "VsphereKubernetes",
+                "Version": "1.23"
             }
         ],
         "5.1.1":[
@@ -84,6 +88,10 @@
             {
                 "vcfComponent": "Nsx",
                 "Version": "4.1.2.3"
+            },
+                        {
+                "vcfComponent": "VsphereKubernetes",
+                "Version": "1.23"
             }
         ],
         "5.2.0":[
@@ -118,6 +126,10 @@
             {
                 "vcfComponent": "Nsx",
                 "Version": "4.2.0.0"
+            },
+                        {
+                "vcfComponent": "VsphereKubernetes",
+                "Version": "1.29"
             }
         ],
         "5.2.1":[
@@ -152,6 +164,10 @@
             {
                 "vcfComponent": "Nsx",
                 "Version": "4.2.1.0"
+            },
+                        {
+                "vcfComponent": "VsphereKubernetes",
+                "Version": "1.29"
             }
         ]
     }]
