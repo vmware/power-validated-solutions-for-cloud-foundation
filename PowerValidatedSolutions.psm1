@@ -12876,26 +12876,19 @@ Function Add-SupervisorService {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registerYaml,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$registerYaml,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$configureYaml
     )
 
-    if (-Not ($PsBoundParameters.ContainsKey("registerYaml"))) {
-        $registerYaml = Get-ExternalFileName -title "Select the Supervisor Service Registration YAML (.yml) File" -fileType "yml" -location "default"
-    }
-    if (-Not ($PsBoundParameters.ContainsKey("configureYaml"))) {
-        $configureYaml = Get-ExternalFileName -title "Select the Supervisor Service Configuration YAML (.yml) File" -fileType "yml" -location "default"
-    }
-
     Try {
-        if (Test-Path -Path $registerYaml) {
-            if (Test-Path -Path $configureYaml) {
-                if (Test-VCFConnection -server $server) {
-                    if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
-                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                    if (($clusterDetails = Invoke-ListNamespaceManagementClusters | Where-Object { $_.cluster_name -eq $cluster })) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (($clusterDetails = Invoke-ListNamespaceManagementClusters | Where-Object { $_.cluster_name -eq $cluster })) {
+                                if ($PsBoundParameters.ContainsKey("registerYaml")) {
+                                    if (Test-Path -Path $registerYaml) {
                                         $supervisorService = (($supervisorService = (Select-String -Path $registerYaml -Pattern 'refName: ')) -Split ('refName: '))[-1]
                                         $supervisorServiceVersion = (($supervisorServiceVersion = (Select-String -Path $registerYaml -Pattern 'version: ' -CaseSensitive)) -Split ('version: '))[-1]
                                         $supervisorServiceDisplayName = (($supervisorServiceDisplayName = (Select-String -Path $registerYaml -Pattern 'displayName: ' -CaseSensitive)) -Split ('displayName: '))[-1]
@@ -12908,42 +12901,47 @@ Function Add-SupervisorService {
                                             $supervisorServiceCreateSpec = Initialize-NamespaceManagementSupervisorServicesCreateSpec -CarvelSpec $supervisorServiceCarvelCreateSpec
                                             Invoke-CreateNamespaceManagementSupervisorServices -Server $DefaultVIServer -NamespaceManagementSupervisorServicesCreateSpec $supervisorServiceCreateSpec | Out-Null
                                             if (Invoke-ListNamespaceManagementSupervisorServices -Server $DefaultVIServer | Where-Object { $_.display_name -eq $supervisorServiceDisplayName }) {
-                                                Write-Output "Registration of Supervisor Service ($supervisorService): SUCCESFUL"
+                                                Write-Output "Registration of Supervisor Service ($supervisorService): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Registration of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Registration of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
-                                        }
-                                        if (-Not (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService })) {
-                                            $supervisorServiceConfigurationYaml = Get-Content -Path $configureYaml -Raw
-                                            $supervisorServiceConfigurationYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceConfigurationYaml)
-                                            $supervisorServiceConfigurationYamlBase64 = [System.Convert]::ToBase64String($supervisorServiceConfigurationYamlArray)
-                                            $supervisorServicesCreateSpec = Initialize-NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec -SupervisorService $supervisorService -Version $supervisorServiceVersion -YamlServiceConfig $supervisorServiceConfigurationYamlBase64
-                                            Invoke-CreateClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster -NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec $supervisorServicesCreateSpec | Out-Null
-                                            Start-Sleep 5
-                                            if (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
-                                                Write-Output "Deployment of Supervisor Service ($supervisorService): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Deployment of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
-                                            }
-                                        } else {
-                                            Write-Warning "Deployment of Supervisor Service ($supervisorService), aleady exists: SKIPPED"
+                                            Write-Warning "Registration of Supervisor Service ($supervisorService), already exists: SKIPPED"
                                         }
                                     } else {
-                                        Write-Error "Unable to locate a Kubernetes Cluster on Cluster ($cluster): PRE_VALIDATION_FAILED"
+                                        Write-Error "Supervisor Service Registration YAML (.yml) File ($registerYaml) File Not Found: PRE_VALIDATION_FAILED"
                                     }
                                 }
-                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                if ($PsBoundParameters.ContainsKey("configureYaml")) {
+                                    if (Test-Path -Path $configureYaml) {
+                                        $supervisorServiceConfigurationYaml = Get-Content -Path $configureYaml -Raw
+                                        if (-Not $supervisorServiceConfigurationYaml) {
+                                            $supervisorServiceConfigurationYaml = "cci:`n  configFileContents: {}"
+                                        }
+                                        $supervisorServiceConfigurationYamlArray = [System.Text.Encoding]::UTF8.GetBytes($supervisorServiceConfigurationYaml)
+                                        $supervisorServiceConfigurationYamlBase64 = [System.Convert]::ToBase64String($supervisorServiceConfigurationYamlArray)
+                                        $supervisorServicesCreateSpec = Initialize-NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec -SupervisorService $supervisorService -Version $supervisorServiceVersion -YamlServiceConfig $supervisorServiceConfigurationYamlBase64
+                                        Invoke-CreateClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster -NamespaceManagementSupervisorServicesClusterSupervisorServicesCreateSpec $supervisorServicesCreateSpec | Out-Null
+                                        Start-Sleep 5
+                                        if (Invoke-ListClusterNamespaceManagementSupervisorServices -Server $DefaultVIServer -Cluster $clusterDetails.cluster | Where-Object { $_.supervisor_service -eq $supervisorService }) {
+                                            Write-Output "Deployment of Supervisor Service ($supervisorService): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Deployment of Supervisor Service ($supervisorService): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Supervisor Service Configuration YAML (.yml) File ($configureYaml) File Not Found: PRE_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "No configuration YAML provided, skipping deployment."
+                                }
+                            } else {
+                                Write-Error "Unable to locate a Kubernetes Cluster on Cluster ($cluster): PRE_VALIDATION_FAILED"
                             }
                         }
+                        Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
                     }
                 }
-            } else {
-                Write-Error "Supervisor Service Configuration YAML (.yml) File ($configureYaml) File Not Found: PRE_VALIDATION_FAILED"
             }
-        } else {
-            Write-Error "Supervisor Service Registration YAML (.yml) File ($registerYaml) File Not Found: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
