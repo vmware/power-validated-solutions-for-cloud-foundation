@@ -2,10 +2,12 @@
 
 ## v2.12.1
 
-> Release Date: Not Released
+> Release Date: 2025-03-04
 
-- Update `Invoke-DriDeployment` cmdlet to support updated releases of VMware vSphere Kubernetes (Vkr), *f.k.a.*, Tanzu Kubernetes (TKr).
+- Updated `Invoke-DriDeployment` cmdlet to support updated releases of VMware vSphere Kubernetes (Vkr), *f.k.a.*, Tanzu Kubernetes (TKr).
   [Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-releases/services/rn/vmware-tanzu-kubernetes-releases-release-notes/index.html)
+- Updated `Enable-SupervisorCluster` cmdlet to so support setting the name of the supervisor cluster instead of inheriting it from the vSphere cluster name (default).
+- REnhanced `Add-SupervisorService` cmdlet validation for `-registerYaml` and `-configureYaml` parameters.
 
 ## v2.12.0
 
@@ -70,8 +72,8 @@
 - Added `Get-NsxtGlobalManagerTier1Gateway` cmdlet to retrieve a list of Tier-1 gateways from the NSX Global Manager.
 - Added `Get-NsxtGlobalManagerEdgeClusters` cmdlet to retrieve the NSX Edge cluster information for the specified site.
 - Added `Get-NsxtGlobalManagerTier1LocaleServices` cmdlet to retrieve the locale services of the Tier-1 gateway from the NSX Global Manager.
-- Added `New-NsxtGlobalManagerTier1Gateway` cmdlet to create a Teir 1 Gateway on the NSX Global Manager.
-- Added `New-NsxtGlobalManagerTier1LocaleServices` cmdlet to create locale services on the Teir 1 Gateway.
+- Added `New-NsxtGlobalManagerTier1Gateway` cmdlet to create a Tier 1 Gateway on the NSX Global Manager.
+- Added `New-NsxtGlobalManagerTier1LocaleServices` cmdlet to create locale services on the Tier 1 Gateway.
 - Added `Add-NsxtGlobalManagerTier1Gateway` cmdlet to create a Tier 1 Gateway on the NSX Global Manager.
 - Added `Remove-NsxtGlobalManagerTier1Gateway` cmdlet to delete the Tier 1 Gateway from the NSX Global Manager.
 - Added `Remove-NsxtGlobalManagerTier1LocaleServices` cmdlet to delete the locale service of Tier 1 Gateway from the NSX Global Manager.
@@ -120,13 +122,13 @@
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to force synchronization of global permissions.
 - Enhanced `Set-WorkspaceOneNtpConfig` cmdlet to handle a single NTP server.
 - Enhanced `Invoke-DriDeployment` cmdlet to handle single NTP and DNS servers.
-- Enhanced `Add-WorkspaceOneDirectory` cmdlet with -domainController parameter.
-- Enhanced `Add-WorkspaceOneDirectoryGroup` cmdlet with -domainController parameter.
-- Enhanced `Undo-WorkspaceOneDirectoryGroup` cmdlet with -domainController parameter.
-- Enhanced `Get-ADPrincipalGuid` cmdlet with -domainController parameter.
-- Enhanced `Invoke-IomDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectoryGroup`.
-- Enhanced `Invoke-PcaDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectoryGroup`.
-- Enhanced `Invoke-GlobalWsaDeployment` cmdlet with -domainController parameter for `Add-WorkspaceOneDirectory`.
+- Enhanced `Add-WorkspaceOneDirectory` cmdlet with `-domainController` parameter.
+- Enhanced `Add-WorkspaceOneDirectoryGroup` cmdlet with `-domainController` parameter.
+- Enhanced `Undo-WorkspaceOneDirectoryGroup` cmdlet with `-domainController` parameter.
+- Enhanced `Get-ADPrincipalGuid` cmdlet with `-domainController` parameter.
+- Enhanced `Invoke-IomDeployment` cmdlet with `-domainController` parameter for `Add-WorkspaceOneDirectoryGroup`.
+- Enhanced `Invoke-PcaDeployment` cmdlet with `-domainController` parameter for `Add-WorkspaceOneDirectoryGroup`.
+- Enhanced `Invoke-GlobalWsaDeployment` cmdlet with `-domainController` parameter for `Add-WorkspaceOneDirectory`.
 - Removed Alias `Request-NsxToken` from `Request-NsxtToken` cmdlet.
 
 ## v2.11.1
