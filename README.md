@@ -46,7 +46,8 @@ You can also start a discussion on the GitHub [discussions][gh-discussions] area
 
 ## License
 
-Copyright 2023-2025 Broadcom. All Rights Reserved.
+© Broadcom. All Rights Reserved.
+The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
