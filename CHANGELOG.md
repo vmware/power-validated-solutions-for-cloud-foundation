@@ -1,5 +1,11 @@
 # Release History
 
+## v2.12.2
+
+> Release Date: 2025-04-14
+
+- Fixed `Set-NsxtPrincipalIdentityCertificate` cmdlet export.
+
 ## v2.12.1
 
 > Release Date: 2025-03-04
@@ -7,7 +13,7 @@
 - Updated `Invoke-DriDeployment` cmdlet to support updated releases of VMware vSphere Kubernetes (Vkr), *f.k.a.*, Tanzu Kubernetes (TKr).
   [Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-releases/services/rn/vmware-tanzu-kubernetes-releases-release-notes/index.html)
 - Updated `Enable-SupervisorCluster` cmdlet to so support setting the name of the supervisor cluster instead of inheriting it from the vSphere cluster name (default).
-- REnhanced `Add-SupervisorService` cmdlet validation for `-registerYaml` and `-configureYaml` parameters.
+- Enhanced `Add-SupervisorService` cmdlet validation for `-registerYaml` and `-configureYaml` parameters.
 
 ## v2.12.0
 
