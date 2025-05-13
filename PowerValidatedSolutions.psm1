@@ -11720,7 +11720,7 @@ Function Enable-SupervisorCluster {
                                                     ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
                                                     MasterDnsNames                    = $masterDnsName
                                                     MasterNtpServer                   = $masterNtpServers
-                                                    Cluster                           = $supervisorName -or (Get-Cluster -Name $cluster)
+                                                    Cluster                           = if ($supervisorName) { $supervisorName } else { Get-Cluster -Name $cluster }
                                                     EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
                                                     ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
                                                     MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)

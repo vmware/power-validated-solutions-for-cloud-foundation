@@ -1,5 +1,11 @@
 # Release History
 
+## v2.12.3
+
+> Release Date: 2025-05-13
+
+- Fixed `Enable-SupervisorCluster` cmdlet handling of the `cluster` option.
+
 ## v2.12.2
 
 > Release Date: 2025-04-14
