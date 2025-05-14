@@ -1,5 +1,11 @@
 # Release History
 
+## v2.12.4
+
+> Release Date: Not Released
+
+- Refactored `Invoke-RestMethod` to use `New-NsxtSegment`.
+
 ## v2.12.3
 
 > Release Date: 2025-05-13
