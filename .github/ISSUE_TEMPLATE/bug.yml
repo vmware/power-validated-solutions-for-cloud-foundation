@@ -29,8 +29,11 @@ body:
     id: version-vcf
     attributes:
       label: VMware Cloud Foundation
-      description: Please provide the VMware Cloud Foundation version.
-      placeholder: '5.0'
+      description: >
+        Please provide the VMware Cloud Foundation version.
+
+        For details on specific VMware Cloud Foundation versions supported by this module, please refer to the [documentation](https://vmware.github.io/power-validated-solutions-for-cloud-foundation/).
+      placeholder: x.y.z
     validations:
       required: true
   - type: input
@@ -52,7 +55,7 @@ body:
         Please provide the PowerShell version.
         
         Results of: `$PSVersionTable`
-      placeholder: Windows PowerShell 5.1
+      placeholder: PowerShell 7
     validations:
       required: true
   - type: input
