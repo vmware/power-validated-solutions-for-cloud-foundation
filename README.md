@@ -17,9 +17,11 @@ The module helps reduce human error, delivers consistency and robustness, and ac
 
 This infrastructure-as-code model enables you to use the module to accelerate the deployment and management of the VMware Validate Solutions or use it in your own end-to-end automation.
 
+For details on specific VMware Cloud Foundation versions supported by this module, please refer to the [documentation][docs-module].
+
 ## Documentation
 
-Please refer to the [documentation][docs-module] for more information on how to use this module.
+For detailed instructions on using this module, refer to the [documentation][docs-module].
 
 ## Contributing
 
