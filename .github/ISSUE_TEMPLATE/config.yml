@@ -4,8 +4,8 @@ contact_links:
     url: 'https://vmware.github.io/power-validated-solutions-for-cloud-foundation/'
     about: Having trouble with the module? Check out the documentation.
   - name: VMware Validated Solutions
-    url: https://vmware.com/go/vvs
+    url: https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vvs/1-0.html
     about: VMware Validated Solutions are technical validated implementations built and tested by VMware and VMware Partners, designed to help customers solve common business problems using VMware Cloud Foundation as the foundational infrastructure.
   - name: VMware Cloud Foundation Product Documentation
-    url: https://docs.vmware.com/en/VMware-Cloud-Foundation/
+    url: https://techdocs.broadcom.com/us/en/vmware-cis/vcf.html
     about: Efficiently manage virtual machine and container workloads. Deliver cloud benefits to on-premises, full-stack hyperconverged infrastructure deployments.
