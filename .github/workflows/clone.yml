@@ -1,4 +1,4 @@
-ame: GitHub Clone Count Update Everyday
+name: GitHub Clone Count Update Everyday
 
 on:
   schedule:
