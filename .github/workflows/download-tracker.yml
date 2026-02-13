@@ -1,0 +1,24 @@
+name: "Track Release Downloads"
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Runs every four hours
+  workflow_dispatch:      # Allows you to run it manually
+
+jobs:
+  count-downloads:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and Count Downloads
+        run: |
+          # We use jq to navigate the JSON structure directly
+          TOTAL_DOWNLOADS=$(curl -s https://api.github.com/repos/vmware/power-validated-solutions-for-cloud-foundation/releases \
+            | jq '[.[] | .assets[].download_count] | add')
+          
+          echo "Total Release Downloads: $TOTAL_DOWNLOADS"
+          
+          # Optional: Save to a summary for the Action run
+          echo "### Release Statistics 📊" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Downloads:** $TOTAL_DOWNLOADS" >> $GITHUB_STEP_SUMMARY
