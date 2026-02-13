@@ -8,7 +8,7 @@
 [![PS Downloads](https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?label=Downloads)](https://www.powershellgallery.com/packages/PowerValidatedSolutions)
 [![Changelog](https://img.shields.io/badge/Changelog-Read-blue)](CHANGELOG.md)
 [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/nathanthaler/6b8b661047c597521acbad2a248b9098/raw/clone.json&logo=github)](https://gist.githubusercontent.com/nathanthaler/6b8b661047c597521acbad2a248b9098/raw/clone.json)
-
+![Downloads](https://img.shields.io/github/downloads/vmware/power-validated-solutions-for-cloud-foundation/total?label=Release%20Downloads)
 
 ## Overview
 
