@@ -6,10 +6,9 @@ on:
   workflow_dispatch:      # Allows you to run it manually
 
 jobs:
-  permissions:
-    contents: read
-    pull-requests: write
   count-downloads:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Fetch and Count Downloads
